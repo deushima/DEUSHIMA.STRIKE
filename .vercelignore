@@ -1,6 +1,10 @@
 assets/cs16/*
 !assets/cs16/sound/
 !assets/cs16/sound/**
+!assets/cs16/textures/
+assets/cs16/textures/*
+!assets/cs16/textures/wad/
+!assets/cs16/textures/wad/**
 .tmp
 analysis
 tools
