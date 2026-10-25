@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#0b0e0d" />
+    <title>DEUSHIMA STRIKE</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/vendor/three.module.js" as="script" crossorigin />
+    <link rel="stylesheet" href="/src/ui/ui.css" />
+    <link rel="stylesheet" href="/src/ui/online-ui.css" />
+    <link rel="stylesheet" href="/src/ui/classic.css" />
+    <link rel="stylesheet" href="/src/ui/goldsrc-theme.css" />
+    <style>
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #080a09; overflow: hidden; }
+      #app { position: fixed; inset: 0; overflow: hidden; background: #080a09; }
+      #game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: 0; image-rendering: pixelated; }
+      #ui-root { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+      #boot-screen {
+        position: absolute; inset: 0; z-index: 100; display: grid; place-items: center;
+        background:
+          linear-gradient(rgba(3, 7, 10, .36), rgba(3, 7, 10, .67)),
+          url("/assets/branding/menu-wallpaper.png") center/cover no-repeat,
+          #080a09;
+        color: #e8e2d8; font-family: Tahoma, Verdana, Arial, sans-serif; letter-spacing: 0.06em;
+      }
+      #boot-screen .boot-inner {
+        width: min(640px, calc(100vw - 40px)); padding: 20px 0;
+        text-align: center; text-shadow: 0 2px 12px rgba(0, 0, 0, .95);
+      }
+      #boot-screen .boot-title { margin: 0; }
+      #boot-screen .boot-logo {
+        display: block; width: min(560px, 100%); height: auto; margin: 0 auto;
+        object-fit: contain; filter: drop-shadow(0 5px 18px rgba(0, 0, 0, .68));
+      }
+      #boot-screen .boot-legal {
+        display: flex; flex-direction: column; gap: 4px;
+        margin: 12px 0 28px; color: #d4cfc2; font-size: 10px;
+        line-height: 1.4; letter-spacing: .08em;
+      }
+      #boot-screen .boot-status { margin: 0; font-size: 11px; color: #e8d8c1; }
+      #boot-screen .boot-bar {
+        width: min(320px, 75vw); height: 4px; margin: 17px auto 0;
+        background: #24251f; border: 1px solid rgba(255, 151, 50, .38); overflow: hidden;
+      }
+      #boot-screen .boot-bar i {
+        display: block; width: 38%; height: 100%;
+        background: linear-gradient(90deg, #dc6d13, #ff9825 55%, #ffb54b);
+        animation: bootscan 1.2s ease-in-out infinite alternate;
+      }
+      @keyframes bootscan { from { transform: translateX(-100%); } to { transform: translateX(350%); } }
+      @media (max-width: 600px) {
+        #boot-screen .boot-legal { font-size: 8px; margin-bottom: 22px; }
+        #boot-screen .boot-status { font-size: 9px; line-height: 1.5; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-screen .boot-bar i { animation: none; width: 55%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas" tabindex="0"></canvas>
+      <div id="name-tags" aria-hidden="true"></div>
+      <div id="ui-root"></div>
+      <canvas id="classic-hud" aria-hidden="true"></canvas>
+      <div id="classic-menu" class="hidden"></div>
+      <div id="classic-pause" class="hidden"></div>
+      <div id="classic-banner"></div>
+      <div id="classic-killfeed"></div>
+      <a href="/character-credits.html" target="_blank" rel="noopener" style="position:absolute;bottom:5px;left:10px;z-index:90;color:#b9b9b9;font:11px Arial;text-decoration:none">Créditos de personajes</a>
+      <div id="boot-screen">
+        <div class="boot-inner">
+          <h1 class="boot-title"><img class="boot-logo" src="/assets/branding/menu-logo-color.png" alt="DEUSHIMA STRIKE" fetchpriority="high" /></h1>
+          <div class="boot-legal">
+            <span>© 2026 DEUSHIMA · MARCA E IDENTIDAD VISUAL ORIGINAL · DERECHOS RESERVADOS</span>
+            <span>LOS RECURSOS DE TERCEROS PERTENECEN A SUS RESPECTIVOS TITULARES</span>
+          </div>
+          <p class="boot-status">CARGANDO MOTOR · GOLDSRC ASSETS · BROWSER EDITION</p>
+          <div class="boot-bar" role="progressbar" aria-label="Cargando DEUSHIMA STRIKE" aria-valuetext="Cargando"><i></i></div>
+        </div>
+      </div>
+    </div>
+    <script type="importmap">
+      { "imports": { "three": "/vendor/three.module.js" } }
+    </script>
+    <script src="/vendor/peerjs.min.js"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+assets/cs16/*
+!assets/cs16/sound/
+!assets/cs16/sound/**
+.tmp
+analysis
+tools
+tests
+*.zip

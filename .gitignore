@@ -1,0 +1,41 @@
+assets/cs16/*
+!assets/cs16/sound/
+!assets/cs16/sound/**
+!assets/cs16/textures/
+assets/cs16/textures/*
+!assets/cs16/textures/wad/
+!assets/cs16/textures/wad/**
+.tmp/
+analysis/tools/blender36/
+analysis/tools/*.zip
+analysis/tools/assimp/
+analysis/tools/bst/
+analysis/mdl_test/
+analysis/sprites_test/
+analysis/bsp_test/
+analysis/wad_test/
+analysis/wad_test2/
+analysis/wad_test3/
+analysis/wad_test_py/
+analysis/wad_test_py2/
+node_modules/
+
+# Git and Vercel generated data
+dist/
+.vercel/
+.vercel-output/
+.env
+.env.*
+!.env.example
+*.log
+# Development artifacts
+screenshots/
+tests/artifacts/
+analysis/
+.DS_Store
+Thumbs.db
+.vercel
+.env*
+
+# Local verification captures
+work/

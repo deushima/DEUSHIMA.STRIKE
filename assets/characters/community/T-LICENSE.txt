@@ -1,0 +1,11 @@
+Model Information:
+* title:	Leet model
+* source:	https://sketchfab.com/3d-models/leet-model-fe6216ca48b048e69e593b7a94a73f17
+* author:	Themodelingveseq•• (https://sketchfab.com/smokedawg12k)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Leet model" (https://sketchfab.com/3d-models/leet-model-fe6216ca48b048e69e593b7a94a73f17) by Themodelingveseq•• (https://sketchfab.com/smokedawg12k) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

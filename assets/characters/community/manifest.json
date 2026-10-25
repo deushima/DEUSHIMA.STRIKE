@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 2,
+  "selection": "User explicitly replaced earlier exact-ID targets with the two local community models on 2026-10-24.",
+  "targets": [
+    {
+      "team": "T",
+      "characterId": "community-leet-fe6216ca",
+      "title": "Leet model",
+      "source": "https://sketchfab.com/3d-models/leet-model-fe6216ca48b048e69e593b7a94a73f17",
+      "author": "Themodelingveseq•• (https://sketchfab.com/smokedawg12k)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "suppliedByUserAt": "2026-10-24",
+      "originalSha256": "00ea4d767d44ce25e6d722a0d71163a23b45eaff940d39ffb5e3b791d4061b16",
+      "originalBytes": 1540304,
+      "runtimeFile": "assets/characters/community/leet.glb",
+      "runtimeSha256": "00ea4d767d44ce25e6d722a0d71163a23b45eaff940d39ffb5e3b791d4061b16",
+      "changes": [
+        "Uniform normalization to 1.8 world units; face aligned to gameplay forward; independently authored runtime poses and weapon IK.",
+        "Original GLB, UV, materials, textures and 122-joint rig retained byte-for-byte.",
+        "Runtime neutral environment lighting for PBR materials; original material factors retained."
+      ],
+      "status": "INTEGRATED_AND_TESTED_LOCAL"
+    },
+    {
+      "team": "CT",
+      "characterId": "community-sas-d2807183",
+      "title": "PS1/Low Poly Gas Mask Soldier Character Model",
+      "source": "https://sketchfab.com/3d-models/ps1low-poly-gas-mask-soldier-character-model-d2807183ee004888890b4aa8285541d2",
+      "author": "Jellypack (https://sketchfab.com/jellypack)",
+      "license": "CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)",
+      "suppliedByUserAt": "2026-10-24",
+      "originalSha256": "d27979fc45fe3e6e85325949f8f8fe210966a5c33584f0f92a5d086fcf430d4b",
+      "originalBytes": 110168,
+      "runtimeFile": "assets/characters/community/sas.glb",
+      "runtimeSha256": "bffb3b4e82558bf414d511ee015f70334ca6833eb05918e5b91b3d89036b57bc",
+      "changes": [
+        "Uniform normalization to 1.8 world units; face aligned to gameplay forward; independently authored runtime poses and weapon IK.",
+        "Added 21-bone rig with heat weights transferred from a welded proxy. Original mesh: 657 vertices and 680 triangles. GLB export splits 3 attribute vertices (660 total); same 680 triangles and triangle-corner UVs within 1e-6. Texture pixels identical.",
+        "Runtime neutral environment lighting for PBR materials; original material factors retained."
+      ],
+      "status": "INTEGRATED_AND_TESTED_LOCAL"
+    }
+  ]
+}

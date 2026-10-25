@@ -1,0 +1,57 @@
+[
+  {
+    "team": "T",
+    "originalSha256": "00ea4d767d44ce25e6d722a0d71163a23b45eaff940d39ffb5e3b791d4061b16",
+    "runtimeSha256": "00ea4d767d44ce25e6d722a0d71163a23b45eaff940d39ffb5e3b791d4061b16",
+    "meshes": [
+      {
+        "sourceVertices": 3090,
+        "runtimeVertices": 3090,
+        "sourceTriangles": 4911,
+        "runtimeTriangles": 4911,
+        "triangleCornerUVsEqualAt1e6": true,
+        "hasNormals": true,
+        "hasTangents": false
+      },
+      {
+        "sourceVertices": 50,
+        "runtimeVertices": 50,
+        "sourceTriangles": 66,
+        "runtimeTriangles": 66,
+        "triangleCornerUVsEqualAt1e6": true,
+        "hasNormals": true,
+        "hasTangents": false
+      }
+    ],
+    "textureSize": [
+      1024,
+      1024
+    ],
+    "texturePixelsEqual": true,
+    "jointCount": 122,
+    "embeddedClips": 0
+  },
+  {
+    "team": "CT",
+    "originalSha256": "d27979fc45fe3e6e85325949f8f8fe210966a5c33584f0f92a5d086fcf430d4b",
+    "runtimeSha256": "bffb3b4e82558bf414d511ee015f70334ca6833eb05918e5b91b3d89036b57bc",
+    "meshes": [
+      {
+        "sourceVertices": 657,
+        "runtimeVertices": 660,
+        "sourceTriangles": 680,
+        "runtimeTriangles": 680,
+        "triangleCornerUVsEqualAt1e6": true,
+        "hasNormals": true,
+        "hasTangents": false
+      }
+    ],
+    "textureSize": [
+      256,
+      256
+    ],
+    "texturePixelsEqual": true,
+    "jointCount": 21,
+    "embeddedClips": 0
+  }
+]

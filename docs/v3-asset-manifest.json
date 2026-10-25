@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 2,
+  "selection": "User explicitly replaced earlier exact-ID targets with the two local community models on 2026-10-24.",
+  "targets": [
+    {
+      "team": "T",
+      "characterId": "community-leet-fe6216ca",
+      "title": "Leet model",
+      "source": "https://sketchfab.com/3d-models/leet-model-fe6216ca48b048e69e593b7a94a73f17",
+      "author": "Themodelingveseq•• (https://sketchfab.com/smokedawg12k)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "suppliedByUserAt": "2026-10-24",
+      "originalFile": "assets/characters/community/LEET/leet_model.glb",
+      "originalSha256": "00ea4d767d44ce25e6d722a0d71163a23b45eaff940d39ffb5e3b791d4061b16",
+      "originalBytes": 1540304,
+      "runtimeFile": "assets/characters/community/leet.glb",
+      "runtimeSha256": "00ea4d767d44ce25e6d722a0d71163a23b45eaff940d39ffb5e3b791d4061b16",
+      "changes": [
+        "Uniform normalization to 1.8 world units; face aligned to gameplay forward; independently authored runtime poses and weapon IK.",
+        "Original GLB, UV, materials, textures and 122-joint rig retained byte-for-byte.",
+        "Runtime neutral environment lighting for PBR materials; original material factors retained."
+      ],
+      "status": "INTEGRATED_AND_TESTED_LOCAL"
+    },
+    {
+      "team": "CT",
+      "characterId": "community-sas-d2807183",
+      "title": "PS1/Low Poly Gas Mask Soldier Character Model",
+      "source": "https://sketchfab.com/3d-models/ps1low-poly-gas-mask-soldier-character-model-d2807183ee004888890b4aa8285541d2",
+      "author": "Jellypack (https://sketchfab.com/jellypack)",
+      "license": "CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)",
+      "suppliedByUserAt": "2026-10-24",
+      "originalFile": "assets/characters/community/SAS/ps1low_poly_gas_mask_soldier_character_model.glb",
+      "originalSha256": "d27979fc45fe3e6e85325949f8f8fe210966a5c33584f0f92a5d086fcf430d4b",
+      "originalBytes": 110168,
+      "runtimeFile": "assets/characters/community/sas.glb",
+      "runtimeSha256": "bffb3b4e82558bf414d511ee015f70334ca6833eb05918e5b91b3d89036b57bc",
+      "changes": [
+        "Uniform normalization to 1.8 world units; face aligned to gameplay forward; independently authored runtime poses and weapon IK.",
+        "Added 21-bone rig with heat weights transferred from a welded proxy. Original mesh: 657 vertices and 680 triangles. GLB export splits 3 attribute vertices (660 total); same 680 triangles and triangle-corner UVs within 1e-6. Texture pixels identical.",
+        "Runtime neutral environment lighting for PBR materials; original material factors retained."
+      ],
+      "status": "INTEGRATED_AND_TESTED_LOCAL"
+    }
+  ],
+  "originalPackages": [
+    {
+      "path": "assets/characters/community/LEET/leet-model.zip",
+      "sha256": "976f35b29024488629e9a105a7e5c34234a4b1f05eae3b3587987016184967a8",
+      "bytes": 6384679
+    },
+    {
+      "path": "assets/characters/community/LEET/leet_model.zip",
+      "sha256": "49a9d095d50b0b12ad564e609e66c2e0af2805089dd3e15bbe889f2525e0748b",
+      "bytes": 1401466
+    },
+    {
+      "path": "assets/characters/community/SAS/ps1low-poly-gas-mask-soldier-character-model.zip",
+      "sha256": "bab20cd8b4394ab8972ae804ad1980f08e154f91498104c35e747a3c5a19719c",
+      "bytes": 201511
+    },
+    {
+      "path": "assets/characters/community/SAS/ps1low_poly_gas_mask_soldier_character_model.zip",
+      "sha256": "fb01313a6d9b46f7c94f608eb15a94a292254112fb48cb8111790a743e2c5d0d",
+      "bytes": 93065
+    }
+  ],
+  "publication": "SAS is CC BY-NC 4.0, so this integration is for noncommercial use with attribution. The user described both models as independent community designs. File inspection establishes supplied credits and structure, not independent authorship of every underlying element.",
+  "supersededTargets": [
+    "e6742602959246a5ba56f57fd96e1fb6",
+    "7f18aaccd0ee4694a36646101a12339e"
+  ]
+}

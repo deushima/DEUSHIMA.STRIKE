@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>html,body{margin:0;background:#20242a;overflow:hidden}canvas{display:block}</style>
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+</head>
+<body>
+  <script type="module">
+    import * as THREE from '/vendor/three.module.js';
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id') || 'v_ak47';
+    const scale = Number(params.get('scale') || 0.0254);
+    const rotX = Number(params.get('rx') || -Math.PI/2);
+    const rotY = Number(params.get('ry') || 0);
+    const px = Number(params.get('px') || 0);
+    const py = Number(params.get('py') || 0);
+    const pz = Number(params.get('pz') || 0);
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(params.get('bg') === 'light' ? 0x8a929c : 0x20242a);
+    const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.01, 20);
+    const cx = Number(params.get('cx') || 0);
+    const cy = Number(params.get('cy') || 0);
+    const cz = Number(params.get('cz') || 2);
+    camera.position.set(cx, cy, cz);
+    camera.lookAt(Number(params.get('lx') || 0), Number(params.get('ly') || 0), Number(params.get('lz') || 0));
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(1);
+    document.body.appendChild(renderer.domElement);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 2.2));
+    const l = new THREE.DirectionalLight(0xfff0dd, 3); l.position.set(1,2,2); scene.add(l);
+    const root = new THREE.Group();
+    root.scale.setScalar(scale);
+    if (params.get('basis') === '1') {
+      const basis = new THREE.Matrix4().makeBasis(
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(0, 1, 0),
+      );
+      root.quaternion.setFromRotationMatrix(basis);
+      root.rotateY(Number(params.get('yaw') || 0));
+      root.rotateX(Number(params.get('pitch') || 0));
+      root.rotateZ(Number(params.get('roll') || 0));
+    } else if (params.get('basis') === '2') {
+      root.quaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(
+          new THREE.Vector3(1, 0, 0),
+          new THREE.Vector3(0, 0, 1),
+          new THREE.Vector3(0, 1, 0),
+        ),
+      );
+      root.scale.x *= 1;
+      root.rotateY(Number(params.get('yaw') || 0));
+      root.rotateX(Number(params.get('pitch') || 0));
+      root.rotateZ(Number(params.get('roll') || 0));
+    } else {
+      root.rotation.set(rotX, rotY, 0);
+    }
+    root.position.set(px, py, pz);
+    scene.add(root);
+    const data = await (await fetch(`/assets/cs16/models/${id}.json`)).json();
+    const texLoader = new THREE.TextureLoader();
+    const only = params.get('only') || '';
+    const skip = (params.get('skip') || '').split(',').filter(Boolean);
+    for (const mat of data.materials) {
+      if (only && !only.split(',').includes(mat.name)) continue;
+      if (skip.includes(mat.name)) continue;
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(mat.positions, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(mat.normals, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(mat.uvs, 2));
+      let texture = null;
+      if (mat.texture) {
+        texture = await texLoader.loadAsync(`/assets/cs16/models/${mat.texture}`);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.magFilter = THREE.NearestFilter;
+      }
+      let material;
+      if (params.get('wire') === '1') {
+        material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true });
+      } else if (params.get('basic') === '1') {
+        material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      } else {
+        material = new THREE.MeshLambertMaterial({map:texture, color: texture?0xffffff:0xaaaaaa, side: THREE.DoubleSide});
+      }
+      const mesh = new THREE.Mesh(geo, material);
+      root.add(mesh);
+    }
+    function tick(){ requestAnimationFrame(tick); renderer.render(scene,camera); }
+    tick();
+    const box = new THREE.Box3().setFromObject(root);
+    const info = document.createElement('pre');
+    info.id = 'debug';
+    info.style.cssText = 'position:fixed;left:8px;top:8px;color:#fff;font:11px monospace;z-index:10;white-space:pre';
+    info.textContent = `box min ${box.min.toArray().map(v=>v.toFixed(3))}\nbox max ${box.max.toArray().map(v=>v.toFixed(3))}`;
+    document.body.appendChild(info);
+    window.__READY = true;
+  </script>
+</body>
+</html>

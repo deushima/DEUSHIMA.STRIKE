@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import * as THREE from '../vendor/three.module.js';
+import {PhysicsWorld} from '../src/core/physics.js';
+const V=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
+const floor=new THREE.Box3(V(-5,-1,-4),V(0,0,4));
+const ramp={minX:0,maxX:4,minZ:-2,maxZ:2,baseY:0,slopeX:.25};
+const world=new PhysicsWorld([floor],[ramp]);
+const b={pos:V(-.7,.001,0),vel:V(2,0,0),radius:.38,height:1.8,stepHeight:.45,onGround:true};
+for(let i=0;i<130;i++)world.moveBody(b,.01);
+assert.ok(b.pos.x>1.8&&b.pos.y>.5,'did not ascend real sloped plane');assert.equal(b.onGround,true);
+const high=b.pos.y;b.vel.x=-2;for(let i=0;i<80;i++)world.moveBody(b,.01);
+assert.ok(b.pos.y<high-.35,'did not descend plane');assert.equal(b.onGround,true);
+const fall={...b,pos:V(2,4,0),vel:V(0,-20,0),onGround:false};
+for(let i=0;i<30;i++)world.moveBody(fall,.01);
+assert.equal(fall.onGround,true);assert.ok(Math.abs(fall.pos.y-(2+.38)*.25-.001)<.002,'fall did not contact ramp surface');
+const wall={...b,pos:V(2,.2,3),vel:V(0,0,-50),onGround:false};world.moveBody(wall,.1);assert.ok(wall.pos.z>=2.37,'tunneled into ramp side');
+const ray=world.raycast(V(2,4,0),V(0,-1,0),5);assert.ok(ray&&Math.abs(ray.point.y-.5)<1e-8);assert.ok(ray.normal.y>.7);
+const steep=new PhysicsWorld([],[{...ramp,slopeX:2}]);
+const slide={...b,pos:V(1,2.762,0),vel:V(0,-2,0),onGround:false};
+for(let i=0;i<20;i++){slide.vel.y-=.2;steep.moveBody(slide,.01);}
+assert.equal(slide.onGround,false,'steep surface incorrectly walkable');assert.ok(slide.pos.x<1,'gravity did not slide down steep surface');
+world.setColliders([floor]);assert.equal(world.slopes.length,0,'map switch retained old ramps');
+console.log('slope-collision OK: finite plane ascent/descent, falling contact, solid sides, steep sliding, raycast and map cleanup');

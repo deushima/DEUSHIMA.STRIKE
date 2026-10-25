@@ -1,0 +1,254 @@
+/* DEUSHIMA STRIKE — visual language of a compact 2003 PC application.
+   The approved wallpaper and both logo placements remain in classic.css. */
+:root {
+  --gs-panel: #414b3c;
+  --gs-panel-dark: #30392d;
+  --gs-title: #56624f;
+  --gs-edge-light: #899382;
+  --gs-edge-dark: #222a21;
+  --gs-text: #e2e5dc;
+  --gs-muted: #bac4b4;
+  --gs-select: #69765d;
+  --gs-accent: #bdd2aa;
+  --gs-font: Tahoma, Verdana, Arial, sans-serif;
+  --gs-mono: "Lucida Console", Consolas, monospace;
+}
+
+/* Main menu: only the letterforms change between idle and armed. */
+#classic-menu .cm-topline,
+#classic-menu .cm-brand .cm-sub,
+#classic-menu .cm-brand .cm-rule { display: none; }
+#classic-menu .cm-nav {
+  width: min(415px, 39vw);
+  gap: 1px;
+  top: 32%;
+}
+#classic-menu .cm-btn,
+#classic-menu .cm-btn.primary {
+  display: block;
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 7px 7px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #c8c8c8;
+  font: 400 clamp(17px, 1.06vw, 21px)/1.25 Verdana, Tahoma, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+  text-shadow: none;
+  transition: color 70ms linear, text-shadow 90ms linear;
+  cursor: pointer;
+}
+#classic-menu .cm-btn .idx,
+#classic-menu .cm-btn .hint { display: none; }
+#classic-menu .cm-btn:hover,
+#classic-menu .cm-btn:focus-visible,
+#classic-menu .cm-btn.primary:hover,
+#classic-menu .cm-btn.primary:focus-visible { border: 0; background: transparent; color: #c8c8c8; outline: none; }
+#classic-menu .cm-btn.is-armed,
+#classic-menu .cm-btn.primary.is-armed {
+  color: #fff;
+  text-shadow: 0 0 2px rgba(255,255,255,.92), 0 0 6px rgba(255,252,237,.78), 0 0 12px rgba(255,244,207,.35);
+}
+#classic-menu .cm-btn:active,
+#classic-menu .cm-btn.primary:active { color: #c0ba50; text-shadow: 0 0 3px rgba(192,186,80,.28); }
+#classic-menu .cm-btn:disabled { opacity: .42; pointer-events: none; cursor: default; text-shadow: none; }
+#classic-menu .cm-fullscreen {
+  border: 0; border-radius: 0; background: transparent; box-shadow: none;
+  color: #c8c8c8; font: 12px var(--gs-font);
+}
+#classic-menu .cm-fullscreen:hover,
+#classic-menu .cm-fullscreen:focus-visible { background: transparent; color: #fff; text-shadow: 0 0 6px rgba(255,255,255,.7); outline: 1px dotted #c8c8c8; }
+#classic-menu .cm-fullscreen .cm-fs-icon,
+#classic-menu .cm-fullscreen.is-fullscreen .cm-fs-icon { color: #c8c8c8; }
+
+/* Shared window, title and controls. */
+#classic-root, #ui-root { font-family: var(--gs-font); }
+#classic-pause { background: rgba(5, 8, 5, .78); font-family: var(--gs-font); }
+.cp-panel, .cm-card,
+#ui-root .panel, #ui-root .online-panel {
+  border: 1px solid var(--gs-edge-light) !important;
+  border-right-color: var(--gs-edge-dark) !important;
+  border-bottom-color: var(--gs-edge-dark) !important;
+  border-radius: 0 !important;
+  outline: 1px solid #1c241b;
+  outline-offset: 1px;
+  background: var(--gs-panel) !important;
+  box-shadow: inset 1px 1px rgba(255,255,255,.07), 2px 3px 0 rgba(0,0,0,.52) !important;
+  color: var(--gs-text);
+}
+.cp-panel { position: relative; width: min(810px, 94vw); height: min(590px, 90dvh); }
+#ui-root .panel::before, #ui-root .panel::after { display: none; }
+.cp-head, #ui-root .panel-head, #ui-root .online-panel-head, #ui-root .console-head {
+  min-height: 28px; padding: 5px 30px 5px 10px;
+  background: var(--gs-title) !important;
+  border-bottom: 1px solid var(--gs-edge-dark) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
+  color: var(--gs-text) !important;
+}
+.cp-head { align-items: center; }
+.cp-head .cp-logo, #ui-root .panel-title, #ui-root .online-panel-head h3 {
+  color: var(--gs-text) !important;
+  font: 700 13px/1.2 var(--gs-font) !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+}
+.cp-head .cp-logo b { color: inherit; font-weight: inherit; }
+.cp-head .cp-mode { color: var(--gs-muted); letter-spacing: 0; font-size: 11px; }
+.cp-body { grid-template-columns: 156px 1fr; }
+.cp-tabs { background: var(--gs-panel-dark); border-color: var(--gs-edge-dark); padding: 6px 0; }
+.cp-tab, .cp-tab.active {
+  min-height: 29px; padding: 5px 12px; border: 0;
+  background: transparent; color: var(--gs-muted);
+  font: 400 11px/1.3 var(--gs-font); letter-spacing: 0; text-transform: none;
+}
+.cp-tab:hover, .cp-tab:focus-visible { background: var(--gs-select); color: #fff; outline: 1px dotted var(--gs-accent); outline-offset: -3px; }
+.cp-tab.active { background: var(--gs-select); color: #fff; }
+.cp-content { padding: 14px 18px; scrollbar-color: #819078 #30392d; scrollbar-width: thin; }
+.cp-title, .cm-card h2, .cp-server-heading h2, .cp-about h2 {
+  color: var(--gs-text); font: 700 15px var(--gs-font); letter-spacing: 0; text-transform: none;
+}
+.cp-desc, .cm-card .lead, .cp-note, .cp-about p,
+.cp-server-news p { color: var(--gs-muted); }
+.cp-row { grid-template-columns: minmax(150px, 205px) minmax(90px, 1fr) 60px; padding: 7px 0; border-bottom-color: rgba(10,20,10,.25); }
+.cp-row label, .cp-check, .cp-server-row, .cp-about { color: var(--gs-text); }
+.cp-row output, .cm-field output { color: var(--gs-accent); }
+.cp-row input[type=range], .cp-check input, .cm-field input[type=range] { accent-color: var(--gs-select); }
+.cp-row select, .cp-row input[type=text], #ui-root .online-input,
+#ui-root input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),
+#ui-root select {
+  border: 1px solid var(--gs-edge-dark) !important;
+  border-bottom-color: var(--gs-edge-light) !important;
+  border-right-color: var(--gs-edge-light) !important;
+  border-radius: 0 !important;
+  background: var(--gs-panel-dark) !important;
+  color: var(--gs-text) !important;
+  box-shadow: none !important;
+  font-family: var(--gs-font) !important;
+}
+.cp-row select:focus-visible, .cp-row input:focus-visible,
+#ui-root input:focus-visible, #ui-root select:focus-visible { outline: 1px dotted var(--gs-accent); outline-offset: 2px; }
+.cp-note, .cp-server, .cp-about-details > div,
+#ui-root .online-slot, #ui-root .online-code, #ui-root .online-statusbar,
+#ui-root .map-card {
+  border: 1px solid var(--gs-edge-dark) !important;
+  border-radius: 0 !important;
+  background: var(--gs-panel-dark) !important;
+  box-shadow: none !important;
+}
+.cp-server { padding: 14px 16px; }
+.cp-server-heading, .cp-server-news, .cp-about h3 { border-color: var(--gs-edge-dark); }
+.cp-server-heading span, .cp-server-news h3, .cp-about-edition,
+.cp-about-details span { color: var(--gs-muted); letter-spacing: 0; }
+.cp-server-row b, .cp-server-news p b, .cp-about-details b { color: var(--gs-text); }
+.cp-server-row .ok { color: var(--gs-accent); }
+.cp-about-logo { width: min(195px, 60%); }
+.cp-about-edition span { color: var(--gs-muted); }
+.cp-about-credits { color: var(--gs-accent); border-color: var(--gs-edge-light); letter-spacing: 0; }
+.cp-foot { padding: 8px 10px; background: var(--gs-panel-dark); border-color: var(--gs-edge-dark); }
+.cp-btn, .cp-btn.primary, .cp-btn.danger, .cm-close,
+#ui-root .btn, #ui-root .btn.primary, #ui-root .btn.ghost {
+  border: 1px solid var(--gs-edge-light) !important;
+  border-right-color: var(--gs-edge-dark) !important;
+  border-bottom-color: var(--gs-edge-dark) !important;
+  border-radius: 0 !important;
+  background: #586451 !important;
+  box-shadow: inset 1px 1px rgba(255,255,255,.08) !important;
+  color: var(--gs-text) !important;
+  font: 400 11px/1.2 var(--gs-font) !important;
+  letter-spacing: 0 !important;
+  text-transform: none;
+  text-shadow: none !important;
+  cursor: pointer;
+}
+.cp-btn, .cm-close { padding: 6px 12px; }
+.cp-btn:hover, .cp-btn.primary:hover, .cp-btn.danger:hover, .cm-close:hover,
+#ui-root .btn:hover, #ui-root .btn.primary:hover, #ui-root .btn.ghost:hover { background: var(--gs-select) !important; color: #fff !important; }
+.cp-btn:active, .cm-close:active, #ui-root .btn:active { border-color: var(--gs-edge-dark) !important; border-right-color: var(--gs-edge-light) !important; border-bottom-color: var(--gs-edge-light) !important; }
+.cp-btn:focus-visible, .cm-close:focus-visible, #ui-root .btn:focus-visible { outline: 1px dotted var(--gs-text); outline-offset: 2px; }
+.cp-btn:disabled, #ui-root .btn:disabled { opacity: .45; cursor: default; }
+.cp-close, #ui-root .console-close {
+  position: absolute; right: 5px; top: 4px; width: 21px; height: 19px;
+  padding: 0; border: 1px solid var(--gs-edge-light); border-right-color: var(--gs-edge-dark); border-bottom-color: var(--gs-edge-dark);
+  border-radius: 0; background: #66725e; color: var(--gs-text); font: 15px/15px var(--gs-font); text-align: center; cursor: pointer;
+}
+.cp-close:hover, #ui-root .console-close:hover { color: #fff; background: var(--gs-select); }
+#ui-root.console-open { z-index: 100; }
+.cm-modal { background: rgba(5,8,5,.78); }
+.cm-card { padding: 0 18px 16px; }
+.cm-card h2 { margin: 0 -18px 12px; padding: 7px 12px; background: var(--gs-title); border-bottom: 1px solid var(--gs-edge-dark); }
+.cm-help-grid { color: var(--gs-muted); }
+.cm-help-grid b { color: var(--gs-text); }
+
+/* Online rooms: compact lists and window surfaces rather than hero cards. */
+#ui-root .online-overlay, #ui-root .online-hud {
+  --on-font: var(--gs-font); --on-mono: var(--gs-mono);
+  --on-panel: var(--gs-panel); --on-panel-2: var(--gs-panel-dark); --on-panel-3: var(--gs-title);
+  --on-line: var(--gs-edge-dark); --on-line-soft: var(--gs-edge-dark);
+  --on-text: var(--gs-text); --on-dim: var(--gs-muted); --on-hi: #fff;
+  --on-amber: var(--gs-accent); --on-amber-hi: #e2e5dc; --on-green: var(--gs-accent);
+}
+#ui-root .online-overlay { background: rgba(17,23,16,.92); animation: none; }
+#ui-root .online-overlay::before, #ui-root .online-overlay::after,
+#ui-root .online-head::after, #ui-root .online-panel::before,
+#ui-root .online-panel::after { display: none; }
+#ui-root .online-shell { width: min(890px, 96vw); gap: 8px; }
+#ui-root .online-head { align-items: center; padding: 5px 10px; background: var(--gs-title); border: 1px solid var(--gs-edge-dark); }
+#ui-root .online-title, #ui-root .online-title span {
+  color: var(--gs-text); font: 700 17px/1.2 var(--gs-font); letter-spacing: 0; text-shadow: none;
+}
+#ui-root .online-kicker { margin: 0 0 3px; color: var(--gs-muted); letter-spacing: 0; font-size: 10px; }
+#ui-root .online-panel { padding: 11px 13px; }
+#ui-root .online-panel-head { padding: 4px 8px; margin: -11px -13px 8px; }
+#ui-root .online-panel-tag, #ui-root .online-chip, #ui-root .online-step { background: var(--gs-panel-dark); border: 1px solid var(--gs-edge-dark); color: var(--gs-muted); letter-spacing: 0; }
+#ui-root .online-view { animation: none; gap: 8px; }
+#ui-root .btn:active { transform: none; }
+#ui-root .online-slot { padding: 7px 10px; }
+#ui-root .online-code { color: var(--gs-text); }
+#ui-root .online-statusbar { color: var(--gs-muted); }
+#ui-root .online-info { background: var(--gs-panel-dark); border-color: var(--gs-edge-dark); }
+#ui-root .online-info-col h4 { color: var(--gs-accent); letter-spacing: 0; }
+#ui-root .online-info-col ol, #ui-root .online-info-col ul { color: var(--gs-muted); }
+#ui-root .online-input:focus { outline: 1px dotted var(--gs-accent); box-shadow: none; }
+#ui-root .map-card.active, #ui-root .online-slot.is-you, #ui-root .online-slot.is-ready { background: var(--gs-select) !important; color: #fff; }
+#ui-root .fx-scan { display: none; }
+
+/* Developer console: opaque olive window with a real close control. */
+#ui-root .ui-console {
+  left: 50%; right: auto; bottom: 2vh; width: min(900px, 95vw); height: min(52vh, 460px);
+  transform: translateX(-50%); z-index: 95; border: 1px solid var(--gs-edge-light);
+  border-right-color: var(--gs-edge-dark); border-bottom-color: var(--gs-edge-dark);
+  background: var(--gs-panel); color: var(--gs-text); box-shadow: 2px 3px 0 rgba(0,0,0,.6);
+  animation: none; font-family: var(--gs-mono);
+}
+#ui-root .console-head { position: relative; min-height: 26px; padding-right: 32px; font: 700 11px var(--gs-font); text-transform: none; letter-spacing: 0; }
+#ui-root .console-head .ch-hint { color: var(--gs-muted); }
+#ui-root .console-out { background: var(--gs-panel); color: var(--gs-text); scrollbar-color: #819078 #30392d; scrollbar-width: thin; }
+#ui-root .console-line, #ui-root .console-line.sys { color: var(--gs-text); }
+#ui-root .console-line .ts { color: var(--gs-muted); }
+#ui-root .console-in { background: var(--gs-panel-dark); border-top: 1px solid var(--gs-edge-dark); }
+#ui-root .console-in .prompt { color: var(--gs-accent); }
+#ui-root .console-in input { flex: 1; }
+
+@media (max-width: 900px) {
+  #classic-menu .cm-nav { left: 22px; width: min(415px, 55vw); top: 36%; }
+  #classic-menu .cm-btn, #classic-menu .cm-btn.primary { font-size: 17px; min-height: 34px; padding: 5px 0; }
+}
+@media (max-width: 640px) {
+  #classic-menu .cm-nav { width: min(360px, calc(100vw - 44px)); top: clamp(175px, 32vh, 235px); }
+  #classic-menu .cm-btn, #classic-menu .cm-btn.primary { font-size: 16px; min-height: 31px; }
+  .cp-panel { width: 96vw; height: min(94dvh, 720px); }
+  .cp-body { display: flex; flex-direction: column; }
+  .cp-tabs { display: flex; overflow-x: auto; padding: 0; border-bottom: 1px solid var(--gs-edge-dark); }
+  .cp-tab, .cp-tab.active { width: auto; flex: none; white-space: nowrap; }
+  .cp-content { min-height: 0; flex: 1; }
+  .cp-row { grid-template-columns: minmax(100px, 36%) 1fr 45px; gap: 5px; }
+  .cp-head .cp-mode { display: none; }
+  #ui-root .online-head { align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #classic-menu .cm-btn { transition: none; }
+  #ui-root .online-overlay, #ui-root .online-view { animation: none; }
+}
