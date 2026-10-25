@@ -32,10 +32,7 @@ const HULL = { radius: 0.25, height: 1.56, stepHeight: 0.45 };
 const DT = 0.01;
 const SPEED = 3;
 const MAX_HORIZONTAL_TICK_TRAVEL = 0.04;
-// Both measured seams are grade 0.25. At a triangle-proxy boundary the slope
-// support can switch from the trailing to the leading edge of the 0.50m hull,
-// so a grounded correction of radius*2*grade is physical rather than a warp.
-const MAX_SLOPE_SUPPORT_SNAP = HULL.radius * 2 * 0.25 + 0.01;
+const MAX_SMOOTH_VERTICAL_TICK_TRAVEL = 0.04;
 let observedMaxHorizontalTravel = 0;
 let observedMaxVerticalTravel = 0;
 
@@ -83,14 +80,13 @@ function assertStableGroundContact(name, body, previous) {
   const verticalTravel = Math.abs(body.pos.y - previous.y);
   observedMaxHorizontalTravel = Math.max(observedMaxHorizontalTravel, horizontalTravel);
   observedMaxVerticalTravel = Math.max(observedMaxVerticalTravel, verticalTravel);
-  const verticalLimit = body.stepped ? HULL.stepHeight + 0.01 : MAX_SLOPE_SUPPORT_SNAP;
   assert.ok(
     horizontalTravel <= MAX_HORIZONTAL_TICK_TRAVEL,
     `${name}: implausible ${horizontalTravel.toFixed(3)}m horizontal teleport in one ${DT}s physics tick`,
   );
   assert.ok(
-    verticalTravel <= verticalLimit,
-    `${name}: implausible ${verticalTravel.toFixed(3)}m vertical teleport in one ${DT}s physics tick ` +
+    verticalTravel < MAX_SMOOTH_VERTICAL_TICK_TRAVEL,
+    `${name}: abrupt ${verticalTravel.toFixed(3)}m vertical support snap in one ${DT}s physics tick ` +
       `from (${previous.x.toFixed(3)},${previous.y.toFixed(3)},${previous.z.toFixed(3)}) ` +
       `to (${body.pos.x.toFixed(3)},${body.pos.y.toFixed(3)},${body.pos.z.toFixed(3)}), stepped=${body.stepped}`,
   );

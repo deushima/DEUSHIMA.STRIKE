@@ -47,7 +47,7 @@ const DUST2_SLOPE_SEAM_FIXES = Object.freeze([
   // Upper lip of the long cobbled ramp on the west side of the imported GLB.
   { minX: -35.3, maxX: -31.3, minZ: 8.4, maxZ: 11.1, slopeZ: 0.25, edge: 'maxZ', edgeCoord: 11.0043 },
   // Upper lip of the long cobbled ramp on the east side, beside the boxed/arched route.
-  { minX: 21.9, maxX: 26.0, minZ: -48.5, maxZ: -44.4, slopeZ: -0.25, edge: 'minZ', edgeCoord: -48.4189 },
+  { minX: 21.9, maxX: 26.0, minZ: -48.5, maxZ: -44.4, slopeZ: -0.25, edge: 'minZ', edgeCoord: -48.4189, preferExtendedSupport: true },
 ]);
 
 function triangleAreaAndNormal(a, b, c, normal) {
@@ -214,6 +214,33 @@ function slopePlaneY(slope, x, z) {
     + slope.slopeZ * (z - slope.minZ);
 }
 
+function preferExtendedSlopeOverContainedCoplanars(slopes, slope) {
+  const sourceIndex = slopes.indexOf(slope);
+  if (sourceIndex <= 0) return;
+
+  let targetIndex = sourceIndex;
+  for (let index = 0; index < sourceIndex; index++) {
+    const candidate = slopes[index];
+    const contained = (
+      candidate.minX >= slope.minX - 1e-6 && candidate.maxX <= slope.maxX + 1e-6 &&
+      candidate.minZ >= slope.minZ - 1e-6 && candidate.maxZ <= slope.maxZ + 1e-6
+    );
+    if (!contained) continue;
+    if (Math.abs(candidate.slopeX - slope.slopeX) > 1e-6 || Math.abs(candidate.slopeZ - slope.slopeZ) > 1e-6) continue;
+    const candidateY = slopePlaneY(candidate, candidate.minX, candidate.minZ);
+    const extendedY = slopePlaneY(slope, candidate.minX, candidate.minZ);
+    if (Math.abs(candidateY - extendedY) > 1e-5) continue;
+    targetIndex = Math.min(targetIndex, index);
+  }
+  if (targetIndex === sourceIndex) return;
+
+  // PhysicsWorld accepts the first walkable support descriptor. Keep every GLB
+  // proxy intact, but let the extended coplanar descriptor win before fragments
+  // fully contained by it so support height stays continuous across their edges.
+  slopes.splice(sourceIndex, 1);
+  slopes.splice(targetIndex, 0, slope);
+}
+
 function extendMeasuredSlopeSeams(colliders, slopes) {
   const floors = colliders.filter((box) => box.surface === 'sand' && box.max.y - box.min.y < 0.2);
   for (const fix of DUST2_SLOPE_SEAM_FIXES) {
@@ -256,6 +283,7 @@ function extendMeasuredSlopeSeams(colliders, slopes) {
       + Math.min(0, slope.slopeX * (slope.maxX - slope.minX))
       + Math.min(0, slope.slopeZ * (slope.maxZ - slope.minZ));
     slope.bottomY = lowest - 0.18;
+    if (fix.preferExtendedSupport) preferExtendedSlopeOverContainedCoplanars(slopes, slope);
   }
 }
 
