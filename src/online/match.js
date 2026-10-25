@@ -553,8 +553,14 @@ export class OnlineMatch {
   _applyLocalAuthorityHealth(record, damage) {
     const player = this.game?.player;
     if (!player) return;
+    const previousHealth = player.health;
+    const previousArmor = player.armor;
     player.health = record.health;
     player.armor = record.armor;
+    this.game?.classicUI?.hud?.notifyDamage?.(
+      Math.max(0, previousHealth - player.health),
+      Math.max(0, previousArmor - player.armor),
+    );
     player.damageFlash = 1;
     player.lastDamageTime = num(this.game?.time);
     player.addShake?.(clamp(damage / 45, 0.08, 0.6));
@@ -1086,8 +1092,14 @@ export class OnlineMatch {
     record.armor = clamp(num(payload.armor, record.armor), 0, 100);
     const player = this.game?.player;
     if (player) {
+      const previousHealth = player.health;
+      const previousArmor = player.armor;
       player.health = record.health;
       player.armor = record.armor;
+      this.game?.classicUI?.hud?.notifyDamage?.(
+        Math.max(0, previousHealth - player.health),
+        Math.max(0, previousArmor - player.armor),
+      );
       player.damageFlash = 1;
       player.addShake?.(clamp(num(payload.damage) / 45, 0.08, 0.6));
       this.game?.audio?.play?.('hurt', { volume: 0.65 });

@@ -1,11 +1,11 @@
-/** User-supplied community models; provenance and licenses in character-credits.html. */
+/** Credited community characters; provenance and licenses in character-credits.html. */
 import * as THREE from '../vendor/three.module.js';
 import { GLTFLoader } from '../vendor/loaders/GLTFLoader.js';
 import { clone as skeletonClone } from '../vendor/utils/SkeletonUtils.js';
 import { createCommunityAnimator } from './characters/community-rig.js';
 
 export { CHARACTER_IDS } from './characters/identities.js';
-const FILES={T:'/assets/characters/community/leet.glb',CT:'/assets/characters/community/sas.glb'};
+const FILES={T:'/assets/characters/community/leet.glb',CT:'/assets/characters/community/sas-bamen.glb'};
 
 // Sketchfab's metallic/roughness materials require image-based lighting. A
 // shared neutral cubemap supplies it without altering original material factors

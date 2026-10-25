@@ -1,0 +1,9 @@
+CT runtime character: "FREE [Military Soldier] RIGGED" by BAMEN
+Original: https://sketchfab.com/3d-models/free-military-soldier-rigged-e9c56308a67d4a3db62e914fafa4d198
+Creator: https://sketchfab.com/bamenwo05
+License: CC BY 4.0 https://creativecommons.org/licenses/by/4.0/
+Intermediate distribution: https://github.com/cktang88/3d-fps/tree/main/public/assets/models/characters
+Changes: removed third-party animation clips, renamed control bones and exported a compact GLB. DEUSHIMA STRIKE supplies independent gameplay-driven animation and weapon IK.
+
+The older CT-LICENSE.txt describes the superseded, user-supplied Jellypack asset.
+That asset is retained in the source repository and excluded from the public build.

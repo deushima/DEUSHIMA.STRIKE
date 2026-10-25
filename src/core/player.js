@@ -448,6 +448,8 @@ export class Player {
   takeDamage(amount, source, part = 'chest', weaponId = 'unknown') {
     if (!this.alive) return 0;
     const game = this.game;
+    const previousHealth = this.health;
+    const previousArmor = this.armor;
     let dmg = Math.max(0, amount);
     if (dmg <= 0) return 0;
 
@@ -463,6 +465,10 @@ export class Player {
     if (this.spawnProtection > 0) dmg *= 0.5;
     dmg = Math.max(1, Math.round(dmg));
     this.health -= dmg;
+    game.classicUI?.hud?.notifyDamage?.(
+      Math.max(0, previousHealth - Math.max(0, this.health)),
+      Math.max(0, previousArmor - this.armor),
+    );
     this.lastDamageTime = game.time;
     this.lastAttacker = source;
     this.damageFlash = 1;

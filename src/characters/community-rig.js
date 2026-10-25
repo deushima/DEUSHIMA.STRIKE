@@ -1,11 +1,12 @@
 import * as THREE from '../../vendor/three.module.js';
+import { hasNativeWeaponAsset, loadWeaponModel } from '../weapon-assets.js';
 
 const V = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 const AX = V(1,0,0);
 const clamp = THREE.MathUtils.clamp;
 
 function weaponVisuals() {
-  const pivot = new THREE.Group(), meshes={};
+  const pivot = new THREE.Group(), meshes={}, native=new Map(), pending=new Set();
   const metal=new THREE.MeshStandardMaterial({color:0x394147,metalness:.65,roughness:.45});
   const polymer=new THREE.MeshStandardMaterial({color:0x202426,metalness:.05,roughness:.86});
   function box(parent, size, pos, mat=metal){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.position.set(...pos);parent.add(m);}
@@ -22,7 +23,20 @@ function weaponVisuals() {
       if(family==='Sniper')box(g,[.06,.065,.19],[0,.11,-.12],polymer);
     }
   }
-  return {pivot,meshes,dispose(){pivot.traverse(o=>o.geometry?.dispose());metal.dispose();polymer.dispose();}};
+  function select(id,family){
+    pivot.userData.selected=id;
+    for(const [key,group] of Object.entries(meshes)) group.visible=key===family && !native.has(id);
+    for(const [key,group] of native) group.visible=key===id;
+    if(!hasNativeWeaponAsset(id)||native.has(id)||pending.has(id)||typeof window==='undefined')return;
+    pending.add(id);
+    loadWeaponModel(id,'world').then(model=>{
+      const group=new THREE.Group();group.name=`world-weapon:${id}`;
+      model.position.z=-.08;group.add(model);pivot.add(group);native.set(id,group);
+      group.visible=false;
+      if(pivot.userData.selected===id)select(id,family);
+    }).catch(error=>console.warn(`[world weapon] ${id} asset unavailable`,error)).finally(()=>pending.delete(id));
+  }
+  return {pivot,meshes,select,dispose(){for(const group of Object.values(meshes))group.traverse(o=>o.geometry?.dispose());metal.dispose();polymer.dispose();}};
 }
 
 // Gameplay-driven poses are authored here independently. No Valve animation is
@@ -43,7 +57,7 @@ export function createCommunityAnimator(model, team) {
     for(const name of ['foot.'+s,'hand.'+s])restEndRotation[name]=find(name).getWorldQuaternion(new THREE.Quaternion());
   }
   const gun=weaponVisuals();root.add(gun.pivot);
-  let weapon='',state='idle',phase=0,previousGround=true,landing=0,crouch=0,moveBlend=0;
+  let weapon='',weaponFamily='AK',state='idle',phase=0,previousGround=true,landing=0,crouch=0,moveBlend=0;
   const aimBones=Object.fromEntries([...spine,...neck].filter(Boolean).map(b=>[b.name,b]));
   const point=(local)=>root.localToWorld(local.clone());
   function rotateWorld(b,axis,angle){
@@ -75,7 +89,8 @@ export function createCommunityAnimator(model, team) {
   function setWeapon(id){
     weapon=String(id||'knife');
     const family=/^(deagle|usp|glock|glock18|p228|elite|fiveseven)$/.test(weapon)?'Pistol':/^(mp5|tmp|p90|ump45|mac10)$/.test(weapon)?'SMG':/^(awp|scout|sg550|g3sg1)$/.test(weapon)?'Sniper':weapon==='knife'?'Knife':'AK';
-    for(const [k,g]of Object.entries(gun.meshes))g.visible=k===family;
+    weaponFamily=family;
+    gun.select(weapon,family);
   }
   function update(dt,actor={},moving=false){
     dt=clamp(Number(dt)||0,0,.1);
@@ -116,11 +131,11 @@ export function createCommunityAnimator(model, team) {
     }
     // The weapon and its grip targets share the same transform. Aim rotates
     // upper-body joints; the player's root, collider and camera ray stay intact.
-    gun.pivot.position.set(.08,1.30-hipDrop,-.22);
+    gun.pivot.position.set(.08,1.30-hipDrop,team==='CT'?-.11:-.22);
     gun.pivot.rotation.set(pitch,0,0);
     if(actor.shooting)gun.pivot.position.z+=.012;
     root.updateWorldMatrix(true,true);
-    for(const [side,grip]of [['R',V(0,-.065,.025)],['L',V(-.035,-.025,gun.meshes.Pistol.visible?-.10:-.16)]]){
+    for(const [side,grip]of [['R',V(0,-.065,.025)],['L',V(-.035,-.025,weaponFamily==='Pistol'?-.10:-.16)]]){
       const hand=find('hand.'+side);
       const target=gun.pivot.localToWorld(grip);
       ik(find('upper_arm.'+side),find('forearm.'+side),hand,target,point(V(side==='L'?-.55:.55,.99-hipDrop,.05)));
@@ -133,9 +148,9 @@ export function createCommunityAnimator(model, team) {
   }
   setWeapon(team==='T'?'ak47':'m4a1');update(0,{weaponId:weapon,onGround:true});
   return {root,model,gunMeshes:gun.meshes,aimBones,mixer:new THREE.AnimationMixer(model),actions:{},
-    yawOffset:0,targetHeight:1.8,characterId:team==='T'?'community-leet-fe6216ca':'community-sas-d2807183',
+    yawOffset:0,targetHeight:1.8,characterId:team==='T'?'community-leet-fe6216ca':'community-sas-e9c56308',
     get state(){return state;},setState(name){state=String(name).toLowerCase();},setWeapon,update,
     dispose(){gun.dispose();const seen=new Set();model.traverse(o=>{if(o.skeleton&&!seen.has(o.skeleton)){seen.add(o.skeleton);o.skeleton.dispose();}});root.removeFromParent();},
-    getGripErrors(){const rows={};for(const [side,local]of [['R',V(0,-.065,.025)],['L',V(-.035,-.025,gun.meshes.Pistol.visible?-.10:-.16)]])rows[side]=find('hand.'+side).getWorldPosition(V()).distanceTo(gun.pivot.localToWorld(local));return rows;},
+    getGripErrors(){const rows={};for(const [side,local]of [['R',V(0,-.065,.025)],['L',V(-.035,-.025,weaponFamily==='Pistol'?-.10:-.16)]])rows[side]=find('hand.'+side).getWorldPosition(V()).distanceTo(gun.pivot.localToWorld(local));return rows;},
   };
 }

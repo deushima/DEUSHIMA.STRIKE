@@ -1,11 +1,9 @@
 /**
  * Build estático para Vercel.
  *
- * El build público incluye:
- *   - código de juego
- *   - branding propio
- *   - personajes Quaternius (CC0)
- *   - sonidos y las texturas WAD seleccionadas para los escenarios
+ * El build local de previsualización incluye código, personajes, armas,
+ * sonidos y texturas WAD. El comando deploy ejecuta la comprobación de
+ * licencia y requisitos antes de generar o publicar este directorio.
  *
  * Los mapas conservan materiales procedurales de respaldo si falla una textura.
  */
@@ -21,7 +19,7 @@ const out = path.join(root, 'dist');
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
-const files = ['index.html', 'favicon.svg', 'character-credits.html'];
+const files = ['index.html', 'favicon.svg', 'character-credits.html', 'weapon-asset-manifest.json'];
 for (const file of files) {
   const src = path.join(root, file);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(out, file));
@@ -41,10 +39,17 @@ for (const dir of dirs) {
   if (fs.existsSync(src)) fs.cpSync(src, path.join(out, dir), { recursive: true });
 }
 
-// Branding propio / CC0 y música.
-for (const dir of ['branding', 'characters', 'music']) {
+// Branding, música y armas.
+for (const dir of ['branding', 'music', 'weapons']) {
   const src = path.join(root, 'assets', dir);
   if (fs.existsSync(src)) fs.cpSync(src, path.join(out, 'assets', dir), { recursive: true });
+}
+// Copy only the two credited runtime characters. The archived CC BY-NC source
+// and source packages must never be included in the public distribution.
+const characterOut = path.join(out, 'assets', 'characters', 'community');
+fs.mkdirSync(characterOut, { recursive: true });
+for (const file of ['leet.glb', 'sas-bamen.glb', 'T-LICENSE.txt', 'CT-RUNTIME-LICENSE.txt']) {
+  fs.copyFileSync(path.join(root, 'assets', 'characters', 'community', file), path.join(characterOut, file));
 }
 // Sonidos requeridos por el juego en la versión publicada.
 const soundSrc = path.join(root, 'assets', 'cs16', 'sound');
@@ -93,10 +98,11 @@ fs.writeFileSync(path.join(out, 'version.json'), JSON.stringify({ commit, versio
 fs.writeFileSync(path.join(out, 'BUILD_INFO.txt'), [
   'DEUSHIMA STRIKE - public static build',
   'Includes sounds (assets/cs16/sound) and WAD textures (assets/cs16/textures/wad).',
+  'Includes credited native weapon GLBs (assets/weapons) with individual source licenses.',
   'Extracted GoldSrc HUD and classic model files are NOT included.',
 ].join('\n'));
 
-for (const forbidden of ['assets/cs16/models', 'assets/cs16/ui', 'server.mjs', 'package.json', 'node_modules']) {
+for (const forbidden of ['assets/cs16/models', 'assets/cs16/ui', 'assets/characters/community/sas.glb', 'assets/characters/community/SAS', 'server.mjs', 'package.json', 'node_modules']) {
   if (fs.existsSync(path.join(out, forbidden))) {
     throw new Error(`Build público contiene ${forbidden}`);
   }

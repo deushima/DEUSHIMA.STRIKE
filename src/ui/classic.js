@@ -1,3 +1,6 @@
+import { DamagePulse } from './damage-pulse.js';
+import { WEAPON_ASSETS } from '../weapon-assets.js';
+
 /**
  * Capa visual CS 1.6 clsica.
  *
@@ -46,6 +49,10 @@ class ClassicHUD {
     this.tints = new Map();
     this.killfeed = [];
     this.damageHits = [];
+    this.healthPulse = new DamagePulse();
+    this.armorPulse = new DamagePulse();
+    this.lastVitals = null;
+    this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches || false;
     this.last = 0;
     this.scale = 1;
     this._resize = () => this.resize();
@@ -159,6 +166,22 @@ class ClassicHUD {
     this.damageHits.push({ angle: Number(angle) || 0, time: performance.now() });
     if (this.damageHits.length > 4) this.damageHits.shift();
   }
+  notifyDamage(healthLoss, armorLoss) {
+    const now = performance.now();
+    this.healthPulse.trigger(healthLoss, now);
+    this.armorPulse.trigger(armorLoss, now);
+  }
+  _vitalColors(health, armor, now) {
+    if (this.lastVitals) {
+      if (health > this.lastVitals.health) this.healthPulse.reset();
+      if (armor > this.lastVitals.armor) this.armorPulse.reset();
+    }
+    this.lastVitals = { health, armor };
+    return {
+      health: this.healthPulse.color(this.accent, now, this.reducedMotion),
+      armor: this.armorPulse.color(this.accent, now, this.reducedMotion),
+    };
+  }
   addKill(entry) {
     if (!entry) return;
     const killer = entry.killer || 'Mundo';
@@ -235,10 +258,11 @@ class ClassicHUD {
     }
     // salud / chaleco (abajo izquierda)
     const low = alive && hud.health <= 25;
-    this.sprite('cross', 18, 428, 24, 24, low ? RED : this.accent);
-    this.number(hud.health, 46, 425, 1.15, low ? RED : WHITE);
-    this.sprite('suit_full', 18, 454, 18, 18, hud.armor > 0 ? this.accent : '#4f4b3c');
-    this.number(hud.armor, 41, 451, 0.85, hud.armor > 0 ? WHITE : '#6d6a5b');
+    const vitals = this._vitalColors(hud.health, hud.armor, now);
+    this.sprite('cross', 18, 428, 24, 24, low && vitals.health === this.accent ? RED : vitals.health);
+    this.number(hud.health, 46, 425, 1.15, vitals.health === this.accent ? (low ? RED : WHITE) : vitals.health);
+    this.sprite('suit_full', 18, 454, 18, 18, hud.armor > 0 || vitals.armor !== this.accent ? vitals.armor : '#4f4b3c');
+    this.number(hud.armor, 41, 451, 0.85, vitals.armor === this.accent ? (hud.armor > 0 ? WHITE : '#6d6a5b') : vitals.armor);
     if (hud.helmet) this.sprite('suithelmet_full', 78, 452, 15, 15, this.accent);
     // arma / municin (abajo derecha)
     const icon = WEAPON_ICON[weapon.weaponId] || null;
@@ -344,13 +368,14 @@ class ClassicHUD {
     left(`RONDA ${r.round || 1}`, 300, 30, '#d8d2ba', 11);
     left(`${r.scoreCT || 0}  :  ${r.scoreT || 0}`, 300, 48, '#e8ddc1', 12);
     if (Number(r.timeLeft) > 0) left(`${Math.ceil(r.timeLeft)}`, 326, 66, this.accent, 10);
-    ctx.fillStyle = this.accent;
+    const vitals = this._vitalColors(hud.health, hud.armor, performance.now());
+    ctx.fillStyle = vitals.health;
     ctx.fillRect(19, 414, 22, 8);
     ctx.fillRect(26, 407, 8, 22);
-    ctx.fillStyle = this.accent;
+    ctx.fillStyle = vitals.armor;
     ctx.beginPath(); ctx.moveTo(19, 438); ctx.lineTo(40, 438); ctx.lineTo(38, 452); ctx.lineTo(30, 459); ctx.lineTo(21, 452); ctx.closePath(); ctx.fill();
-    left(`${Math.max(0, Math.round(p.health ?? hud.health ?? 100))}`, 48, 425, this.accent, 18);
-    left(`${Math.max(0, Math.round(p.armor ?? hud.armor ?? 0))}`, 48, 452, this.accent, 15);
+    left(`${Math.max(0, Math.round(p.health ?? hud.health ?? 100))}`, 48, 425, vitals.health, 18);
+    left(`${Math.max(0, Math.round(p.armor ?? hud.armor ?? 0))}`, 48, 452, vitals.armor, 15);
     left(`${weapon.name || 'ARMA'}`, 620, 424, '#d8d2ba', 10, 'right');
     left(`${weapon.ammo ?? 0} / ${weapon.reserve ?? 0}`, 620, 446, '#ffffff', 16, 'right');
     left('BALAS', 620, 462, '#9a947f', 8, 'right');
@@ -870,7 +895,13 @@ class ClassicPause {
           </div>
           <h3>Derechos y créditos</h3>
           <p class="cp-about-legal">© 2026 DEUSHIMA. Derechos reservados sobre el nombre, la identidad visual y el arte original de DEUSHIMA STRIKE. Los modelos, sonidos, marcas y otros recursos de terceros conservan sus respectivas titularidades. Proyecto independiente inspirado en juegos clásicos, sin afiliación ni respaldo de Valve.</p>
-          <a class="cp-about-credits" href="/character-credits.html" target="_blank" rel="noopener noreferrer">VER CRÉDITOS DE PERSONAJES Y ASSETS <span aria-hidden="true">↗</span></a>
+          <h3>Weapons Creators</h3>
+          <p class="cp-about-legal">Modelos 3D AK-47, M4A1, granada HE, flash, humo y C4: <a href="${WEAPON_ASSETS.ak47.source}" target="_blank" rel="noopener noreferrer">3dmodelscc0</a> · <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener noreferrer">CC0 1.0</a>. Geometría y texturas adaptadas para este juego.</p>
+          <p class="cp-about-legal">Modelos AWP, MP5, USP, escopeta automática, escopeta de corredera y rifle de caza usado para Scout: <a href="${WEAPON_ASSETS.awp.source}" target="_blank" rel="noopener noreferrer">Maia Studios · Firearms Kit Free</a>, con permiso del autor para uso comercial, modificación y distribución. El Scout usa un sustituto visual.</p>
+          <p class="cp-about-legal">Desert Eagle: <a href="${WEAPON_ASSETS.deagle.source}" target="_blank" rel="noopener noreferrer">SirDraco65</a>; Glock-18: <a href="${WEAPON_ASSETS.glock.source}" target="_blank" rel="noopener noreferrer">locarem</a>; cuchillo: <a href="${WEAPON_ASSETS.knife.source}" target="_blank" rel="noopener noreferrer">Aharabada / Simon Lübeß</a>, texturas de Yughues. Obras publicadas en OpenGameArt bajo CC0 1.0.</p>
+          <p class="cp-about-legal">Modelo M249: malla y materiales originales de DEUSHIMA STRIKE.</p>
+          <p class="cp-about-legal">Rig de brazos POV para SAS y Leet: <a href="https://github.com/wwwriks/wrad-arms" target="_blank" rel="noopener noreferrer">WRiKS · WRAD ARMS</a> · CC0 1.0. Colores de mangas y guantes adaptados para cada equipo.</p>
+          <a class="cp-about-credits" href="/character-credits.html#weapons-creators" target="_blank" rel="noopener noreferrer">VER WEAPONS CREATORS Y CRÉDITOS COMPLETOS <span aria-hidden="true">↗</span></a>
         </section>`;
     } else {
       content.innerHTML = `

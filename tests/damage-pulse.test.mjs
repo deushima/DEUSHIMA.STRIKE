@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { DamagePulse } from '../src/ui/damage-pulse.js';
+
+const health = new DamagePulse();
+const armor = new DamagePulse();
+const normal = '#7dff63';
+assert.equal(health.color(normal, 1000), normal);
+health.trigger(20, 1000);
+assert.notEqual(health.color(normal, 1000), normal);
+assert.equal(armor.color(normal, 1000), normal, 'health damage must not flash armor');
+armor.trigger(5, 1070);
+assert.notEqual(armor.color(normal, 1070), normal);
+health.trigger(30, 1200);
+assert.notEqual(health.color(normal, 1200), normal, 'a second hit restarts the pulse');
+assert.equal(armor.color(normal, 1590), normal);
+assert.equal(health.color(normal, 1720), normal);
+health.trigger(10, 1800);
+assert.notEqual(health.color(normal, 1900, true), normal, 'reduced motion keeps a static color cue');
+health.reset();
+assert.equal(health.color(normal, 1900), normal);
+console.log('damage pulse OK: independent indicators, repeat hits, decay, reduced motion, reset');

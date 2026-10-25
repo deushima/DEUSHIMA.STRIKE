@@ -1,0 +1,529 @@
+{
+  "schemaVersion": 4,
+  "sources": [
+    {
+      "title": "Free CC0 Guns & Explosives Pack",
+      "author": "3dmodelscc0",
+      "authorUrl": "https://3dmodelscc0.itch.io/",
+      "sourceUrl": "https://3dmodelscc0.itch.io/free-cc0-guns-explosives-pack",
+      "licenseName": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveName": "Guns&Explosives.rar",
+      "sourceArchiveSha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+    },
+    {
+      "title": "Firearms Kit Free",
+      "author": "Maia Studios",
+      "authorUrl": "https://maiastudios.itch.io/",
+      "sourceUrl": "https://maiastudios.itch.io/firearms-kit-free",
+      "licenseName": "Firearms Kit Free commercial-use grant",
+      "licenseUrl": "https://maiastudios.itch.io/firearms-kit-free",
+      "sourceArchives": {
+        "awp": {
+          "name": "AWP.zip",
+          "sha256": "183914733fc125970f03a0b2b2efec02b3aacf6024f5554f7f2b8ce02c935d31"
+        },
+        "mp5": {
+          "name": "MP5.zip",
+          "sha256": "6d24bfb5144704c2f7f49ec4783f4c30ba7998f4bda34d82a6f2241906808eff"
+        },
+        "usp": {
+          "name": "USP.zip",
+          "sha256": "cebf6f40203d4fc2a44a588ac37e35bcd62ebe2397c823367848b28d28958c57"
+        },
+        "xm1014": {
+          "name": "Auto Shotgun.zip",
+          "sha256": "84e8f8093b31587c36d67e6244cc32bc69d7dbe2d596c05dc085b9a36a7ef0fc"
+        },
+        "m3": {
+          "name": "Pump Shotgun.zip",
+          "sha256": "52a4276c69757207acd2fa91fbc051b9e2aff6c2dd729f697878d395377b4e21"
+        },
+        "scout": {
+          "name": "Hunting Rifle.zip",
+          "sha256": "5c3da3e15d5b9c21d43abeae6523b05b8b0a527c7070ca2db2e52512d1ac5b9b"
+        }
+      }
+    },
+    {
+      "title": "Desert Eagle",
+      "author": "SirDraco65",
+      "authorUrl": "https://opengameart.org/users/sirdraco65",
+      "sourceUrl": "https://opengameart.org/content/desert-eagle-0",
+      "licenseName": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveName": "desert_eagle_0.zip",
+      "sourceArchiveSha256": "599e979d9b01ebdb8b6ca4694b2bd4a93dfce981d83ecf023f01284bf9ee8b6e"
+    },
+    {
+      "title": "High Poly Glock-18 (No-Textures)",
+      "author": "locarem",
+      "authorUrl": "https://opengameart.org/users/locarem",
+      "sourceUrl": "https://opengameart.org/content/high-poly-glock-18-no-textures",
+      "licenseName": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveName": "Glock_HighPoly.obj",
+      "sourceArchiveSha256": "5437aa4cbacfb9838c2ff06cabb13ccf68779ce8af4652a1672923772f35d089"
+    },
+    {
+      "title": "Combat Knife",
+      "author": "Aharabada / Simon Lübeß; textures by Yughues",
+      "authorUrl": "https://opengameart.org/users/aharabada",
+      "sourceUrl": "https://opengameart.org/content/combat-knife-0",
+      "licenseName": "CC0 1.0 Universal",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveName": "Knife_1.zip",
+      "sourceArchiveSha256": "b06dc392acd04aa3f8143a0a6bc77631ed018898aa63cb4913f4636986fc6464"
+    },
+    {
+      "title": "Original DEUSHIMA STRIKE M249 art",
+      "author": "DEUSHIMA STRIKE",
+      "authorUrl": "internal:deushima-strike",
+      "sourceUrl": "internal:deushima-strike",
+      "licenseName": "Original project art",
+      "licenseUrl": "internal:deushima-strike",
+      "sourceScript": "scripts/create-m249.py"
+    }
+  ],
+  "models": [
+    {
+      "id": "ak47",
+      "weapon": "AK-47",
+      "source": "Free CC0 Guns & Explosives Pack",
+      "sourceFile": "AK-47/AK47.fbx",
+      "sourceArchive": {
+        "name": "Guns&Explosives.rar",
+        "sha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/ak47-view.glb",
+          "bytes": 2847036,
+          "sha256": "958c6cff20c02a465a789acc64100d4ae57de125e2b943c701de7d4b9e3dd19c",
+          "meshes": 5,
+          "images": 3
+        },
+        "world": {
+          "path": "assets/weapons/ak47-world.glb",
+          "bytes": 683184,
+          "sha256": "0b40252a4e98fa433928ff99d53f5f99e46cf4612a99028a1e1c7e53e7950ecf",
+          "meshes": 5,
+          "images": 2
+        }
+      }
+    },
+    {
+      "id": "m4a1",
+      "weapon": "M4A1",
+      "source": "Free CC0 Guns & Explosives Pack",
+      "sourceFile": "M4A1/M4A1.fbx",
+      "sourceArchive": {
+        "name": "Guns&Explosives.rar",
+        "sha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/m4a1-view.glb",
+          "bytes": 2482420,
+          "sha256": "cf3ecbc064ec3cb70b28c17f6b66c772c3764b3bb535bc21abfd2e08b54b217c",
+          "meshes": 13,
+          "images": 3
+        },
+        "world": {
+          "path": "assets/weapons/m4a1-world.glb",
+          "bytes": 811932,
+          "sha256": "c0d1ea2bd557bcb25a2b11aab5c9ab7f7c4070ecac35d4c5d9bed3a7bb52a25c",
+          "meshes": 13,
+          "images": 2
+        }
+      }
+    },
+    {
+      "id": "he",
+      "weapon": "Granada HE",
+      "source": "Free CC0 Guns & Explosives Pack",
+      "sourceFile": "FragGrenade/FragGrenadeModel.fbx",
+      "sourceArchive": {
+        "name": "Guns&Explosives.rar",
+        "sha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/he-view.glb",
+          "bytes": 3141140,
+          "sha256": "bb91e2ba37257ad45ac21c303ca8f1dd3272953c5e2d970def92c37aa521efe4",
+          "meshes": 2,
+          "images": 3
+        },
+        "world": {
+          "path": "assets/weapons/he-world.glb",
+          "bytes": 639664,
+          "sha256": "5cba9afb2877cac9cf53853944a721a0a8f69b9f2a7c0d26d1e2e00d8a608256",
+          "meshes": 2,
+          "images": 2
+        }
+      }
+    },
+    {
+      "id": "flash",
+      "weapon": "Flashbang",
+      "source": "Free CC0 Guns & Explosives Pack",
+      "sourceFile": "Flashbang/Flashbang.fbx",
+      "sourceArchive": {
+        "name": "Guns&Explosives.rar",
+        "sha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/flash-view.glb",
+          "bytes": 3400028,
+          "sha256": "3e66062708fb42ceb421922bf5ef35f787af2c2fc58a3cb0d2eaed469e9ad595",
+          "meshes": 2,
+          "images": 3
+        },
+        "world": {
+          "path": "assets/weapons/flash-world.glb",
+          "bytes": 847940,
+          "sha256": "1ddf5f66a9c84c9d340465935779c612c6845d2765a65ade5703c3c5ebfa2e8b",
+          "meshes": 2,
+          "images": 2
+        }
+      }
+    },
+    {
+      "id": "smoke",
+      "weapon": "Granada de Humo",
+      "source": "Free CC0 Guns & Explosives Pack",
+      "sourceFile": "Smoke_Grenade/Smoke_Grenade.fbx",
+      "sourceArchive": {
+        "name": "Guns&Explosives.rar",
+        "sha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/smoke-view.glb",
+          "bytes": 3528764,
+          "sha256": "9301cfe9bd0ba7e23446a395075decdea65f86971723bd53e2120460b629efd4",
+          "meshes": 2,
+          "images": 3
+        },
+        "world": {
+          "path": "assets/weapons/smoke-world.glb",
+          "bytes": 457628,
+          "sha256": "f815244bec3092b2ceb2a57ebc4aeb25456dad2ad7195483bea3f82d4b88876c",
+          "meshes": 2,
+          "images": 2
+        }
+      }
+    },
+    {
+      "id": "c4",
+      "weapon": "C4",
+      "source": "Free CC0 Guns & Explosives Pack",
+      "sourceFile": "C4/C4.fbx",
+      "sourceArchive": {
+        "name": "Guns&Explosives.rar",
+        "sha256": "275679f1f8c7d22aa413c04012571a92e6c7b266ed7174125b64b9d8533f7a1a"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/c4-view.glb",
+          "bytes": 3756544,
+          "sha256": "29a167e63f0375199c1ed98cfcfe28d385b6ffe913d70866502dc49ad5821ddf",
+          "meshes": 1,
+          "images": 4
+        },
+        "world": {
+          "path": "assets/weapons/c4-world.glb",
+          "bytes": 614992,
+          "sha256": "67b031a6fc19812e2abb550bf9334ec044a3ffd7c5503850fca490ba689c490e",
+          "meshes": 1,
+          "images": 3
+        }
+      }
+    },
+    {
+      "id": "awp",
+      "weapon": "AWP",
+      "source": "Firearms Kit Free",
+      "sourceFile": "AWP/BLEND/AWP.blend",
+      "sourceArchive": {
+        "name": "AWP.zip",
+        "sha256": "183914733fc125970f03a0b2b2efec02b3aacf6024f5554f7f2b8ce02c935d31"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/awp-view.glb",
+          "bytes": 405308,
+          "sha256": "0daa46ab50e0cecb61d4ce33d8ca73575852b064ab51b4754edc079efcce2c65",
+          "meshes": 11,
+          "images": 11
+        },
+        "world": {
+          "path": "assets/weapons/awp-world.glb",
+          "bytes": 242144,
+          "sha256": "1434bf28664d7dacf6e349a1f94388bb961031b719e86e8ae6248c811ed2a821",
+          "meshes": 11,
+          "images": 11
+        }
+      }
+    },
+    {
+      "id": "mp5",
+      "weapon": "MP5 Navy",
+      "source": "Firearms Kit Free",
+      "sourceFile": "MP5/BLEND/MP5.blend",
+      "sourceArchive": {
+        "name": "MP5.zip",
+        "sha256": "6d24bfb5144704c2f7f49ec4783f4c30ba7998f4bda34d82a6f2241906808eff"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/mp5-view.glb",
+          "bytes": 2392632,
+          "sha256": "11164cdcb3fc5aa93f0f2b4592a82ef504ec94852e744828d72fd4d3fd0d3ed1",
+          "meshes": 7,
+          "images": 5
+        },
+        "world": {
+          "path": "assets/weapons/mp5-world.glb",
+          "bytes": 802104,
+          "sha256": "0e201719438403c334b20a1e71a3a0c5492768e9685566ed6674c374b232c7f0",
+          "meshes": 7,
+          "images": 5
+        }
+      }
+    },
+    {
+      "id": "usp",
+      "weapon": "USP .45",
+      "source": "Firearms Kit Free",
+      "sourceFile": "USP/BLEND/USP.blend",
+      "sourceArchive": {
+        "name": "USP.zip",
+        "sha256": "cebf6f40203d4fc2a44a588ac37e35bcd62ebe2397c823367848b28d28958c57"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/usp-view.glb",
+          "bytes": 190432,
+          "sha256": "3dd2c7c6007eee0e352281a4b9e9a5f0979aafd22b00680cd2d8934beaebb599",
+          "meshes": 5,
+          "images": 5
+        },
+        "world": {
+          "path": "assets/weapons/usp-world.glb",
+          "bytes": 116264,
+          "sha256": "4012a8d195079666686212b195373ca0bc9201439959243730ac00ff532d3646",
+          "meshes": 5,
+          "images": 5
+        }
+      }
+    },
+    {
+      "id": "xm1014",
+      "weapon": "XM1014",
+      "source": "Firearms Kit Free",
+      "sourceFile": "Auto Shotgun/BLEND/Auto Shotgun.blend",
+      "sourceArchive": {
+        "name": "Auto Shotgun.zip",
+        "sha256": "84e8f8093b31587c36d67e6244cc32bc69d7dbe2d596c05dc085b9a36a7ef0fc"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/xm1014-view.glb",
+          "bytes": 229200,
+          "sha256": "307594b320962a269b97c9311648e8400a33e9cbce80c2d22eb077c5300f20d0",
+          "meshes": 4,
+          "images": 4
+        },
+        "world": {
+          "path": "assets/weapons/xm1014-world.glb",
+          "bytes": 169868,
+          "sha256": "04d8a67a9a183447e07834ccc6876e70b40b39f52722c8fe55011d45ad10fc83",
+          "meshes": 4,
+          "images": 4
+        }
+      }
+    },
+    {
+      "id": "m3",
+      "weapon": "Benelli M3",
+      "source": "Firearms Kit Free",
+      "sourceFile": "Pump Shotgun/BLEND/Pump Shotgun.blend",
+      "sourceArchive": {
+        "name": "Pump Shotgun.zip",
+        "sha256": "52a4276c69757207acd2fa91fbc051b9e2aff6c2dd729f697878d395377b4e21"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/m3-view.glb",
+          "bytes": 128940,
+          "sha256": "0512493b76d074286d4abe21fd058aefda70d7e77ea035977f6b5dd5efdbad9c",
+          "meshes": 5,
+          "images": 4
+        },
+        "world": {
+          "path": "assets/weapons/m3-world.glb",
+          "bytes": 69612,
+          "sha256": "1924336594a28d09a9b3ba3ef5b8f91d41b346a25e1b75c4e441c7e2dd089fed",
+          "meshes": 5,
+          "images": 4
+        }
+      }
+    },
+    {
+      "id": "scout",
+      "weapon": "Steyr Scout",
+      "source": "Firearms Kit Free",
+      "sourceFile": "Hunting Rifle/BLEND/Hunting Rifle.blend",
+      "sourceArchive": {
+        "name": "Hunting Rifle.zip",
+        "sha256": "5c3da3e15d5b9c21d43abeae6523b05b8b0a527c7070ca2db2e52512d1ac5b9b"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/scout-view.glb",
+          "bytes": 273376,
+          "sha256": "ead965e58db9a815eb4e1cd7f2ef9555f273355e0bf581d3f8ae680d8595c26b",
+          "meshes": 6,
+          "images": 5
+        },
+        "world": {
+          "path": "assets/weapons/scout-world.glb",
+          "bytes": 199216,
+          "sha256": "d3dce6de91424db7b7a83a5393d731f72af609de641a1dc4fffaae6509836bec",
+          "meshes": 6,
+          "images": 5
+        }
+      }
+    },
+    {
+      "id": "deagle",
+      "weapon": "Desert Eagle",
+      "source": "Desert Eagle",
+      "sourceFile": "Export/Desert Eagle Export.blend",
+      "sourceArchive": {
+        "name": "desert_eagle_0.zip",
+        "sha256": "599e979d9b01ebdb8b6ca4694b2bd4a93dfce981d83ecf023f01284bf9ee8b6e"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/deagle-view.glb",
+          "bytes": 14404656,
+          "sha256": "72fcbf555fa90a451f5f699aac66e33e1f07e6c22786ff01a4cfc4a4c9b7c226",
+          "meshes": 15,
+          "images": 12
+        },
+        "world": {
+          "path": "assets/weapons/deagle-world.glb",
+          "bytes": 4218344,
+          "sha256": "627ca0f97f3b980ba78c5f992505a26b6654a0373f89fadd577336a121574694",
+          "meshes": 15,
+          "images": 12
+        }
+      }
+    },
+    {
+      "id": "glock",
+      "weapon": "Glock-18",
+      "source": "High Poly Glock-18 (No-Textures)",
+      "sourceFile": "Glock_HighPoly.obj",
+      "sourceArchive": {
+        "name": "Glock_HighPoly.obj",
+        "sha256": "5437aa4cbacfb9838c2ff06cabb13ccf68779ce8af4652a1672923772f35d089"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/glock-view.glb",
+          "bytes": 1048876,
+          "sha256": "b25b45190a409379652bc574fef7b1076af62408da202432ccc172b23957dbee",
+          "meshes": 1,
+          "images": 6
+        },
+        "world": {
+          "path": "assets/weapons/glock-world.glb",
+          "bytes": 1048888,
+          "sha256": "31a8fe5407ccc2c5a8dba33bb2624df4da4f6d71a4dd620b5ba9f00e838745d3",
+          "meshes": 1,
+          "images": 6
+        }
+      }
+    },
+    {
+      "id": "knife",
+      "weapon": "Cuchillo",
+      "source": "Combat Knife",
+      "sourceFile": "Knife.obj",
+      "sourceArchive": {
+        "name": "Knife_1.zip",
+        "sha256": "b06dc392acd04aa3f8143a0a6bc77631ed018898aa63cb4913f4636986fc6464"
+      },
+      "files": {
+        "view": {
+          "path": "assets/weapons/knife-view.glb",
+          "bytes": 3175164,
+          "sha256": "131661024e5909b234b470e4487bbdd96ffb370991b788779fa71b699a148a7a",
+          "meshes": 1,
+          "images": 2
+        },
+        "world": {
+          "path": "assets/weapons/knife-world.glb",
+          "bytes": 1201108,
+          "sha256": "7eca62149d47a623e0a54b2e213cf331365030831f01070bb3015be241ea548e",
+          "meshes": 1,
+          "images": 2
+        }
+      }
+    },
+    {
+      "id": "m249",
+      "weapon": "M249",
+      "source": "Original DEUSHIMA STRIKE M249 art",
+      "sourceFile": "scripts/create-m249.py",
+      "sourceArchive": null,
+      "files": {
+        "view": {
+          "path": "assets/weapons/m249-view.glb",
+          "bytes": 334720,
+          "sha256": "dd9572edb79df89fadaacc0d74273f6256d5f332634929da23e4eac025178d4f",
+          "meshes": 63,
+          "images": 4
+        },
+        "world": {
+          "path": "assets/weapons/m249-world.glb",
+          "bytes": 254188,
+          "sha256": "2a7df25798bb1fdcab9e305c27dac67948e58a6a3fd326f49f4eaa6d3934d838",
+          "meshes": 43,
+          "images": 4
+        }
+      }
+    }
+  ],
+  "armSource": {
+    "title": "WRAD ARMS",
+    "author": "WRiKS",
+    "authorUrl": "https://wriks.itch.io/",
+    "sourceUrl": "https://github.com/wwwriks/wrad-arms",
+    "licenseName": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceCommit": "f3987244176c33d2c20d4f9e139980af12684d87",
+    "sourceGlbSha256": "580efbb0852bf0b41f82dd3e17eafec86b3d2a48f4a7acaa7e64d60e850f565d"
+  },
+  "povArms": [
+    {
+      "variant": "sas",
+      "path": "assets/weapons/arms-sas.glb",
+      "bytes": 74144,
+      "sha256": "8d88c6643130e514b411aede391c49d05bbd89e61523db5e0cd72d868e65275e",
+      "joints": 50
+    },
+    {
+      "variant": "leet",
+      "path": "assets/weapons/arms-leet.glb",
+      "bytes": 74148,
+      "sha256": "66de7ca1aec6f40eabaa27d54f617981bf9492df4f079dae68e77a80345fcca7",
+      "joints": 50
+    }
+  ]
+}

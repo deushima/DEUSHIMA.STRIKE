@@ -7,12 +7,13 @@
   "scripts": {
     "start": "node server.mjs",
     "dev": "node server.mjs",
-    "test": "node tests/assets-check.mjs && node tests/community-assets.test.mjs && node tests/duel-logic.test.mjs && node tests/redline-map.test.mjs && node tests/office-online-map.test.mjs && node tests/forge-map.test.mjs && node tests/movement.test.mjs && node tests/movement-real-world.test.mjs && node tests/wheel-jump.test.mjs && node tests/slope-collision.test.mjs && node tests/dropped-weapons.test.mjs && node tests/online-match-2v2.test.mjs && node tests/online-moving-drop.test.mjs && node tests/online-authority-sync.test.mjs && node tests/viewmodel.test.mjs",
+    "test": "node tests/assets-check.mjs && node tests/community-assets.test.mjs && node tests/duel-logic.test.mjs && node tests/redline-map.test.mjs && node tests/office-online-map.test.mjs && node tests/forge-map.test.mjs && node tests/movement.test.mjs && node tests/movement-real-world.test.mjs && node tests/wheel-jump.test.mjs && node tests/slope-collision.test.mjs && node tests/dropped-weapons.test.mjs && node tests/online-match-2v2.test.mjs && node tests/online-moving-drop.test.mjs && node tests/online-authority-sync.test.mjs && node tests/viewmodel.test.mjs && node tests/damage-pulse.test.mjs && node scripts/verify-weapon-assets.mjs",
     "test:online": "node tests/online-e2e.mjs",
     "build:static": "node scripts/build-static.mjs",
-    "deploy": "node scripts/build-static.mjs && node scripts/deploy-vercel.mjs",
+    "deploy": "npm test && node scripts/check-release-readiness.mjs && node scripts/build-static.mjs && node scripts/deploy-vercel.mjs",
     "extract": "python tools/extract-assets.py && python tools/convert-smds.py && python tools/fix-hud-alpha.py",
-    "test:characters": "node tests/community-character-render.mjs"
+    "test:characters": "node tests/community-character-render.mjs",
+    "test:weapons:browser": "node tests/weapon-browser-smoke.mjs"
   },
   "dependencies": {
     "three": "^0.160.0"

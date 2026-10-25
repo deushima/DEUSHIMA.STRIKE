@@ -515,6 +515,7 @@
   text-transform: uppercase;
 }
 .cp-about .cp-about-legal { font-size: 11px; color: #aaa392; line-height: 1.65; }
+.cp-about .cp-about-legal a { color: #e8c77e; text-underline-offset: 2px; }
 .cp-about-credits {
   display: inline-flex;
   align-items: center;

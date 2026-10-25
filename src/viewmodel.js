@@ -1,13 +1,25 @@
 /**
- * Procedural low-poly first person viewmodel (CS 1.6 style).
+ * First-person weapon presentation, native models, and articulated POV arms.
  *
- * Everything is built from boxes / cylinders / spheres — no external assets and no DOM
- * (so the module can also be imported from Node for smoke tests). A dedicated scene and
+ * Procedural geometry remains a loading and asset-failure fallback. A dedicated scene and
  * camera keep the weapon perspective stable. WeaponSystem drives the rig through
  * setWeapon / onFire / onKnife / onThrow / setVisible / setScoped.
  */
 import * as THREE from '../vendor/three.module.js';
 import { clamp, expDamp, rand } from './core/utils.js';
+import { hasNativeWeaponAsset, loadWeaponModel, WEAPON_ASSETS } from './weapon-assets.js';
+import { loadPovArms } from './pov-arms.js';
+
+const smoothstep = (a, b, x) => {
+  const t = clamp((x - a) / (b - a), 0, 1);
+  return t * t * (3 - 2 * t);
+};
+
+function reloadMagazineTravel(progress) {
+  const out = smoothstep(0.17, 0.37, progress);
+  const back = 1 - smoothstep(0.54, 0.76, progress);
+  return out * back;
+}
 
 function stdMat(color, opts = {}) {
   const c = new THREE.Color(color);
@@ -83,6 +95,7 @@ export class ViewModel {
     this.deployDuration = 0.34;
     this.knifeT = 0;
     this.throwT = 0;
+    this.cycleT = 0;
 
     this.idleX = 0;
     this.idleY = 0;
@@ -94,6 +107,8 @@ export class ViewModel {
     this.basePos = new THREE.Vector3(0.18, -0.18, -0.36);
     this.baseRot = new THREE.Euler(0.015, 0.13, -0.025);
     this._team = null;
+    this.armsByTeam = new Map();
+    this.armLoads = new Set();
   }
 
   init() {
@@ -192,6 +207,9 @@ export class ViewModel {
 
   _addHand(g, x, y, z, rotX = 0, mirror = false, withArm = true) {
     const M = this.materials, sign = mirror ? -1 : 1;
+    const rig = new THREE.Group();
+    rig.name = 'hand-rig';
+    g.add(rig);
     const hand = new THREE.Group();
     hand.name = mirror ? 'support-hand' : 'trigger-hand';
     hand.position.set(x, y, z); hand.rotation.x = rotX;
@@ -210,13 +228,13 @@ export class ViewModel {
     const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(0.01, 0.025, 2, 6), M.glove);
     thumb.position.set(-sign * 0.027, -0.005, -0.008);
     thumb.rotation.z = sign * 0.55; hand.add(thumb);
-    g.add(hand);
+    rig.add(hand);
     if (withArm) {
       const cuff = this._box(0.059, 0.056, 0.028, M.grip);
-      cuff.position.set(x, y - 0.014, z + 0.047); cuff.rotation.x = 0.35; g.add(cuff);
+      cuff.position.set(x, y - 0.014, z + 0.047); cuff.rotation.x = 0.35; rig.add(cuff);
       const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.029, 0.047, 0.22, 10), M.sleeve);
       arm.position.set(x + sign * 0.025, y - 0.068, z + 0.13);
-      arm.rotation.set(1.05, 0, -sign * 0.18); g.add(arm);
+      arm.rotation.set(1.05, 0, -sign * 0.18); rig.add(arm);
     }
     return hand;
   }
@@ -526,14 +544,85 @@ export class ViewModel {
     group.traverse((child) => {
       child.frustumCulled = false;
       if (child.isMesh) child.renderOrder = 21;
+      if (child.name === 'hand-rig' && this.armsByTeam.get(this._team)) child.visible = false;
     });
     this.weaponRoot.add(group);
     entry = { group, muzzle: group.userData.muzzle || new THREE.Vector3(0, 0.02, -0.4) };
     this.models.set(id, entry);
+    if (hasNativeWeaponAsset(id) && typeof window !== 'undefined') {
+      loadWeaponModel(id, 'view').then((native) => {
+        if (this.models.get(id) !== entry) return;
+        native.name = 'native-weapon';
+        native.position.set(...WEAPON_ASSETS[id].offset);
+        if (WEAPON_ASSETS[id].rotation) native.rotation.set(...WEAPON_ASSETS[id].rotation);
+        native.traverse((part) => {
+          part.frustumCulled = false;
+          if (part.isMesh) part.renderOrder = 21;
+          if (['magazine', 'slide', 'bolt', 'pump', 'feed_cover'].includes(part.name)) {
+            part.userData.restPosition = part.position.clone();
+            part.userData.restRotation = part.rotation.clone();
+            part.userData.motionScale = 1 / (native.getObjectByName(id)?.scale.x || 1);
+          }
+        });
+        for (const child of group.children) child.visible = child.name === 'hand-rig' && !this.armsByTeam.get(this._team);
+        group.add(native);
+        entry.native = native;
+        entry.muzzle.set(...WEAPON_ASSETS[id].muzzle).add(native.position);
+        if (this.currentId === id) this.muzzleAnchor?.position.copy(entry.muzzle);
+      }).catch((error) => console.warn(`[viewmodel] ${id} asset unavailable; procedural fallback retained`, error));
+    }
     return entry;
   }
 
   // --- public API ----------------------------------------------------------
+
+  _ensureArms(team) {
+    const active = this.armsByTeam.get(team);
+    if (active) {
+      for (const [key, rig] of this.armsByTeam) rig.scene.visible = key === team;
+      for (const { group } of this.models.values()) group.traverse((part) => { if (part.name === 'hand-rig') part.visible = false; });
+      return;
+    }
+    for (const rig of this.armsByTeam.values()) rig.scene.visible = false;
+    for (const { group } of this.models.values()) group.traverse((part) => { if (part.name === 'hand-rig') part.visible = true; });
+    if (this.armLoads.has(team) || typeof window === 'undefined') return;
+    this.armLoads.add(team);
+    loadPovArms(team).then((rig) => {
+      if (!this.root) return;
+      this.root.add(rig.scene);
+      this.armsByTeam.set(team, rig);
+      for (const [key, other] of this.armsByTeam) other.scene.visible = key === this._team;
+      for (const { group } of this.models.values()) {
+        group.traverse((part) => { if (part.name === 'hand-rig') part.visible = false; });
+      }
+    }).catch((error) => console.warn(`[viewmodel] ${team} POV arms unavailable; procedural fallback retained`, error))
+      .finally(() => this.armLoads.delete(team));
+  }
+
+  _poseArms(ctx) {
+    const rig = this.armsByTeam.get(this._team);
+    if (!rig) return;
+    const group = this.models.get(this.currentId)?.group;
+    if (!group) return;
+    this.root.updateWorldMatrix(true, true);
+    const triggerHand = group.getObjectByName('trigger-hand');
+    const supportHand = group.getObjectByName('support-hand');
+    const trigger = triggerHand?.getWorldPosition(new THREE.Vector3())
+      || this.root.localToWorld(new THREE.Vector3(0.04, -0.06, -0.05));
+    const support = supportHand?.getWorldPosition(new THREE.Vector3())
+      || this.root.localToWorld(new THREE.Vector3(-0.30, -0.24, 0.08));
+    const magazine = this.models.get(this.currentId)?.native?.getObjectByName('magazine')
+      || group.getObjectByName('magazine');
+    if (magazine && ctx.reloading && supportHand) {
+      const rp = clamp(ctx.reloadProgress ?? 0, 0, 1);
+      const approach = smoothstep(0.04, 0.24, rp);
+      const returnToGrip = 1 - smoothstep(0.76, 0.95, rp);
+      support.lerp(magazine.getWorldPosition(new THREE.Vector3()), approach * returnToGrip);
+    }
+    const rightPole = this.root.localToWorld(new THREE.Vector3(0.42, -0.42, 0.22));
+    const leftPole = this.root.localToWorld(new THREE.Vector3(-0.42, -0.42, 0.12));
+    rig.pose(trigger, support, rightPole, leftPole);
+  }
 
   setWeapon(id) {
     if (!this.root) return;
@@ -550,11 +639,13 @@ export class ViewModel {
     this.flashT = 0;
     this.knifeT = 0;
     this.throwT = 0;
+    this.cycleT = 0;
     if (this.flashMesh) this.flashMesh.visible = false;
   }
 
   onFire() {
     this.kick = Math.min(1.6, this.kick + 1);
+    this.cycleT = 1;
     this.flashT = 0.055;
     if (this.flashMesh) {
       this.flashMesh.rotation.z = Math.random() * Math.PI * 2;
@@ -598,6 +689,7 @@ export class ViewModel {
     const team = ctx.team || p?.team;
     if (team && team !== this._team) {
       this._team = team;
+      this._ensureArms(team);
       if (this.materials) {
         this.materials.sleeve.color.set(team === 'T' ? 0x4a3b23 : 0x2b3947);
         this.materials.sleeve.emissive.set(team === 'T' ? 0x17120a : 0x0d1318);
@@ -616,6 +708,7 @@ export class ViewModel {
 
     if (this.knifeT > 0) this.knifeT = Math.max(0, this.knifeT - dt / 0.3);
     if (this.throwT > 0) this.throwT = Math.max(0, this.throwT - dt / 0.42);
+    if (this.cycleT > 0) this.cycleT = Math.max(0, this.cycleT - dt / 0.38);
 
     const bobAmount = p?.bobAmount ?? 0;
     const bobTime = p?.bobTime ?? 0;
@@ -665,16 +758,20 @@ export class ViewModel {
     rx += this.kick * 0.11;
     rz += this.kick * 0.03;
 
-    // Reload animation (roll down + shake).
+    // Keep the ejection port and manipulated part in frame while the weapon
+    // rotates toward the support hand.
     const reloading = !!ctx.reloading;
     if (reloading) {
       const rp = clamp(ctx.reloadProgress ?? 0, 0, 1);
       const s = Math.sin(rp * Math.PI);
-      py -= s * 0.085;
-      pz += s * 0.03;
-      rx += s * 0.5;
-      rz += s * 0.28;
-      py += Math.sin(rp * 34) * 0.004 * s;
+      const pistol = ['deagle', 'usp', 'glock'].includes(this.currentId);
+      // Raise the weapon while the magazine is detached so the manipulated
+      // part and the support hand stay inside the first-person camera.
+      py += s * (pistol ? 0.08 : 0.12);
+      pz += s * 0.025;
+      rx += s * (pistol ? 0.12 : 0.27);
+      rz += s * (pistol ? 0.13 : 0.20);
+      py += Math.sin(rp * 34) * 0.0015 * s;
     }
 
     // Knife swing.
@@ -699,19 +796,44 @@ export class ViewModel {
     }
 
     const current = this.models.get(this.currentId)?.group;
+    const rp = reloading ? clamp(ctx.reloadProgress ?? 0, 0, 1) : 0;
+    const magazineTravel = reloading ? reloadMagazineTravel(rp) : 0;
+    const cycle = this.cycleT > 0 ? Math.sin((1 - this.cycleT) * Math.PI) : 0;
     current?.traverse(part => {
       const rest = part.userData.restPosition;
       if (!rest) return;
       part.position.copy(rest);
-      if (part.name === 'slide') part.position.z += this.kick * 0.026;
-      if (part.name === 'magazine' && reloading) {
-        const rp = clamp(ctx.reloadProgress ?? 0, 0, 1);
-        part.position.y -= Math.sin(rp * Math.PI) * 0.11;
-        part.position.z += Math.sin(rp * Math.PI) * 0.025;
+      if (part.userData.restRotation) part.rotation.copy(part.userData.restRotation);
+      const scale = part.userData.motionScale || 1;
+      if (part.name === 'magazine') {
+        const pistol = ['usp', 'glock', 'deagle'].includes(this.currentId);
+        if (this.currentId === 'm249') {
+          part.position.x -= magazineTravel * 0.11 * scale;
+          part.position.y -= magazineTravel * 0.035 * scale;
+        } else {
+          if (pistol) part.position.x -= magazineTravel * 0.055 * scale;
+          part.position.y -= magazineTravel * (pistol ? 0.09 : 0.16) * scale;
+          part.position.z += magazineTravel * (pistol ? 0.015 : 0.035) * scale;
+        }
+      }
+      if (part.name === 'feed_cover' && reloading) {
+        part.rotation.x -= smoothstep(0.10, 0.31, rp) * (1 - smoothstep(0.75, 0.92, rp)) * 0.8;
+      }
+      if (part.name === 'slide') {
+        const rack = reloading ? smoothstep(0.81, 0.90, rp) * (1 - smoothstep(0.93, 1, rp)) : 0;
+        part.position.z += (this.kick * 0.026 + rack * 0.045) * scale;
+      }
+      if (part.name === 'bolt') {
+        const rack = reloading ? smoothstep(0.79, 0.87, rp) * (1 - smoothstep(0.92, 0.99, rp)) : 0;
+        part.position.z += (cycle * 0.075 + rack * 0.09) * scale;
+      }
+      if (part.name === 'pump') {
+        part.position.z += cycle * 0.14 * scale;
       }
     });
     this.root.position.set(px, py, pz);
     this.root.rotation.set(rx, ry, rz);
+    this._poseArms(ctx);
 
     // Muzzle flash quad.
     if (this.flashMesh && this.flashT > 0) {
@@ -744,8 +866,17 @@ export class ViewModel {
 
   dispose() {
     if (this.root) {
+      // Cached GLB geometry is shared by all scene clones. Disposing a previous
+      // viewmodel must not invalidate a later round or a second game instance.
+      const sharedGeometry = new Set();
+      for (const { native } of this.models.values()) {
+        native?.traverse((part) => { if (part.isMesh) sharedGeometry.add(part.geometry); });
+      }
+      for (const { scene } of this.armsByTeam.values()) {
+        scene.traverse((part) => { if (part.isMesh) sharedGeometry.add(part.geometry); });
+      }
       this.root.traverse((child) => {
-        if (child.isMesh) {
+        if (child.isMesh && !sharedGeometry.has(child.geometry)) {
           child.geometry?.dispose?.();
         }
       });
@@ -767,6 +898,8 @@ export class ViewModel {
     this.viewLight = null;
     this.fillLight = null;
     this.models.clear();
+    this.armsByTeam.clear();
+    this.armLoads.clear();
     this.root = null;
     this.weaponRoot = null;
     this.muzzleAnchor = null;
