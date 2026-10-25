@@ -7,6 +7,7 @@ import { WEAPON_ASSETS } from '../src/weapon-assets.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const characters = JSON.parse(fs.readFileSync(path.join(root, 'docs/v3-asset-manifest.json'), 'utf8'));
+const manualQa = JSON.parse(fs.readFileSync(path.join(root, 'docs/weapon-release-qa.json'), 'utf8'));
 const blockers = [];
 for (const character of characters.targets) {
   if (/\bNC\b|NONCOMMERCIAL/i.test(character.license.replaceAll('-', ' '))) {
@@ -16,8 +17,11 @@ for (const character of characters.targets) {
 for (const id of Object.keys(WEAPONS)) {
   if (!WEAPON_ASSETS[id]) blockers.push(`Missing native weapon asset: ${id}`);
 }
-if (WEAPON_ASSETS.scout?.label.includes('stand-in')) {
-  blockers.push('Scout currently uses a Hunting Rifle visual substitute');
+if (WEAPON_ASSETS.scout?.source !== 'internal:deushima-strike') {
+  blockers.push('Scout must use the authorized original model');
+}
+for (const check of ['firefoxGameplay', 'hardwarePerformance', 'allWeaponsBothTeamsVisualReview', 'deathRespawnAndMultiplayerSwitching']) {
+  if (manualQa[check] !== true) blockers.push(`Manual acceptance pending: ${check}`);
 }
 if (blockers.length) {
   console.error('Deployment is blocked until these release requirements are resolved:');

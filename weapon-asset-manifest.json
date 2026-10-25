@@ -38,10 +38,6 @@
         "m3": {
           "name": "Pump Shotgun.zip",
           "sha256": "52a4276c69757207acd2fa91fbc051b9e2aff6c2dd729f697878d395377b4e21"
-        },
-        "scout": {
-          "name": "Hunting Rifle.zip",
-          "sha256": "5c3da3e15d5b9c21d43abeae6523b05b8b0a527c7070ca2db2e52512d1ac5b9b"
         }
       }
     },
@@ -83,6 +79,15 @@
       "licenseName": "Original project art",
       "licenseUrl": "internal:deushima-strike",
       "sourceScript": "scripts/create-m249.py"
+    },
+    {
+      "title": "Original DEUSHIMA STRIKE Scout art",
+      "author": "DEUSHIMA STRIKE",
+      "authorUrl": "internal:deushima-strike",
+      "sourceUrl": "internal:deushima-strike",
+      "licenseName": "Original project art",
+      "licenseUrl": "internal:deushima-strike",
+      "sourceScript": "scripts/create-scout.py"
     }
   ],
   "models": [
@@ -375,25 +380,22 @@
     {
       "id": "scout",
       "weapon": "Steyr Scout",
-      "source": "Firearms Kit Free",
-      "sourceFile": "Hunting Rifle/BLEND/Hunting Rifle.blend",
-      "sourceArchive": {
-        "name": "Hunting Rifle.zip",
-        "sha256": "5c3da3e15d5b9c21d43abeae6523b05b8b0a527c7070ca2db2e52512d1ac5b9b"
-      },
+      "source": "Original DEUSHIMA STRIKE Scout art",
+      "sourceFile": "scripts/create-scout.py",
+      "sourceArchive": null,
       "files": {
         "view": {
           "path": "assets/weapons/scout-view.glb",
-          "bytes": 273376,
-          "sha256": "ead965e58db9a815eb4e1cd7f2ef9555f273355e0bf581d3f8ae680d8595c26b",
-          "meshes": 6,
-          "images": 5
+          "bytes": 868584,
+          "sha256": "dabb772934e74d093b5cebd9a3284f70ca0372304e4d5600b3a714c2f366d12d",
+          "meshes": 97,
+          "images": 6
         },
         "world": {
           "path": "assets/weapons/scout-world.glb",
-          "bytes": 199216,
-          "sha256": "d3dce6de91424db7b7a83a5393d731f72af609de641a1dc4fffaae6509836bec",
-          "meshes": 6,
+          "bytes": 736248,
+          "sha256": "f2496bf42b4188b8a6cac64d3404e390b2f5eb75607230122825ec9d81155931",
+          "meshes": 80,
           "images": 5
         }
       }

@@ -30,7 +30,6 @@ const maiaSource = {
     usp: { name: 'USP.zip', sha256: 'cebf6f40203d4fc2a44a588ac37e35bcd62ebe2397c823367848b28d28958c57' },
     xm1014: { name: 'Auto Shotgun.zip', sha256: '84e8f8093b31587c36d67e6244cc32bc69d7dbe2d596c05dc085b9a36a7ef0fc' },
     m3: { name: 'Pump Shotgun.zip', sha256: '52a4276c69757207acd2fa91fbc051b9e2aff6c2dd729f697878d395377b4e21' },
-    scout: { name: 'Hunting Rifle.zip', sha256: '5c3da3e15d5b9c21d43abeae6523b05b8b0a527c7070ca2db2e52512d1ac5b9b' },
   },
 };
 const ogaSources = {
@@ -58,6 +57,11 @@ const originalSource = {
   sourceUrl: 'internal:deushima-strike', licenseName: 'Original project art', licenseUrl: 'internal:deushima-strike',
   sourceScript: 'scripts/create-m249.py',
 };
+const originalScoutSource = {
+  title: 'Original DEUSHIMA STRIKE Scout art', author: 'DEUSHIMA STRIKE', authorUrl: 'internal:deushima-strike',
+  sourceUrl: 'internal:deushima-strike', licenseName: 'Original project art', licenseUrl: 'internal:deushima-strike',
+  sourceScript: 'scripts/create-scout.py',
+};
 const sourceFiles = {
   ak47: 'AK-47/AK47.fbx',
   m4a1: 'M4A1/M4A1.fbx',
@@ -70,7 +74,7 @@ const sourceFiles = {
   usp: 'USP/BLEND/USP.blend',
   xm1014: 'Auto Shotgun/BLEND/Auto Shotgun.blend',
   m3: 'Pump Shotgun/BLEND/Pump Shotgun.blend',
-  scout: 'Hunting Rifle/BLEND/Hunting Rifle.blend',
+  scout: 'scripts/create-scout.py',
   deagle: 'Export/Desert Eagle Export.blend',
   glock: 'Glock_HighPoly.obj',
   knife: 'Knife.obj',
@@ -80,9 +84,12 @@ const digest = (bytes) => crypto.createHash('sha256').update(bytes).digest('hex'
 const models = [];
 for (const [id, entry] of Object.entries(WEAPON_ASSETS)) {
   if (!WEAPONS[id] || !sourceFiles[id]) throw new Error(`Invalid weapon asset ID: ${id}`);
-  const modelSource = id === 'm249' ? originalSource : (ogaSources[id] ?? (maiaSource.sourceArchives[id] ? maiaSource : source));
+  const modelSource = id === 'm249' ? originalSource : (id === 'scout' ? originalScoutSource : (ogaSources[id] ?? (maiaSource.sourceArchives[id] ? maiaSource : source)));
   if (entry.source !== modelSource.sourceUrl || entry.author !== modelSource.author || entry.license !== modelSource.licenseName) {
     throw new Error(`Runtime credit mismatch: ${id}`);
+  }
+  if (modelSource.sourceScript && !fs.existsSync(path.join(root, modelSource.sourceScript))) {
+    throw new Error(`Missing original source script: ${modelSource.sourceScript}`);
   }
   const files = {};
   for (const role of ['view', 'world']) {
@@ -99,6 +106,13 @@ for (const [id, entry] of Object.entries(WEAPON_ASSETS)) {
     }
     if (role === 'view' && ['ak47', 'm4a1', 'awp', 'mp5', 'usp', 'scout', 'deagle'].includes(id) && !gltf.nodes.some((node) => node.name === 'magazine')) {
       throw new Error(`Missing movable magazine: ${relativePath}`);
+    }
+    if (id === 'scout' && role === 'view') {
+      const magazine = gltf.nodes.find((node) => node.name === 'magazine');
+      if (!magazine.children?.some((index) => gltf.nodes[index]?.name === 'magazine-floor-plate')) {
+        throw new Error(`Scout magazine floor plate must move with magazine: ${relativePath}`);
+      }
+      if (!gltf.nodes.some((node) => node.name === 'bolt')) throw new Error(`Missing movable Scout bolt: ${relativePath}`);
     }
     files[role] = {
       path: relativePath,
@@ -133,7 +147,7 @@ for (const variant of ['sas', 'leet']) {
   povArms.push({ variant, path: relativePath, bytes: bytes.length, sha256: digest(bytes), joints: gltf.skins[0].joints.length });
 }
 
-const manifest = { schemaVersion: 4, sources: [source, maiaSource, ...Object.values(ogaSources), originalSource], models, armSource, povArms };
+const manifest = { schemaVersion: 4, sources: [source, maiaSource, ...Object.values(ogaSources), originalSource, originalScoutSource], models, armSource, povArms };
 const manifestPath = path.join(root, 'weapon-asset-manifest.json');
 if (process.argv.includes('--write')) {
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);

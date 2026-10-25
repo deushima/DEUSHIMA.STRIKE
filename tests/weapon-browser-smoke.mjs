@@ -88,7 +88,7 @@ try {
   const credits = await browser.newPage();
   await credits.goto(new URL('/character-credits.html', process.env.CS16_BASE_URL || 'http://127.0.0.1:8095/').href);
   assert.equal(await credits.locator('#weapons-creators').count(), 1);
-  for (const author of ['3dmodelscc0', 'Maia Studios', 'SirDraco65', 'locarem', 'WRiKS', 'BAMEN']) {
+  for (const author of ['3dmodelscc0', 'Maia Studios', 'SirDraco65', 'locarem', 'WRiKS', 'BAMEN', 'DEUSHIMA STRIKE']) {
     assert.ok((await credits.locator('body').innerText()).includes(author), `missing credit: ${author}`);
   }
   await credits.close();
