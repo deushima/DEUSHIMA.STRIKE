@@ -1,0 +1,21 @@
+.deathmatch-gateway{position:fixed;inset:0;z-index:1200;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,9,7,.96);color:#e9e9dc;font-family:Trebuchet MS,Arial,sans-serif}
+.deathmatch-gateway.hidden{display:none!important}
+.dm-panel{width:min(100%,920px);padding:28px 34px;border:1px solid #5c6842;background:linear-gradient(135deg,#181c15,#0b0f0b);box-shadow:0 25px 90px #000b}
+.dm-eyebrow,.dm-method-number{letter-spacing:.18em;color:#a0b47a;font:700 12px/1.5 monospace}
+.dm-panel h2{font-size:clamp(30px,5vw,57px);letter-spacing:.045em;line-height:1;margin:12px 0;font-weight:900}
+.dm-panel h2 span{color:#b3c879}
+.dm-panel>p{font-size:14px;line-height:1.65;color:#adbaa3;margin:0 0 25px}
+.dm-methods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.dm-method{display:flex;flex-direction:column;gap:11px;border:1px solid #434d3c;background:#151c16;padding:24px;min-height:332px}
+.dm-method-online{background:linear-gradient(150deg,#1d291e,#101810)}
+.dm-method h3{font-size:30px;margin:3px 0 0;letter-spacing:.075em}
+.dm-method p{font-size:13px;color:#b7c3b0;line-height:1.6;margin:0 0 6px}
+.dm-method label{display:flex;flex-direction:column;gap:5px;font:700 11px monospace;color:#becba9}
+.dm-method select{height:34px;color:#e3ead2;background:#0b120d;border:1px solid #57664b;padding:0 10px;cursor:pointer}
+.dm-method button{margin-top:auto;min-height:47px;cursor:pointer;border:1px solid #a7c779;background:#65804b;color:#fff;font:800 14px monospace;letter-spacing:.075em}
+.dm-method button:hover,.dm-method button:focus-visible{background:#a1bd6d;color:#10180e}
+.dm-feature{font:700 12px/1.5 monospace;letter-spacing:.055em;padding:10px;border-left:2px solid #9ab77d;background:#ffffff0b}
+.dm-back{display:block;margin:20px auto 0;background:transparent;border:0;color:#acb8a0;font:700 12px monospace;cursor:pointer;padding:11px}
+.dm-back:hover{text-decoration:underline;color:#fff}
+.dm-status{text-align:center;min-height:12px;font:12px monospace}
+@media(max-width:650px){.deathmatch-gateway{align-items:flex-start;padding:12px}.dm-panel{padding:24px 16px}.dm-methods{grid-template-columns:1fr}.dm-method{min-height:auto;padding:20px}}

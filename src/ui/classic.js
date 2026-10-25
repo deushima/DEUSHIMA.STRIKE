@@ -500,9 +500,10 @@ class ClassicMenu {
         <button class="cm-btn" data-cm="forge"><span class="idx">03</span>AIM_FORGE<span class="hint">TRAINING YARD</span></button>
         <button class="cm-btn" data-cm="assault"><span class="idx">04</span>ASSAULT 1V1<span class="hint">ALMACÉN</span></button>
         <button class="cm-btn" data-cm="online"><span class="idx">05</span>ONLINE 1V1 / 2V2<span class="hint">AMIGOS</span></button>
-        <button class="cm-btn" data-cm="options"><span class="idx">06</span>OPCIONES<span class="hint">AJUSTES</span></button>
-        <button class="cm-btn" data-cm="help"><span class="idx">07</span>COMO JUGAR<span class="hint">AYUDA</span></button>
-        <button class="cm-btn" data-cm="quit"><span class="idx">08</span>SALIR<span class="hint">FIN</span></button>
+        <button class="cm-btn" data-cm="deathmatch"><span class="idx">06</span>DEATHMATCH<span class="hint">ONLINE / OFFLINE</span></button>
+        <button class="cm-btn" data-cm="options"><span class="idx">07</span>OPCIONES<span class="hint">AJUSTES</span></button>
+        <button class="cm-btn" data-cm="help"><span class="idx">08</span>COMO JUGAR<span class="hint">AYUDA</span></button>
+        <button class="cm-btn" data-cm="quit"><span class="idx">09</span>SALIR<span class="hint">FIN</span></button>
       </nav>
       <div class="cm-foot">
         <span class="cm-keys"><b>ENTER</b> JUGAR | <b>TAB</b> MARCADOR | <b>G</b> TIRAR ARMA | <b>ESC</b> PAUSA</span>
@@ -538,6 +539,7 @@ class ClassicMenu {
         else if (action === 'forge') this._startForge();
         else if (action === 'assault') this._startAssault();
         else if (action === 'online') this._startOnline();
+        else if (action === 'deathmatch') this._startDeathmatch();
         else if (action === 'fullscreen') this._toggleFullscreen();
         else if (action === 'options') this.game.classicPause?.show(true);
         else if (action === 'help') this._openModal(this._helpMarkup());
@@ -640,6 +642,10 @@ class ClassicMenu {
       this._show();
     }
   }
+  _startDeathmatch() {
+    this._hide();
+    this.game.deathmatchUI?.open();
+  }
   _hide() { this._armed?.classList.remove('is-armed'); this._armed = null; this.visible = false; this.root.classList.add('hidden'); }
   _show() { this.visible = true; this.root.classList.remove('hidden'); }
   _tick() {
@@ -647,8 +653,9 @@ class ClassicMenu {
     const state = this.game?.state;
     if (!state) return;
     const onlineOpen = !!this.game?.onlineUI?.isOpen;
-    if (state === 'menu' && !onlineOpen && !this.visible) this._show();
-    if ((state !== 'menu' || onlineOpen) && this.visible) this._hide();
+    const deathmatchOpen = !!this.game?.deathmatchUI?.isOpen;
+    if (state === 'menu' && !onlineOpen && !deathmatchOpen && !this.visible) this._show();
+    if ((state !== 'menu' || onlineOpen || deathmatchOpen) && this.visible) this._hide();
   }
   _openModal(html) {
     const modal = this.root.querySelector('[data-cm-modal]');

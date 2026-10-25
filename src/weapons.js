@@ -1075,7 +1075,8 @@ export class WeaponSystem {
         endPoint = hit.point;
         if (hit.type === 'bot' && hit.entity) {
           const enemy = hit.entity;
-          if (enemy !== player && enemy.team !== player.team) {
+          const deathmatch = !!this.game?.deathmatch || this.game?.matchConfig?.mode === 'deathmatch';
+          if (enemy !== player && (deathmatch || enemy.team !== player.team)) {
             const dealt = this.game.damageBot
               ? this.game.damageBot(enemy, w.damage, player, hit.part || 'chest', w.id)
               : 0;
@@ -1168,7 +1169,8 @@ export class WeaponSystem {
       return;
     }
     const target = hit.entity;
-    if (!target || target === player || target.team === player.team) return;
+    const deathmatch = !!this.game?.deathmatch || this.game?.matchConfig?.mode === 'deathmatch';
+    if (!target || target === player || (!deathmatch && target.team === player.team)) return;
     let damage = w.damage;
     if (target.isBot || target.isRemote) {
       const yaw = target.yaw || 0;
@@ -1474,7 +1476,7 @@ export class WeaponSystem {
     const bots = this.game.getAliveBots?.() || this.game.bots?.getBots?.() || [];
     for (const bot of bots) {
       if (!bot?.alive || !bot.pos) continue;
-      if (player && bot.team === player.team) continue;
+      if (player && !this.game?.deathmatch && this.game?.matchConfig?.mode !== 'deathmatch' && bot.team === player.team) continue;
       candidates.push(bot);
     }
     for (const bot of candidates) {
@@ -1757,42 +1759,47 @@ export class WeaponSystem {
     return this.hasWeapon(id);
   }
 
+  _isDeathmatchArsenal() {
+    return !!this.game?.deathmatch || this.game?.matchConfig?.mode === 'deathmatch';
+  }
+
   _buyItemInfo(id, team, money) {
+    const deathmatch = this._isDeathmatchArsenal();
     const equipment = EQUIPMENT[id];
     if (equipment) {
       const owned = this._equipOwned(id);
-      const teamOk = equipment.team === 'both' || equipment.team === team;
+      const teamOk = deathmatch || equipment.team === 'both' || equipment.team === team;
       let available = teamOk && !owned;
       if (id === 'ammo_primary') available = teamOk && !!this.inventory.primary && !owned;
       if (id === 'ammo_secondary') available = teamOk && !!this.inventory.secondary && !owned;
       return {
         id,
         name: equipment.name,
-        price: equipment.price,
+        price: deathmatch ? 0 : equipment.price,
         team: equipment.team,
         available,
         owned,
-        affordable: money >= equipment.price,
+        affordable: deathmatch || money >= equipment.price,
         description: equipment.description,
         icon: equipment.icon,
       };
     }
     const w = WEAPONS[id];
     if (!w || w.type === 'c4' || w.slot === 3) return null;
-    const teamOk = w.team === 'both' || w.team === team;
+    const teamOk = deathmatch || w.team === 'both' || w.team === team;
     const owned = this.hasWeapon(id);
     let slotOk = true;
-    if (w.slot === 1) slotOk = !this.inventory.primary;
-    if (w.slot === 2) slotOk = !this.inventory.secondary;
+    if (w.slot === 1) slotOk = deathmatch || !this.inventory.primary;
+    if (w.slot === 2) slotOk = deathmatch || !this.inventory.secondary;
     if (w.slot === 4) slotOk = (this.inventory.grenades[id] || 0) < (GRENADE_MAX[id] || 1);
     return {
       id,
       name: w.name,
-      price: w.price,
+      price: deathmatch ? 0 : w.price,
       team: w.team,
       available: teamOk && !owned && slotOk,
       owned,
-      affordable: money >= w.price,
+      affordable: deathmatch || money >= w.price,
       description: weaponDescription(w),
       icon: w.icon,
     };
@@ -1820,6 +1827,7 @@ export class WeaponSystem {
     const player = this.game?.player;
     if (!player) return this._fail('No hay jugador');
     if (!id || typeof id !== 'string') return this._fail('Ítem inválido');
+    const deathmatch = this._isDeathmatchArsenal();
 
     const equipment = EQUIPMENT[id];
     if (equipment) return this._buyEquipment(equipment);
@@ -1827,25 +1835,25 @@ export class WeaponSystem {
     const w = WEAPONS[id];
     if (!w || w.type === 'c4' || w.slot === 3) return this._fail('Ese ítem no está en venta');
     const team = player.team;
-    if (w.team !== 'both' && w.team !== team) {
+    if (!deathmatch && w.team !== 'both' && w.team !== team) {
       return this._fail(`Solo disponible para ${w.team === 'CT' ? 'CT' : 'T'}`);
     }
     if (this.hasWeapon(id)) return this._fail(`Ya tenés ${w.name}`);
-    if (w.slot === 1 && this.inventory.primary) {
+    if (!deathmatch && w.slot === 1 && this.inventory.primary) {
       return this._fail(`Ya tenés ${WEAPONS[this.inventory.primary.id].name}. Tirala con G`);
     }
-    if (w.slot === 2 && this.inventory.secondary) {
+    if (!deathmatch && w.slot === 2 && this.inventory.secondary) {
       return this._fail(`Ya tenés ${WEAPONS[this.inventory.secondary.id].name}. Tirala con G`);
     }
     if (w.slot === 4) {
       const max = GRENADE_MAX[id] || 1;
       if ((this.inventory.grenades[id] || 0) >= max) return this._fail(`Máximo de ${w.name}`);
     }
-    if (player.money < w.price) {
+    if (!deathmatch && player.money < w.price) {
       return this._fail(`Te faltan $${Math.ceil(w.price - player.money)}`);
     }
 
-    player.addMoney(-w.price);
+    if (!deathmatch) player.addMoney(-w.price);
     if (w.slot === 4) {
       this.inventory.grenades[id] = (this.inventory.grenades[id] || 0) + 1;
       if (!this._currentWeapon() || this._currentWeapon().type !== 'grenade') {
@@ -1853,9 +1861,11 @@ export class WeaponSystem {
       }
     } else if (w.slot === 2) {
       this.inventory.secondary = this._makeEntry(id);
+      if (deathmatch) this.inventory.secondary.reserve = 999;
       this._equip(id, { silent: true });
     } else {
       this.inventory.primary = this._makeEntry(id);
+      if (deathmatch) this.inventory.primary.reserve = 999;
       this._equip(id, { silent: true });
     }
     return { ok: true, message: `Compraste ${w.name}` };
@@ -1864,7 +1874,8 @@ export class WeaponSystem {
   _buyEquipment(equipment) {
     const player = this.game.player;
     const id = equipment.id;
-    if (equipment.team !== 'both' && equipment.team !== player.team) {
+    const deathmatch = this._isDeathmatchArsenal();
+    if (!deathmatch && equipment.team !== 'both' && equipment.team !== player.team) {
       return this._fail(`Solo disponible para ${equipment.team === 'CT' ? 'CT' : 'T'}`);
     }
     if (WEAPONS[id]?.type === 'grenade') {
@@ -1881,11 +1892,11 @@ export class WeaponSystem {
     } else if (this._equipOwned(id)) {
       return this._fail(`Ya tenés ${equipment.name}`);
     }
-    if (player.money < equipment.price) {
+    if (!deathmatch && player.money < equipment.price) {
       return this._fail(`Te faltan $${Math.ceil(equipment.price - player.money)}`);
     }
 
-    player.addMoney(-equipment.price);
+    if (!deathmatch) player.addMoney(-equipment.price);
     if (id === 'kevlar') {
       player.armor = 100;
     } else if (id === 'assaultsuit') {

@@ -104,7 +104,10 @@ export function createCommunityAnimator(model, team) {
     state=duck?'duck':!grounded?(jump==='rise'?'jump':'jump_idle'):speed>.45?(speed>3.2?'run_gun':'walk'):'idle';
     if(actor.shooting&&grounded&&!duck)state=speed>.45?'run_shoot':'idle_shoot';
     setWeapon(actor.weaponId||weapon);
-    const hipDrop=crouch*.48+Math.sin(landing/.16*Math.PI)*.045;
+    // Per-map crouch depth is optional: the classic pose remains 0.48m,
+    // while scaled maps can align the skinned body with their physics hull.
+    const crouchDrop=clamp(Number(actor.crouchDrop) || .48,.20,.85);
+    const hipDrop=crouch*crouchDrop+Math.sin(landing/.16*Math.PI)*.045;
     root.updateWorldMatrix(true,true);
     const desiredHip=hips.getWorldPosition(V()).add(point(V(0,-hipDrop,0)).sub(point(V())));
     hips.position.copy(hips.parent.worldToLocal(desiredHip));

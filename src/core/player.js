@@ -13,6 +13,28 @@ const _wish = new THREE.Vector3();
 const _eye = new THREE.Vector3();
 
 const DEFAULT_RUN_SPEED = 6.25; // 250 GoldSrc units/s at ~40 u per world meter.
+export const DEFAULT_PLAYER_COLLISION_RADIUS = 0.38;
+// The community Dust2 GLB has narrower openings than the native CS 1.6 BSP.
+// Keep its character/camera/collision calibration isolated from classic maps.
+export const DUST2_PLAYER_COLLISION_RADIUS = 0.25;
+export const DEFAULT_PLAYER_STAND_HEIGHT = 1.8;
+export const DEFAULT_PLAYER_CROUCH_HEIGHT = 1.32;
+export const DUST2_PLAYER_STAND_HEIGHT = 1.56;
+export const DUST2_PLAYER_CROUCH_HEIGHT = 1.04;
+export const DUST2_PLAYER_EYE_STAND = 1.40;
+export const DUST2_PLAYER_EYE_CROUCH = 0.93;
+
+export function collisionHullForMap(mapOrId = null) {
+  const mapId = typeof mapOrId === 'string' ? mapOrId : mapOrId?.id;
+  const dust2 = mapId === 'de_dust2_dm';
+  return {
+    radius: dust2 ? DUST2_PLAYER_COLLISION_RADIUS : DEFAULT_PLAYER_COLLISION_RADIUS,
+    standHeight: dust2 ? DUST2_PLAYER_STAND_HEIGHT : DEFAULT_PLAYER_STAND_HEIGHT,
+    crouchHeight: dust2 ? DUST2_PLAYER_CROUCH_HEIGHT : DEFAULT_PLAYER_CROUCH_HEIGHT,
+    eyeStand: dust2 ? DUST2_PLAYER_EYE_STAND : 1.62,
+    eyeCrouch: dust2 ? DUST2_PLAYER_EYE_CROUCH : 1.12,
+  };
+}
 
 export class Player {
   constructor(game) {
@@ -24,12 +46,14 @@ export class Player {
 
     this.pos = new THREE.Vector3(0, 0, 0);
     this.vel = new THREE.Vector3();
-    this.radius = 0.38;
-    this.height = 1.8;
-    this.standHeight = 1.8;
-    this.crouchHeight = 1.32;
-    this.eyeStand = 1.62;
-    this.eyeCrouch = 1.12;
+    const hull = collisionHullForMap(game?.map);
+    this.radius = hull.radius;
+    this.hitboxRadius = DEFAULT_PLAYER_COLLISION_RADIUS;
+    this.height = hull.standHeight;
+    this.standHeight = hull.standHeight;
+    this.crouchHeight = hull.crouchHeight;
+    this.eyeStand = hull.eyeStand;
+    this.eyeCrouch = hull.eyeCrouch;
     this.stepHeight = 0.5;
     this.onGround = false;
     this.crouching = false;
@@ -81,6 +105,12 @@ export class Player {
   }
 
   reset(team = this.team, spawn = null) {
+    const hull = collisionHullForMap(this.game?.map);
+    this.radius = hull.radius;
+    this.standHeight = hull.standHeight;
+    this.crouchHeight = hull.crouchHeight;
+    this.eyeStand = hull.eyeStand;
+    this.eyeCrouch = hull.eyeCrouch;
     this.team = team;
     this.pos.set(spawn?.x ?? 0, spawn?.y ?? 0.05, spawn?.z ?? 0);
     this.vel.set(0, 0, 0);
@@ -91,7 +121,7 @@ export class Player {
     this.health = 100;
     this.alive = true;
     this.deathTime = 0;
-    this.height = this.standHeight;
+    this.height = hull.standHeight;
     this.crouchAmount = 0;
     this.crouching = false;
     this.onGround = false;

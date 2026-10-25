@@ -26,6 +26,10 @@ const CODE_RE = /^[A-Z2-9]{5}$/;
 const PEER_PREFIX = 'cs16aim';
 const MODE_1V1 = '1v1';
 const MODE_2V2 = '2v2';
+const MODE_DEATHMATCH = 'deathmatch';
+const DEATHMATCH_MAP = 'de_dust2_dm';
+const DEATHMATCH_MAX_PLAYERS = 10;
+const DEATHMATCH_MIN_PLAYERS = 2;
 import { DEFAULT_ONLINE_MAP, isOnlineMap } from '../world/online_map_pool.js';
 const TARGET_KILLS = 13;
 const HOST_CODE_RETRIES = 5;
@@ -37,7 +41,7 @@ const COUNTDOWN_MS = 1500;
 const MAX_NAME_LENGTH = 16;
 const RECONNECT_GRACE_MS = 10000;
 const RECONNECT_ATTEMPT_MS = 2500;
-const VALID_MAX_PLAYERS = new Set([2, 4]);
+const VALID_MAX_PLAYERS = new Set([2, 4, DEATHMATCH_MAX_PLAYERS]);
 const HOST_AUTH_MATCH_TYPES = new Set([
   'snapshot',
   'shotFx',
@@ -45,8 +49,10 @@ const HOST_AUTH_MATCH_TYPES = new Set([
   'hitConfirm',
   'playerHit',
   'kill',
+  'environmentDeath',
   'roundEnd',
   'roundStart',
+  'respawn',
   'matchEnd',
   'weaponDropAdd',
   'weaponDropRemove',
@@ -54,6 +60,7 @@ const HOST_AUTH_MATCH_TYPES = new Set([
   'weaponDropsReset',
   'weaponPickupGranted',
   'playerSync',
+  'dmBuyResult',
   'playerDisconnected',
   'playerReconnected',
 ]);
@@ -143,6 +150,21 @@ function normalizeMaxPlayers(value, fallback = 2) {
   return VALID_MAX_PLAYERS.has(n) ? n : fallback;
 }
 
+function normalizeMode(value, maxPlayers = 2) {
+  if (value === MODE_DEATHMATCH || Number(maxPlayers) === DEATHMATCH_MAX_PLAYERS) return MODE_DEATHMATCH;
+  return normalizeMaxPlayers(maxPlayers) === 4 ? MODE_2V2 : MODE_1V1;
+}
+
+function isSupportedMapForMode(mapId, mode) {
+  if (mode === MODE_DEATHMATCH) return mapId === DEATHMATCH_MAP;
+  return isOnlineMap(mapId);
+}
+
+function normalizeMapForMode(mapId, mode) {
+  if (mode === MODE_DEATHMATCH) return DEATHMATCH_MAP;
+  return isOnlineMap(mapId) ? mapId : DEFAULT_ONLINE_MAP;
+}
+
 function teamForSlot(slot) {
   return Number(slot) % 2 === 0 ? 'CT' : 'T';
 }
@@ -182,6 +204,17 @@ function balancedSpawnRolls(players) {
   return rolls;
 }
 
+function freeForAllSpawnRolls(players) {
+  const ordered = (players || []).slice().sort((a, b) => Number(a.slot) - Number(b.slot));
+  const rolls = {};
+  if (!ordered.length) return rolls;
+  const offset = Math.random();
+  ordered.forEach((player, index) => {
+    rolls[player.id] = (index + offset) / ordered.length;
+  });
+  return rolls;
+}
+
 function makeLink(code) {
   const loc = typeof globalThis !== 'undefined' ? globalThis.location : null;
   if (!loc || !loc.origin) return '';
@@ -189,7 +222,11 @@ function makeLink(code) {
   return `${loc.origin}${path}${path.includes('?') ? '&' : '?'}join=${code}`;
 }
 
-function makeLobby(code, hostName, hostId, maxPlayers = 2) {
+function makeLobby(code, hostName, hostId, options = {}) {
+  const mode = normalizeMode(options.mode, options.maxPlayers);
+  const maxPlayers = mode === MODE_DEATHMATCH
+    ? DEATHMATCH_MAX_PLAYERS
+    : normalizeMaxPlayers(options.maxPlayers, 2);
   const playerId = normalizePlayerId(hostId) || randomPlayerId();
   const host = {
     id: playerId,
@@ -203,10 +240,10 @@ function makeLobby(code, hostName, hostId, maxPlayers = 2) {
   const roster = { [playerId]: host };
   return {
     code,
-    mode: normalizeMaxPlayers(maxPlayers) === 4 ? MODE_2V2 : MODE_1V1,
-    maxPlayers: normalizeMaxPlayers(maxPlayers),
-    map: DEFAULT_ONLINE_MAP,
-    targetKills: TARGET_KILLS,
+    mode,
+    maxPlayers,
+    map: normalizeMapForMode(options.map, mode),
+    targetKills: mode === MODE_DEATHMATCH ? 0 : TARGET_KILLS,
     hostId: playerId,
     roster,
     players: [copyPlayer(host)],
@@ -240,8 +277,14 @@ function syncLobbyCompat(lobby) {
   }
   const players = sortedPlayersFromRoster(lobby.roster);
   lobby.players = players;
-  lobby.maxPlayers = normalizeMaxPlayers(lobby.maxPlayers);
-  lobby.mode = lobby.maxPlayers === 4 ? MODE_2V2 : MODE_1V1;
+  lobby.mode = normalizeMode(lobby.mode, lobby.maxPlayers);
+  lobby.maxPlayers = lobby.mode === MODE_DEATHMATCH
+    ? DEATHMATCH_MAX_PLAYERS
+    : normalizeMaxPlayers(lobby.maxPlayers);
+  lobby.map = normalizeMapForMode(lobby.map, lobby.mode);
+  lobby.targetKills = lobby.mode === MODE_DEATHMATCH
+    ? 0
+    : Math.max(1, Math.round(Number(lobby.targetKills) || TARGET_KILLS));
   lobby.host = players.find((player) => player.isHost || player.slot === 0) || null;
   lobby.guest = players.find((player) => player.slot === 1) || null;
   lobby.hostId = lobby.host ? lobby.host.id : lobby.hostId || null;
@@ -294,6 +337,8 @@ export class OnlineSession {
     this._name = '';
     this._playerId = null;
     this._maxPlayers = 2;
+    this._mode = MODE_1V1;
+    this._map = DEFAULT_ONLINE_MAP;
     this._guestName = '';
     this._hostName = '';
     this._remoteName = '';
@@ -388,7 +433,11 @@ export class OnlineSession {
     this._name = sanitizeName(name);
     this._hostName = this._name;
     this._playerId = randomPlayerId();
-    this._maxPlayers = normalizeMaxPlayers(options && options.maxPlayers, 2);
+    this._mode = normalizeMode(options && options.mode, options && options.maxPlayers);
+    this._maxPlayers = this._mode === MODE_DEATHMATCH
+      ? DEATHMATCH_MAX_PLAYERS
+      : normalizeMaxPlayers(options && options.maxPlayers, 2);
+    this._map = normalizeMapForMode(options && options.map, this._mode);
     this._status('creating', 'Creando sala...');
 
     let lastError = null;
@@ -428,7 +477,11 @@ export class OnlineSession {
     }
 
     this._attachPeerEvents();
-    this._lobby = makeLobby(this._code, this._name, this._playerId, this._maxPlayers);
+    this._lobby = makeLobby(this._code, this._name, this._playerId, {
+      mode: this._mode,
+      maxPlayers: this._maxPlayers,
+      map: this._map,
+    });
     this._status(
       'waiting',
       `Sala ${this._code} creada. Esperando a tu amigo...`,
@@ -547,8 +600,11 @@ export class OnlineSession {
   /** Host chooses whether the room is legacy 1v1 (2) or 2v2 (4). */
   setMaxPlayers(value) {
     if (this._role !== 'host' || !this._lobby || this._started) return false;
+    if (this._lobby.mode === MODE_DEATHMATCH) {
+      return Number(value) === DEATHMATCH_MAX_PLAYERS;
+    }
     const next = normalizeMaxPlayers(value, 0);
-    if (!next) return false;
+    if (next !== 2 && next !== 4) return false;
     const players = sortedPlayersFromRoster(this._lobby.roster);
     if (players.length > next) return false;
     if (this._lobby.maxPlayers === next) return true;
@@ -565,7 +621,12 @@ export class OnlineSession {
 
   /** Host chooses the arena before both players ready up. Broadcast is authoritative. */
   setMap(mapId) {
-    if (this._role !== 'host' || !this._lobby || this._started || !isOnlineMap(mapId)) return false;
+    if (
+      this._role !== 'host' ||
+      !this._lobby ||
+      this._started ||
+      !isSupportedMapForMode(mapId, this._lobby.mode)
+    ) return false;
     if (this._lobby.map === mapId) return true;
     this._cancelStartTimer();
     this._lobby.map = mapId;
@@ -714,6 +775,8 @@ export class OnlineSession {
     this._name = '';
     this._playerId = null;
     this._maxPlayers = 2;
+    this._mode = MODE_1V1;
+    this._map = DEFAULT_ONLINE_MAP;
     this._guestName = '';
     this._hostName = '';
     this._remoteName = '';
@@ -1385,7 +1448,8 @@ export class OnlineSession {
     if (this._role !== 'guest') return;
     const lobby = msg.lobby && typeof msg.lobby === 'object' ? msg.lobby : null;
     if (!lobby) return;
-    if (!isOnlineMap(lobby.map)) {
+    const mode = normalizeMode(lobby.mode, lobby.maxPlayers);
+    if (!isSupportedMapForMode(lobby.map, mode)) {
       this._emitError('La sala usa un mapa no disponible en esta versión del juego.');
       return;
     }
@@ -1406,7 +1470,8 @@ export class OnlineSession {
   _onStartMessage(msg) {
     if (this._role !== 'guest') return;
     const payload = this._payloadOf(msg);
-    if (!isOnlineMap(payload.map) || payload.map !== this._lobby?.map) {
+    const mode = normalizeMode(payload.mode, payload.maxPlayers);
+    if (!isSupportedMapForMode(payload.map, mode) || payload.map !== this._lobby?.map) {
       this._emitError('El mapa de la partida no coincide con el elegido en la sala.');
       return;
     }
@@ -1505,7 +1570,11 @@ export class OnlineSession {
     }
     const players = sortedPlayersFromRoster(this._lobby.roster);
     const maxPlayers = normalizeMaxPlayers(this._lobby.maxPlayers);
-    if (players.length !== maxPlayers) {
+    const deathmatch = this._lobby.mode === MODE_DEATHMATCH;
+    const enoughPlayers = deathmatch
+      ? players.length >= DEATHMATCH_MIN_PLAYERS && players.length <= maxPlayers
+      : players.length === maxPlayers;
+    if (!enoughPlayers) {
       this._cancelStartTimer();
       return;
     }
@@ -1513,7 +1582,7 @@ export class OnlineSession {
       this._cancelStartTimer();
       return;
     }
-    if (this._connections.size < maxPlayers - 1) {
+    if (this._connections.size < players.length - 1) {
       this._cancelStartTimer();
       return;
     }
@@ -1524,8 +1593,13 @@ export class OnlineSession {
       if (this._started || this._closed || this._closing) return;
       if (!this._lobby) return;
       const current = sortedPlayersFromRoster(this._lobby.roster);
-      if (current.length !== normalizeMaxPlayers(this._lobby.maxPlayers)) return;
+      const currentMax = normalizeMaxPlayers(this._lobby.maxPlayers);
+      const currentEnough = this._lobby.mode === MODE_DEATHMATCH
+        ? current.length >= DEATHMATCH_MIN_PLAYERS && current.length <= currentMax
+        : current.length === currentMax;
+      if (!currentEnough) return;
       if (current.some((player) => !player.connected || !player.ready)) return;
+      if (this._connections.size < current.length - 1) return;
       this._startMatch();
     }, START_DELAY_MS);
   }
@@ -1535,13 +1609,20 @@ export class OnlineSession {
     if (this._started) return;
     const players = sortedPlayersFromRoster(this._lobby.roster);
     const maxPlayers = normalizeMaxPlayers(this._lobby.maxPlayers);
-    if (players.length !== maxPlayers || players.some((player) => !player.connected || !player.ready)) return;
+    const deathmatch = this._lobby.mode === MODE_DEATHMATCH;
+    const enoughPlayers = deathmatch
+      ? players.length >= DEATHMATCH_MIN_PLAYERS && players.length <= maxPlayers
+      : players.length === maxPlayers;
+    if (!enoughPlayers || players.some((player) => !player.connected || !player.ready)) return;
+    if (this._connections.size < players.length - 1) return;
     const host = players.find((player) => player.isHost || player.slot === 0);
     const legacyGuest = players.find((player) => player.slot === 1);
     if (!host || !legacyGuest) return;
     this._started = true;
     const now = Date.now();
-    const spawnRollsByPlayer = balancedSpawnRolls(players);
+    const spawnRollsByPlayer = deathmatch
+      ? freeForAllSpawnRolls(players)
+      : balancedSpawnRolls(players);
     const namesById = {};
     for (const player of players) namesById[player.id] = player.name;
     const spawnRolls = {
@@ -1552,7 +1633,7 @@ export class OnlineSession {
     };
     const common = {
       code: this._code,
-      mode: maxPlayers === 4 ? MODE_2V2 : MODE_1V1,
+      mode: this._lobby.mode,
       maxPlayers,
       hostId: host.id,
       players: players.map(copyPlayer),
@@ -1560,7 +1641,7 @@ export class OnlineSession {
       hostTeam: host.team,
       guestTeam: legacyGuest.team,
       startAt: now + COUNTDOWN_MS,
-      targetKills: TARGET_KILLS,
+      targetKills: deathmatch ? 0 : TARGET_KILLS,
       map: this._lobby.map,
       spawnRolls,
     };

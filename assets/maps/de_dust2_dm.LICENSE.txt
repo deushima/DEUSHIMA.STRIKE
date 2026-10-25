@@ -1,0 +1,11 @@
+De_Dust 2 with real light
+Author: Neo_minigan
+Source: https://sketchfab.com/3d-models/de-dust-2-with-real-light-4ce74cd95c584ce9b12b5ed9dc418db5
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License URL: https://creativecommons.org/licenses/by/4.0/
+
+Runtime preparation for DEUSHIMA STRIKE:
+- Geometry and scene transforms are preserved from the source GLB.
+- The eleven baked-light JPEG textures were resized from 4096x4096 to
+  2048x2048 and recompressed for practical browser delivery.
+- The resulting GLB keeps the original asset attribution metadata.

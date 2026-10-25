@@ -1037,7 +1037,7 @@ export class UI {
 <div class="screen buy-screen u-hidden" data-screen="buy">
   <div class="panel buy-panel">
     <div class="buy-head">
-      <div class="buy-title">TIENDA <span class="buy-team" data-ref="buyTeam">CT</span></div>
+      <div class="buy-title"><span data-ref="buyTitle">TIENDA</span> <span class="buy-team" data-ref="buyTeam">CT</span></div>
       <div class="buy-money" data-ref="buyMoney">$0</div>
       <div class="buy-timer" data-ref="buyTimer"><span>Compra</span><b data-ref="buyTimerVal">15s</b></div>
       <button type="button" class="btn small" data-action="buy-close">CERRAR [ESC]</button>
@@ -1056,7 +1056,7 @@ export class UI {
       <span><span class="keycap">↑↓</span> elegir</span>
       <span><span class="keycap">ENTER</span> comprar</span>
       <span><span class="keycap">ESC</span> cerrar</span>
-      <span class="foot-right">Clic para comprar · <b style="color:#9fdb75">verde</b> = tenés dinero</span>
+      <span class="foot-right" data-ref="buyFootTip">Clic para comprar · <b style="color:#9fdb75">verde</b> = tenés dinero</span>
     </div>
   </div>
 </div>`;
@@ -1468,6 +1468,8 @@ export class UI {
 
     this._updateMenuInfo();
     this._showMenuScreen('main');
+    this.game?.onlineUI?._ensureMenuButton?.();
+    this.game?.deathmatchUI?.ensureButton?.();
   }
 
   _updateMenuInfo() {
@@ -1907,7 +1909,11 @@ export class UI {
     }
     this._t('objective', objective);
     const buyLeft = num(r.buyTimeLeft, 0);
-    if (buyLeft > 0 && (phase === 'freeze' || phase === 'live')) {
+    if (hud.buy?.deathmatch && hud.buy?.canBuy) {
+      this._showNode('buyHint', true);
+      this._t('buyHint', 'B · ARMAS LIBRES');
+      this._refs.buyHint?.classList.remove('urgent');
+    } else if (buyLeft > 0 && (phase === 'freeze' || phase === 'live')) {
       this._showNode('buyHint', true);
       this._t('buyHint', `COMPRA ${Math.ceil(buyLeft)}s`);
       if (this._refs.buyHint) this._refs.buyHint.classList.toggle('urgent', buyLeft <= 5);
@@ -2736,6 +2742,7 @@ export class UI {
   }
 
   _buyTimeLeft() {
+    if (this._buyData?.deathmatch || this.game?.deathmatch || this.game?.online?.isDeathmatch) return null;
     const game = this.game;
     const rounds = game && game.rounds;
     let t = rounds ? rounds.buyTimeLeft : null;
@@ -2753,6 +2760,11 @@ export class UI {
 
   _tickBuyTimer(hud) {
     if (!this._buyOpen) return;
+    if (this._buyData?.deathmatch) {
+      this._t('buyTimerVal', 'LIBRE');
+      this._refs.buyTimer?.classList.remove('closed');
+      return;
+    }
     const raw = hud && hud.round ? hud.round.buyTimeLeft : undefined;
     let t = raw == null ? this._buyTimeLeft() : Number(raw);
     if (!Number.isFinite(t)) t = this._buyTimeLeft();
@@ -2779,20 +2791,24 @@ export class UI {
     const items = cat && Array.isArray(cat.items) ? cat.items : [];
     if (this._buySel >= items.length) this._buySel = Math.max(0, items.length - 1);
 
-    this._t('buyMoney', fmtMoney(d.money));
+    this._t('buyTitle', d.deathmatch ? 'ARSENAL' : 'TIENDA');
+    this._t('buyMoney', d.deathmatch ? 'GRATIS' : fmtMoney(d.money));
+    if (this._refs.buyFootTip) this._refs.buyFootTip.textContent = d.deathmatch
+      ? 'Equipamiento libre · cambiá de arma cuando quieras'
+      : 'Clic para comprar · verde = tenés dinero';
     const team = d.team === 'T' ? 'T' : 'CT';
-    this._t('buyTeam', team);
+    this._t('buyTeam', d.deathmatch ? 'FFA' : team);
     if (this._refs.buyTeam) {
-      this._refs.buyTeam.classList.toggle('t', team === 'T');
-      this._refs.buyTeam.classList.toggle('ct', team === 'CT');
+      this._refs.buyTeam.classList.toggle('t', !d.deathmatch && team === 'T');
+      this._refs.buyTeam.classList.toggle('ct', !d.deathmatch && team === 'CT');
     }
     this._t('buyCatTitle', cat ? cat.name || 'Categoría' : 'Sin artículos');
     this._t('buyCatDesc', cat ? `${items.length} artículos` : '');
     this._showNode('buyWarning', d.canBuy === false);
-    if (d.canBuy === false) this._t('buyWarning', 'FUERA DE ZONA DE COMPRA O TIEMPO AGOTADO');
+    if (d.canBuy === false) this._t('buyWarning', d.deathmatch ? 'RESPAWN PARA EQUIPARTE' : 'FUERA DE ZONA DE COMPRA O TIEMPO AGOTADO');
 
     const timerVal = this._buyTimeLeft();
-    this._t('buyTimerVal', timerVal == null ? '—' : `${Math.max(0, Math.ceil(timerVal))}s`);
+    this._t('buyTimerVal', d.deathmatch ? 'LIBRE' : timerVal == null ? '—' : `${Math.max(0, Math.ceil(timerVal))}s`);
     if (this._refs.buyTimer) this._refs.buyTimer.classList.toggle('closed', timerVal != null && timerVal <= 0);
 
     // Categorías 1-8.
@@ -2848,7 +2864,7 @@ export class UI {
       .map((item, i) => {
         const status = this._itemStatus(item, money);
         const price = num(item && item.price, 0);
-        const team = item && (item.team === 'CT' || item.team === 'T') ? item.team : '';
+        const team = !d.deathmatch && item && (item.team === 'CT' || item.team === 'T') ? item.team : '';
         const teamBadge = `<span class="item-team${team ? ' ' + team.toLowerCase() : ''}">${team}</span>`;
         const cls = ['buy-item'];
         if (i === this._buySel) cls.push('selected');
@@ -3016,16 +3032,23 @@ export class UI {
     const scoreCT = num(d.scoreCT, 0);
     const scoreT = num(d.scoreT, 0);
     this._t('sbMap', d.mapName || (game && game.map && game.map.displayName) || 'de_dust2');
-    this._t('sbMode', `${d.mode === 'hostage' ? 'REHENES' : 'BOMBARDEO'} · SERVIDOR LOCAL · ${d.phase === 'freeze' ? 'CONGELADO' : d.phase === 'over' ? 'FIN DE RONDA' : 'EN JUEGO'}`);
-    this._t('sbRound', `RONDA ${num(d.round, 1)}`);
+    const isDm = d.mode === 'deathmatch';
+    this._t('sbMode', isDm ? `DEATHMATCH · ${game?.online ? 'ONLINE' : 'OFFLINE'} · RESPAWN RÁPIDO` : `${d.mode === 'hostage' ? 'REHENES' : 'BOMBARDEO'} · SERVIDOR LOCAL · ${d.phase === 'freeze' ? 'CONGELADO' : d.phase === 'over' ? 'FIN DE RONDA' : 'EN JUEGO'}`);
+    this._t('sbRound', isDm ? 'COMBATE CONTINUO' : `RONDA ${num(d.round, 1)}`);
     this._t('sbScoreCT', scoreCT);
     this._t('sbScoreT', scoreT);
     const node = this._refs.sbTeams;
     if (!node) return;
-    node.innerHTML = this._scoreboardTeamHTML('CT', teams.CT || [], scoreCT) + this._scoreboardTeamHTML('T', teams.T || [], scoreT);
+    if (isDm) {
+      const players = [...(teams.CT || []), ...(teams.T || [])]
+        .sort((a, b) => num(b.kills, 0) - num(a.kills, 0) || num(a.deaths, 0) - num(b.deaths, 0));
+      node.innerHTML = this._scoreboardTeamHTML('CT', players, players[0]?.kills || 0, 'TODOS CONTRA TODOS');
+    } else {
+      node.innerHTML = this._scoreboardTeamHTML('CT', teams.CT || [], scoreCT) + this._scoreboardTeamHTML('T', teams.T || [], scoreT);
+    }
   }
 
-  _scoreboardTeamHTML(teamKey, players, score) {
+  _scoreboardTeamHTML(teamKey, players, score, title = null) {
     const list = Array.isArray(players) ? players : [];
     const alive = list.filter((p) => p && p.alive !== false).length;
     const rows = list
@@ -3051,7 +3074,7 @@ export class UI {
       .join('');
     return (
       `<section class="sb-team ${teamKey.toLowerCase()}">` +
-      `<div class="sb-team-head"><span class="st-name">${teamKey === 'CT' ? 'COUNTER-TERRORISTS' : 'TERRORISTS'}</span>` +
+      `<div class="sb-team-head"><span class="st-name">${title || (teamKey === 'CT' ? 'COUNTER-TERRORISTS' : 'TERRORISTS')}</span>` +
       `<span class="st-alive">${icon('person')}<b>${alive}</b></span>` +
       `<span class="st-score">${score}</span></div>` +
       `<div class="sb-cols"><span>JUGADOR</span><span>K</span><span>D</span><span>$</span><span>PING</span><span>ESTADO</span></div>` +

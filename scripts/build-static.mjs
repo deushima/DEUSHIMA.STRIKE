@@ -40,7 +40,7 @@ for (const dir of dirs) {
 }
 
 // Branding, música y armas.
-for (const dir of ['branding', 'music', 'weapons']) {
+for (const dir of ['branding', 'music', 'weapons', 'maps']) {
   const src = path.join(root, 'assets', dir);
   if (fs.existsSync(src)) fs.cpSync(src, path.join(out, 'assets', dir), { recursive: true });
 }

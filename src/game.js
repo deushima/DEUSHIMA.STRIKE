@@ -23,6 +23,9 @@ import { MovementDebugHUD } from './ui/movement-debug.js';
 import { OnlineUI } from './ui/online-ui.js';
 import { OnlineSession } from './online/session.js';
 import { OnlineMatch } from './online/match.js';
+import { Deathmatch, chooseDeathmatchSpawn } from './deathmatch.js';
+import { DeathmatchUI } from './ui/deathmatch-ui.js';
+import { buildDust2DeathmatchMap } from './world/dust2_map.js';
 
 const DEFAULT_SETTINGS = {
   sensitivity: 1.0,
@@ -114,6 +117,8 @@ export class Game {
     this.online = null;
     this.onlineSession = null;
     this.onlineUI = null;
+    this.deathmatchUI = null;
+    this.deathmatch = null;
     this.onlineStartPayload = null;
     this._onlineLeaving = false;
     this._onlineLobbyOpen = false;
@@ -183,6 +188,8 @@ export class Game {
     this.nameTags = new NameTagLayer(this);
     this.onlineUI = new OnlineUI(this);
     this.onlineUI.init();
+    this.deathmatchUI = new DeathmatchUI(this);
+    this.deathmatchUI.init();
     this.ui.showLoading('Cargando texturas originales...');
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     await preloadWadTextures();
@@ -198,6 +205,7 @@ export class Game {
     }
     this.ui.hideLoading?.();
     this.ui.showMainMenu();
+    this.deathmatchUI.ensureButton();
     document.getElementById('boot-screen')?.remove();
     this.state = 'menu';
     this.clock.start();
@@ -231,10 +239,10 @@ export class Game {
     return this.onlineSession;
   }
 
-  openOnlineHome() {
+  openOnlineHome(mode = 'classic') {
     this._onlineLobbyOpen = true;
     this.ensureOnlineSession();
-    this.onlineUI?.openHome?.();
+    this.onlineUI?.openHome?.(mode);
   }
 
   handleOnlineLobby(lobby) {
@@ -278,7 +286,8 @@ export class Game {
           this.map.dispose?.();
           this.map = null;
         }
-        this.map = mapId === 'aim_redline' ? buildRedlineMap(this)
+        this.map = mapId === 'de_dust2_dm' ? await buildDust2DeathmatchMap(this)
+          : mapId === 'aim_redline' ? buildRedlineMap(this)
           : mapId === 'aim_forge' ? buildForgeMap(this)
           : mapId === 'cs_assault' ? buildAssaultMap(this)
           : mapId === 'cs_office' ? buildMap(this, mapId) : buildAimMap(this);
@@ -303,7 +312,9 @@ export class Game {
           : payload.role === 'host'
             ? payload.hostTeam || 'CT'
             : payload.guestTeam || 'T';
-      const spawns = this.map.spawns?.[team];
+      const spawns = payload.mode === 'deathmatch'
+        ? (this.map.deathmatchSpawns?.length ? this.map.deathmatchSpawns : this.map.spawns?.[team])
+        : this.map.spawns?.[team];
       if (!spawns?.length) throw new Error(`El mapa no tiene spawn ${team}`);
       this.player.money = 0;
       this.player.kills = 0;
@@ -319,6 +330,11 @@ export class Game {
       if (!(Number.isFinite(roll) && roll >= 0 && roll < 1))
         throw new Error('La sala no enviÃƒÆ’Ã‚Â³ un spawn inicial vÃƒÆ’Ã‚Â¡lido.');
       this.player.reset(team, spawns[Math.floor(roll * spawns.length)]);
+      // The imported Dust2 mesh has walkable ramps. Start as grounded so the
+      // finite slope solver can acquire the support plane on the first tick.
+      if (payload.mode === 'deathmatch') {
+        this.player.onGround = this.physics.hasGroundBelow(this.player, 0, 0, 0.3);
+      }
       this.player.health = 100;
       this.player.armor = 100;
       this.player.helmet = false;
@@ -337,10 +353,11 @@ export class Game {
 
       this.matchConfig = {
         map: mapId,
-        mode: 'aim',
+        mode: payload.mode === 'deathmatch' ? 'deathmatch' : 'aim',
         online: true,
         team,
-        onlineMode: payload.mode === '2v2' || Number(payload.maxPlayers) === 4 ? '2v2' : '1v1',
+        onlineMode: payload.mode === 'deathmatch' ? 'deathmatch'
+          : payload.mode === '2v2' || Number(payload.maxPlayers) === 4 ? '2v2' : '1v1',
       };
       this.ui.hideAll();
       this.ui.showHUD();
@@ -352,7 +369,9 @@ export class Game {
       this.input.requestPointerLock();
       this._lockHintShown = false;
       this.ui.showCenterMessage?.(
-        (payload.role === 'host' ? 'SOS EL HOST · ' : '') + 'PRIMERO A ' + Math.max(1, Number(payload.targetRounds || payload.targetKills) || 13) + ' RONDAS',
+        payload.mode === 'deathmatch'
+          ? 'DEATHMATCH ONLINE · RESPAWN RÁPIDO'
+          : (payload.role === 'host' ? 'SOS EL HOST · ' : '') + 'PRIMERO A ' + Math.max(1, Number(payload.targetRounds || payload.targetKills) || 13) + ' RONDAS',
         2600,
       );
     } catch (err) {
@@ -384,10 +403,69 @@ export class Game {
     this.weapons.setVisible?.(true);
   }
 
+  /** Continuous offline deathmatch on the user-supplied Dust2 scene. */
+  async startDeathmatch(config = {}) {
+    this.audio.init();
+    this.input.requestPointerLock();
+    this.state = 'loading';
+    this.ui.hideAll();
+    this.ui.showLoading('Cargando DE_DUST2 · DEATHMATCH...');
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    try {
+      this.disposeMatch();
+      if (this.map?.id !== 'de_dust2_dm') {
+        this.map?.dispose?.();
+        this.map = await buildDust2DeathmatchMap(this);
+      }
+      this.physics.setColliders(this.map.colliders, this.map.slopes || []);
+      this.applyMapEnvironment(this.map);
+      this.effects.dispose();
+      this.effects = new Effects(this);
+      this.matchConfig = { mode: 'deathmatch', map: 'de_dust2_dm', team: 'CT', difficulty: config.difficulty || 'normal' };
+      this.player.kills = 0;
+      this.player.deaths = 0;
+      this.player.assists = 0;
+      const spawn = chooseDeathmatchSpawn(this.map, [], this.physics);
+      this.player.reset('CT', spawn);
+      this.player.onGround = this.physics.hasGroundBelow(this.player, 0, 0, 0.3);
+      this.weapons = new WeaponSystem(this);
+      this.weapons.init();
+      this.setupOnlineLoadout();
+      this._setupClassicViewmodel();
+      await this.characters.load();
+      this.bots = new BotManager(this);
+      const count = Math.max(1, Math.min(9, Number(config.bots) || 5));
+      this.bots.spawnAll({
+        botsCT: Math.floor(count / 2),
+        botsT: Math.ceil(count / 2),
+        difficulty: config.difficulty || 'normal',
+        teamSize: Math.max(2, Math.ceil((count + 1) / 2)),
+      });
+      this.deathmatch = new Deathmatch(this);
+      this.rounds = this.deathmatch;
+      for (const bot of this.bots.getBots()) this.deathmatch._respawn(bot);
+      this.state = 'playing';
+      this.ui.hideAll();
+      this.ui.showHUD();
+      this.ui.hideLoading?.();
+      this.camera.fov = this.settings.fov;
+      this.camera.updateProjectionMatrix();
+      this.audio.startAmbient('de_dust2');
+      this.deathmatch.start();
+    } catch (error) {
+      this.state = 'menu';
+      this.ui.showFatalError?.(`Error al cargar Deathmatch: ${error.message}`);
+      throw error;
+    }
+  }
+
   spawnOnlinePlayer(team, spawn = null) {
     const sp = spawn || this.map?.spawns?.[team]?.[0];
     if (!sp) return;
     this.player.reset(team, sp);
+    if (this.matchConfig?.onlineMode === 'deathmatch' || this.map?.id === 'de_dust2_dm') {
+      this.player.onGround = this.physics.hasGroundBelow(this.player, 0, 0, 0.3);
+    }
     this.player.health = 100;
     this.player.armor = 100;
     this.player.helmet = false;
@@ -538,7 +616,7 @@ export class Game {
     this.audio.init();
     this._ignoreUnlockUntil = performance.now() + 2500;
     this.input.requestPointerLock();
-    const mapId = isOnlineMap(config.map) ? config.map : DEFAULT_ONLINE_MAP;
+    const mapId = isOnlineMap(config.map) && config.map !== 'de_dust2_dm' ? config.map : DEFAULT_ONLINE_MAP;
     const team = config.team === 'CT' || config.team === 'T'
       ? config.team
       : Math.random() < 0.5 ? 'CT' : 'T';
@@ -746,6 +824,7 @@ export class Game {
     }
     this.classicVM = null;
     this.rounds = null;
+    this.deathmatch = null;
     this.bots = null;
     this.weapons = null;
     this.player.alive = false;
@@ -766,7 +845,8 @@ export class Game {
     this.disposeMatch();
     this.ui.hideHUD();
     this.ui.showLoading('Cargando menÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº...');
-    const last = this.matchConfig?.map || localStorage.getItem('cs16-lastmap') || 'de_dust2';
+    const previousMap = this.matchConfig?.map || localStorage.getItem('cs16-lastmap') || 'de_dust2';
+    const last = previousMap === 'de_dust2_dm' ? 'de_dust2' : previousMap;
     if (this.map) {
       this.map.dispose?.();
       this.map = null;
@@ -891,7 +971,9 @@ export class Game {
   getPlayerHitboxes(entity = this.player) {
     const p = entity.pos;
     const h = entity.height || 1.8;
-    const r = entity.radius || 0.38;
+    // Door clearance is map-specific; hit registration should preserve the
+    // original character proportions independently of the collision hull.
+    const r = entity.hitboxRadius || entity.radius || 0.38;
     const make = (part, y0, y1, width, mult) => {
       const box = new THREE.Box3(
         new THREE.Vector3(p.x - width / 2, p.y + y0, p.z - width / 2),
@@ -907,7 +989,14 @@ export class Game {
     ];
   }
 
-  raycastShot(origin, dir, maxDist = 200, shooterTeam = null) {
+  raycastShot(origin, dir, maxDist = 200, shooterTeam = null, shooterEntity = null) {
+    const deathmatch = !!this.deathmatch || this.matchConfig?.onlineMode === 'deathmatch';
+    const localEyeY = this.player.pos.y + (this.player.eyeHeight || 1.6);
+    const fromLocalPlayer = shooterEntity
+      ? shooterEntity === this.player
+      : deathmatch &&
+        Math.hypot(origin.x - this.player.pos.x, origin.z - this.player.pos.z) < 0.55 &&
+        Math.abs(origin.y - localEyeY) < 0.65;
     const direction = dir.clone().normalize();
     const worldHit = this.physics.raycast(origin, direction, maxDist);
     let best = worldHit
@@ -933,12 +1022,17 @@ export class Game {
       }
     };
 
-    if (this.player.alive && shooterTeam !== this.player.team) {
+    if (
+      this.player.alive &&
+      this.player !== shooterEntity &&
+      !fromLocalPlayer &&
+      (deathmatch || shooterTeam !== this.player.team)
+    ) {
       consider(this.getPlayerHitboxes(this.player), this.player, 'player');
     }
     if (this.bots) {
       for (const bot of this.bots.getBots()) {
-        if (!bot.alive || bot.team === shooterTeam) continue;
+        if (!bot.alive || bot === shooterEntity || (!deathmatch && bot.team === shooterTeam)) continue;
         const boxes = this.bots.getBotHitboxes(bot);
         if (boxes && boxes.length) consider(boxes, bot, 'bot');
       }
@@ -946,7 +1040,7 @@ export class Game {
     if (this.online) {
       const remotes = this.online.getRemoteEntities?.() || [];
       for (const remote of remotes) {
-        if (!remote?.alive || remote.team === shooterTeam) continue;
+        if (!remote?.alive || remote === shooterEntity || (!deathmatch && remote.team === shooterTeam)) continue;
         const boxes = this.online.getRemoteHitboxes?.(remote);
         if (boxes && boxes.length) consider(boxes, remote, 'remote');
       }
@@ -973,6 +1067,10 @@ export class Game {
     if (!victim) return;
     if (this.online) {
       this.online.onKill(killer, victim, weaponId, headshot);
+      return;
+    }
+    if (this.deathmatch) {
+      this.deathmatch.onKill(killer, victim, weaponId, headshot);
       return;
     }
     if (victim._deathNotifiedRound === this.rounds?.roundNumber) return;
@@ -1125,11 +1223,12 @@ export class Game {
         buyTimeLeft: 0,
         scoreCT: Number(onlineHud.scoreCT ?? onlineHud.scoreHost) || 0,
         scoreT: Number(onlineHud.scoreT ?? onlineHud.scoreGuest) || 0,
-        objective:
-          'PRIMERO A ' +
-          (onlineHud.targetRounds || onlineHud.targetKills || 13) +
-          ' RONDAS Â· ' +
-          String(onlineHud.mode || '1v1').toUpperCase(),
+        objective: onlineHud.mode === 'deathmatch'
+          ? (onlineHud.objective || 'DEATHMATCH · BAJAS LIBRES')
+          : 'PRIMERO A ' +
+            (onlineHud.targetRounds || onlineHud.targetKills || 13) +
+            ' RONDAS · ' +
+            String(onlineHud.mode || '1v1').toUpperCase(),
         teamAlive: this.getAliveCounts(),
         bomb: { planted: false },
         hostages: { total: 0, rescued: 0, carrying: 0 },
@@ -1168,8 +1267,9 @@ export class Game {
         size: this.settings.crosshairSize,
       },
       buy: {
-        canBuy: onlineHud ? false : this.canBuy(),
-        inZone: onlineHud ? false : this.buyZoneFor(this.player.team),
+        canBuy: this.canBuy(),
+        inZone: this.buyZoneFor(this.player.team),
+        deathmatch: !!this.deathmatch || this.matchConfig?.mode === 'deathmatch',
       },
       teamAlive: this.getAliveCounts(),
       mapName: this.map?.displayName || '',
@@ -1179,6 +1279,8 @@ export class Game {
   }
 
   canBuy() {
+    const deathmatch = !!this.deathmatch || this.matchConfig?.mode === 'deathmatch';
+    if (deathmatch) return this.state === 'playing' && !!this.player?.alive;
     if (this.online) return false;
     if (this.state !== 'playing' || !this.player.alive || !this.rounds) return false;
     const rh = this.rounds.getHudState?.();
@@ -1188,13 +1290,14 @@ export class Game {
   }
 
   buyZoneFor(team) {
+    if (this.deathmatch || this.matchConfig?.mode === 'deathmatch') return true;
     if (!this.map || !this.map.buyZones?.[team]) return false;
     const z = this.map.buyZones[team];
     return pointInRect(this.player.pos.x, this.player.pos.z, z.min, z.max);
   }
 
   openBuyMenu() {
-    if (this.online) return false;
+    if (this.online && !this.online.isDeathmatch) return false;
     if (!this.canBuy()) {
       this.ui.toast?.('No puedes comprar ahora');
       return false;
@@ -1218,13 +1321,15 @@ export class Game {
       money: Math.round(this.player.money),
       team: this.player.team,
       canBuy: this.canBuy(),
+      deathmatch: !!this.deathmatch || this.matchConfig?.mode === 'deathmatch',
     };
   }
 
   buyItem(id) {
-    if (!this.canBuy()) return { ok: false, message: 'Fuera de zona de compra' };
+    if (!this.canBuy()) return { ok: false, message: 'No puedes comprar ahora' };
     const result = this.weapons?.buyItem?.(id) || { ok: false, message: 'No disponible' };
     if (result.ok) {
+      if (this.online?.isDeathmatch) this.online.notifyLocalPurchase?.(id);
       this.audio.play('buy');
       this.ui.updateBuyMenu?.(this.getBuyMenuData());
       this.ui.toast?.(result.message || 'Comprado');
@@ -1380,6 +1485,9 @@ export class Game {
 
   spawnPlayer(team, spawn) {
     this.player.reset(team, spawn);
+    if (this.matchConfig?.mode === 'deathmatch') {
+      this.player.onGround = this.physics.hasGroundBelow(this.player, 0, 0, 0.3);
+    }
     this.camera.fov = this.settings.fov;
     this.camera.updateProjectionMatrix();
   }
@@ -1471,7 +1579,8 @@ export class Game {
 
   _maybeGlobalKeys() {
     const input = this.input;
-    if (input.consumePressed('KeyB') && !this.online && (this.state === 'playing' || this.state === 'roundover')) {
+    if (input.consumePressed('KeyB') && (!this.online || this.online.isDeathmatch) &&
+        (this.state === 'playing' || (!this.deathmatch && !this.online && this.state === 'roundover'))) {
       if (this.ui.isBuyMenuOpen) this.closeBuyMenu();
       else this.openBuyMenu();
     }

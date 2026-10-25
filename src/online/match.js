@@ -14,7 +14,9 @@ import { CHARACTER_IDS } from '../characters/identities.js';
  */
 import * as THREE from '../../vendor/three.module.js';
 import { clamp } from '../core/utils.js';
-import { WEAPONS } from '../weapons.js';
+import { collisionHullForMap } from '../core/player.js';
+import { EQUIPMENT, WEAPONS } from '../weapons.js';
+import { chooseDeathmatchSpawn, DEATHMATCH_RESPAWN_SECONDS } from '../deathmatch.js';
 import { RemoteAvatar } from './avatar.js';
 import { onlineMapLabel } from '../world/online_map_pool.js';
 
@@ -25,6 +27,16 @@ const SNAPSHOT_INTERVAL = 0.1;
 const PING_INTERVAL = 1;
 const MAX_REMOTE_DT = 0.1;
 const DEFAULT_TARGET_ROUNDS = 13;
+const DEATHMATCH_MAX_PLAYERS = 10;
+const DEATHMATCH_RESPAWN_MS = Math.round(DEATHMATCH_RESPAWN_SECONDS * 1000);
+const DEATHMATCH_KILL_REWARD_HEALTH = 100;
+const DEATHMATCH_KILL_REWARD_ARMOR = 100;
+const DEATHMATCH_GRENADE_MAX = { he: 1, flash: 2, smoke: 1 };
+const DEATHMATCH_FALL_Y = -5.5;
+const DEATHMATCH_BOUNDS_MARGIN = 8;
+const SELF_DEATH_STATE_MAX_AGE_MS = 2500;
+const SELF_DEATH_CLAIM_MAX_DELTA = 8;
+const SELF_DEATH_PENDING_TIMEOUT_MS = 3000;
 const SHOT_ORIGIN_TOLERANCE = 2.6;
 const HIT_MULT = { head: 4, chest: 1, stomach: 1.25, legs: 0.75 };
 const VALID_PARTS = new Set(['head', 'chest', 'stomach', 'legs']);
@@ -138,7 +150,10 @@ function normalizeRoster(payload, session) {
   const seen = new Set();
   const teamSlots = { CT: 0, T: 0 };
   const result = [];
-  for (let i = 0; i < source.length && result.length < 4; i++) {
+  const limit = payload.mode === 'deathmatch' || Number(payload.maxPlayers) === DEATHMATCH_MAX_PLAYERS
+    ? DEATHMATCH_MAX_PLAYERS
+    : 4;
+  for (let i = 0; i < source.length && result.length < limit; i++) {
     const raw = source[i] || {};
     const id = String(raw.id || raw.playerId || (raw.isHost ? 'host' : 'guest-' + i));
     if (!id || seen.has(id)) continue;
@@ -168,14 +183,21 @@ export class OnlineMatch {
     this.isHost = session?.role === 'host' || startPayload.role === 'host';
     this.role = this.isHost ? 'host' : 'guest';
     this.code = String(startPayload.code || session?.code || '');
-    this.mode = startPayload.mode === '2v2' || Number(startPayload.maxPlayers) === 4 ? '2v2' : '1v1';
-    this.maxPlayers = this.mode === '2v2' ? 4 : 2;
-    this.targetRounds = clamp(
-      Math.round(num(startPayload.targetRounds ?? startPayload.targetKills, DEFAULT_TARGET_ROUNDS)),
-      1,
-      99,
-    );
-    this.targetKills = this.targetRounds; // legacy HUD alias.
+    this.isDeathmatch = startPayload.mode === 'deathmatch' || Number(startPayload.maxPlayers) === DEATHMATCH_MAX_PLAYERS;
+    this.mode = this.isDeathmatch
+      ? 'deathmatch'
+      : startPayload.mode === '2v2' || Number(startPayload.maxPlayers) === 4
+        ? '2v2'
+        : '1v1';
+    this.maxPlayers = this.isDeathmatch ? DEATHMATCH_MAX_PLAYERS : this.mode === '2v2' ? 4 : 2;
+    this.targetRounds = this.isDeathmatch
+      ? 0
+      : clamp(
+          Math.round(num(startPayload.targetRounds ?? startPayload.targetKills, DEFAULT_TARGET_ROUNDS)),
+          1,
+          99,
+        );
+    this.targetKills = this.isDeathmatch ? 0 : this.targetRounds; // legacy HUD alias.
 
     this.roster = normalizeRoster(startPayload, session);
     this.hostId =
@@ -205,17 +227,21 @@ export class OnlineMatch {
         health: 100,
         armor: 100,
         helmet: false,
+        hasDefuseKit: false,
         alive: true,
         kills: 0,
         deaths: 0,
+        lifeSeq: 0,
         respawnAt: 0,
         spawnProtectionUntil: 0,
         lastState: null,
+        lastSafeState: null,
         lastStateAt: 0,
         weaponId: item.team === 'CT' ? 'm4a1' : 'ak47',
         inventory: onlineLoadoutInventory(item.team),
         ping: 0,
         lastShotAt: 0,
+        lastPurchaseSeq: 0,
       });
     }
     this.local = this.players.get(this.localId) || this.players.values().next().value;
@@ -239,8 +265,12 @@ export class OnlineMatch {
     this._rtt = 0;
     this._dropSeq = 0;
     this._shotSeq = 0;
+    this._purchaseSeq = 0;
     this._lastPredictedHitAt = 0;
     this._lastMatchEndData = null;
+    this._authoritySeq = 0;
+    this._lastAuthoritySeq = 0;
+    this._pendingSelfDeath = null;
 
     this.avatars = new Map();
     this.entities = new Map();
@@ -249,6 +279,8 @@ export class OnlineMatch {
     this._tmpOrigin = new THREE.Vector3();
     this._tmpDir = new THREE.Vector3();
     this._tmpUp = new THREE.Vector3(0, 1, 0);
+    this._tmpRay = new THREE.Ray();
+    this._tmpRayHit = new THREE.Vector3();
   }
 
   start() {
@@ -279,11 +311,17 @@ export class OnlineMatch {
     const now = Date.now();
     if (this.phase === 'countdown' && now >= this.startAt) {
       this.phase = 'live';
-      this.game?.showClassicBanner?.('RONDA ' + this.roundNumber, this.mode.toUpperCase(), this.myTeam, 1800);
+      if (this.isDeathmatch) {
+        this.game?.showClassicBanner?.('DEATHMATCH', 'TODOS CONTRA TODOS', this.myTeam, 1800);
+      } else {
+        this.game?.showClassicBanner?.('RONDA ' + this.roundNumber, this.mode.toUpperCase(), this.myTeam, 1800);
+      }
     }
     if (this.isHost) {
       this._syncAuthorityFromLocal(now);
-      if (this.phase === 'roundover' && this.roundResetAt && now >= this.roundResetAt) {
+      if (this.isDeathmatch && this.phase === 'live') {
+        this._hostUpdateDeathmatchRespawns(now);
+      } else if (this.phase === 'roundover' && this.roundResetAt && now >= this.roundResetAt) {
         this._hostStartNextRound();
       }
     }
@@ -294,6 +332,32 @@ export class OnlineMatch {
   canControl() {
     if (this._disposed || this._over || !this._started || this.phase !== 'live') return false;
     return this.game?.player?.alive === true;
+  }
+
+  /**
+   * Game notifies local deaths synchronously. In Deathmatch, weapon kills are
+   * already resolved by the host; this path is only for environmental/self deaths
+   * such as falling below the map or leaving its bounds.
+   */
+  onKill(killer, victim, weaponId = 'unknown') {
+    if (!this.isDeathmatch || this._disposed || !this._started || this.phase !== 'live') return false;
+    const player = this.game?.player;
+    if (!player || victim !== player) return false;
+    if (killer && killer !== victim) return false;
+    const record = this.local;
+    if (!record || record.respawnAt) return false;
+
+    const payload = {
+      reason: weaponId === 'fall' ? 'fall' : 'environment',
+      pos: vecPlain(player.pos),
+      lifeSeq: record.lifeSeq,
+      observedAt: Date.now(),
+    };
+    if (this.isHost) return this._hostHandleSelfDeath(this.localId, payload, true);
+    this._pendingSelfDeath = { lifeSeq: record.lifeSeq, at: Date.now() };
+    const sent = this._sendToHost('selfDeath', payload);
+    if (!sent) this._pendingSelfDeath = null;
+    return sent;
   }
 
   dispose() {
@@ -405,6 +469,9 @@ export class OnlineMatch {
       armor: p.armor,
       kills: p.kills,
       deaths: p.deaths,
+      respawnIn: this.isDeathmatch && p.respawnAt
+        ? round1(Math.max(0, (p.respawnAt - Date.now()) / 1000))
+        : 0,
       weaponId: p.weaponId,
       ping: p.ping,
     }));
@@ -452,7 +519,9 @@ export class OnlineMatch {
     shooter.lastShotAt = now;
 
     let hit = null;
-    if (shooterId === this.localId && trustedHit?.entity) {
+    if (this.isDeathmatch) {
+      hit = this._deathmatchRaycast(origin, dir, Math.max(2.4, num(weapon.range, 120)), shooterId);
+    } else if (shooterId === this.localId && trustedHit?.entity) {
       hit = trustedHit;
     } else if (typeof this.game?.raycastShot === 'function') {
       hit = this.game.raycastShot(origin, dir, Math.max(2.4, num(weapon.range, 120)), shooter.team);
@@ -484,7 +553,12 @@ export class OnlineMatch {
       ? this.localId
       : hit.entity.onlinePlayerId;
     const target = this.players.get(targetId);
-    if (!target || !target.alive || target.team === shooter.team || target.id === shooterId) {
+    if (
+      !target ||
+      !target.alive ||
+      target.id === shooterId ||
+      (!this.isDeathmatch && target.team === shooter.team)
+    ) {
       this._sendTo(shooterId, 'hitConfirm', { seq, miss: true });
       return;
     }
@@ -519,12 +593,52 @@ export class OnlineMatch {
     if (result.dead) this._hostKill(shooterId, targetId, weaponId, headshot);
   }
 
+  _deathmatchRaycast(origin, dir, maxDist, shooterId) {
+    const direction = this._tmpDir.copy(dir).normalize();
+    const worldHit = this.game?.physics?.raycast?.(origin, direction, maxDist) || null;
+    let best = worldHit ? { ...worldHit, type: 'world' } : null;
+    let bestT = worldHit ? num(worldHit.t, maxDist) : maxDist;
+    const ray = this._tmpRay.set(origin, direction);
+    const hitPoint = this._tmpRayHit;
+
+    const consider = (boxes, entity, type, playerId) => {
+      if (!entity || playerId === shooterId) return;
+      for (const hb of boxes || []) {
+        if (!hb?.box || !ray.intersectBox(hb.box, hitPoint)) continue;
+        const t = hitPoint.distanceTo(origin);
+        if (t <= 0.001 || t >= bestT) continue;
+        bestT = t;
+        best = {
+          t,
+          point: hitPoint.clone(),
+          normal: null,
+          type,
+          entity,
+          part: hb.part,
+          damageMult: hb.damageMult ?? 1,
+        };
+      }
+    };
+
+    const localPlayer = this.game?.player;
+    if (localPlayer?.alive && this.localId !== shooterId) {
+      consider(this.game?.getPlayerHitboxes?.(localPlayer), localPlayer, 'player', this.localId);
+    }
+    for (const remote of this.getRemoteEntities()) {
+      const playerId = String(remote?.onlinePlayerId || '');
+      if (!playerId || playerId === shooterId) continue;
+      consider(this.getRemoteHitboxes(remote), remote, 'remote', playerId);
+    }
+    return best;
+  }
+
   _validShotOrigin(shooter, origin) {
     const state = shooter.lastState;
     if (!state || Date.now() - shooter.lastStateAt > 2500 || !state.pos) return false;
+    const hull = collisionHullForMap(this.game?.map);
     const eye = new THREE.Vector3(
       state.pos.x,
-      state.pos.y + (state.crouch ? 1.12 : 1.62),
+      state.pos.y + (state.crouch ? hull.eyeCrouch : hull.eyeStand),
       state.pos.z,
     );
     return origin.distanceTo(eye) <= SHOT_ORIGIN_TOLERANCE;
@@ -572,10 +686,19 @@ export class OnlineMatch {
     const killer = this.players.get(killerId);
     const victim = this.players.get(victimId);
     if (!killer || !victim || !victim.alive) return;
+    if (this.isDeathmatch && (killer.id === victim.id || !killer.alive || killer.connected === false)) return;
     victim.alive = false;
     victim.health = 0;
     victim.deaths += 1;
+    victim.lifeSeq += 1;
     killer.kills += 1;
+    if (this.isDeathmatch) this._hostRestoreDeathmatchKiller(killer);
+    if (killerId === this.localId && this.game?.player) this.game.player.kills = killer.kills;
+    if (victimId === this.localId && this.game?.player) this.game.player.deaths = victim.deaths;
+
+    if (this.isDeathmatch) {
+      victim.respawnAt = Date.now() + DEATHMATCH_RESPAWN_MS;
+    }
 
     if (victimId === this.localId) this._applyLocalDeath();
     else this.avatars.get(victimId)?.playDeath?.();
@@ -587,15 +710,265 @@ export class OnlineMatch {
       headshot: !!headshot,
       kills: killer.kills,
       deaths: victim.deaths,
+      lifeSeq: victim.lifeSeq,
+      killerHealth: this.isDeathmatch ? killer.health : undefined,
+      killerArmor: this.isDeathmatch ? killer.armor : undefined,
+      killReward: this.isDeathmatch ? true : undefined,
       teamScores: { ...this.teamScores },
+      respawnIn: this.isDeathmatch ? DEATHMATCH_RESPAWN_SECONDS : 0,
+      authoritySeq: this._nextAuthoritySeq(),
     };
     this._broadcast('kill', payload);
     this._handleKillVisual(payload);
+
+    if (this.isDeathmatch) return;
 
     const victimTeamAlive = [...this.players.values()].some(
       (p) => p.connected !== false && p.team === victim.team && p.alive,
     );
     if (!victimTeamAlive) this._hostEndRound(killer.team);
+  }
+
+  _hostRestoreDeathmatchKiller(killer) {
+    if (!this.isHost || !this.isDeathmatch || !killer?.alive) return false;
+    killer.health = DEATHMATCH_KILL_REWARD_HEALTH;
+    killer.armor = DEATHMATCH_KILL_REWARD_ARMOR;
+    if (killer.id === this.localId && this.game?.player?.alive) {
+      this.game.player.health = DEATHMATCH_KILL_REWARD_HEALTH;
+      this.game.player.armor = DEATHMATCH_KILL_REWARD_ARMOR;
+    }
+    return true;
+  }
+
+  _nextAuthoritySeq() {
+    if (!this.isHost) return 0;
+    this._authoritySeq = Math.max(0, Math.floor(num(this._authoritySeq))) + 1;
+    return this._authoritySeq;
+  }
+
+  _acceptAuthoritySeq(payload) {
+    const seq = Math.max(0, Math.floor(num(payload?.authoritySeq)));
+    if (!seq) return true;
+    if (seq <= this._lastAuthoritySeq) return false;
+    this._lastAuthoritySeq = seq;
+    return true;
+  }
+
+  _isDeathmatchOutOfBoundsPosition(pos) {
+    if (!isVec(pos)) return false;
+    if (num(pos.y) < DEATHMATCH_FALL_Y) return true;
+    const bounds = this.game?.map?.bounds;
+    if (!bounds) return false;
+    return (
+      num(pos.x) < num(bounds.minX, -Infinity) - DEATHMATCH_BOUNDS_MARGIN ||
+      num(pos.x) > num(bounds.maxX, Infinity) + DEATHMATCH_BOUNDS_MARGIN ||
+      num(pos.z) < num(bounds.minZ, -Infinity) - DEATHMATCH_BOUNDS_MARGIN ||
+      num(pos.z) > num(bounds.maxZ, Infinity) + DEATHMATCH_BOUNDS_MARGIN
+    );
+  }
+
+  _isPlausibleSelfDeath(record, payload, local = false) {
+    if (!record) return false;
+    const observed = local ? this.game?.player?.pos : record.lastState?.pos;
+    if (this._isDeathmatchOutOfBoundsPosition(observed)) return true;
+
+    const claimed = payload?.pos;
+    if (!this._isDeathmatchOutOfBoundsPosition(claimed)) return false;
+    if (!isVec(observed)) return false;
+    if (!local && Date.now() - record.lastStateAt > SELF_DEATH_STATE_MAX_AGE_MS) return false;
+    const dx = num(claimed.x) - num(observed.x);
+    const dy = num(claimed.y) - num(observed.y);
+    const dz = num(claimed.z) - num(observed.z);
+    return Math.hypot(dx, dy, dz) <= SELF_DEATH_CLAIM_MAX_DELTA;
+  }
+
+  _hostHandleSelfDeath(playerId, payload, local = false) {
+    if (!this.isHost || !this.isDeathmatch || this.phase !== 'live') return false;
+    const record = this.players.get(String(playerId || ''));
+    if (!record || record.connected === false || record.respawnAt) return false;
+
+    const claimedLifeSeq = Math.max(0, Math.floor(num(payload?.lifeSeq, record.lifeSeq)));
+    if (claimedLifeSeq !== record.lifeSeq) {
+      if (!local) this._sendPlayerSync(record);
+      return false;
+    }
+
+    if (!this._isPlausibleSelfDeath(record, payload, local)) {
+      return this._hostRecoverDeathmatch(record, 'unverified-self-death');
+    }
+
+    record.alive = false;
+    record.health = 0;
+    record.deaths += 1;
+    record.lifeSeq += 1;
+    record.respawnAt = Date.now() + DEATHMATCH_RESPAWN_MS;
+    if (record.lastState) record.lastState.alive = false;
+    if (record.id === this.localId && this.game?.player) {
+      this.game.player.deaths = record.deaths;
+    } else {
+      this.avatars.get(record.id)?.playDeath?.();
+    }
+
+    const event = {
+      playerId: record.id,
+      reason: payload?.reason === 'fall' ? 'fall' : 'environment',
+      deaths: record.deaths,
+      lifeSeq: record.lifeSeq,
+      respawnIn: DEATHMATCH_RESPAWN_SECONDS,
+      authoritySeq: this._nextAuthoritySeq(),
+    };
+    this._broadcast('environmentDeath', event);
+    return true;
+  }
+
+  _hostRecoverDeathmatch(record, reason = 'recovery') {
+    if (!this.isHost || !this.isDeathmatch || !record) return false;
+    let safe = record.lastSafeState?.pos && !this._isDeathmatchOutOfBoundsPosition(record.lastSafeState.pos)
+      ? {
+          x: num(record.lastSafeState.pos.x),
+          y: num(record.lastSafeState.pos.y, 0.05),
+          z: num(record.lastSafeState.pos.z),
+          yawRad: num(record.lastSafeState.yaw),
+          yaw: num(record.lastSafeState.yaw) * 180 / Math.PI,
+        }
+      : null;
+    if (!safe) {
+      try {
+        const selected = chooseDeathmatchSpawn(this.game?.map, [], this.game?.physics);
+        const yaw = num(selected?.yaw);
+        safe = {
+          x: num(selected?.x),
+          y: num(selected?.y, 0.05),
+          z: num(selected?.z),
+          yaw,
+          yawRad: yaw * Math.PI / 180,
+        };
+      } catch {
+        safe = this._spawnForRecord(record, Math.random());
+      }
+    }
+
+    record.health = 100;
+    record.armor = 100;
+    record.helmet = false;
+    record.alive = true;
+    record.respawnAt = 0;
+    record.lifeSeq += 1;
+    record.spawnProtectionUntil = Date.now() + 1000;
+    record.inventory = onlineLoadoutInventory(record.team);
+    record.weaponId = record.inventory.currentId;
+    record.lastState = {
+      pos: { x: safe.x, y: safe.y, z: safe.z },
+      yaw: safe.yawRad,
+      pitch: 0,
+      crouch: false,
+      onGround: true,
+      moveSpeed: 0,
+      weaponId: record.weaponId,
+      reloading: false,
+      alive: true,
+    };
+    record.lastSafeState = {
+      ...record.lastState,
+      pos: { ...record.lastState.pos },
+    };
+    record.lastStateAt = Date.now();
+    if (record.id === this.localId) this._spawnLocal(record, safe);
+    else this._spawnRemote(record, safe);
+
+    this._broadcast('respawn', {
+      playerId: record.id,
+      ...safe,
+      health: 100,
+      armor: 100,
+      protectionMs: 1000,
+      recovery: true,
+      reason,
+      lifeSeq: record.lifeSeq,
+      authoritySeq: this._nextAuthoritySeq(),
+    });
+    return true;
+  }
+
+  _hostUpdateDeathmatchRespawns(now = Date.now()) {
+    if (!this.isHost || !this.isDeathmatch || this.phase !== 'live') return;
+    for (const record of this.players.values()) {
+      if (
+        record.connected === false ||
+        record.alive ||
+        !record.respawnAt ||
+        now < record.respawnAt
+      ) continue;
+      this._hostRespawnDeathmatch(record, now);
+    }
+  }
+
+  _hostRespawnDeathmatch(record, now = Date.now()) {
+    if (!this.isHost || !this.isDeathmatch || !record || record.connected === false) return false;
+    const opponents = [];
+    for (const other of this.players.values()) {
+      if (other.id === record.id || other.connected === false || !other.alive) continue;
+      const pos = other.id === this.localId
+        ? this.game?.player?.pos
+        : other.lastState?.pos || this.avatars.get(other.id)?.pos;
+      if (pos) opponents.push({ alive: true, pos });
+    }
+
+    let selected;
+    try {
+      selected = chooseDeathmatchSpawn(this.game?.map, opponents, this.game?.physics);
+    } catch {
+      selected = this._spawnForRecord(record, Math.random());
+    }
+    const yaw = num(selected?.yaw);
+    const spawn = {
+      x: num(selected?.x),
+      y: num(selected?.y, 0.05),
+      z: num(selected?.z),
+      yaw,
+      yawRad: Number.isFinite(Number(selected?.yawRad))
+        ? Number(selected.yawRad)
+        : yaw * Math.PI / 180,
+    };
+
+    record.health = 100;
+    record.armor = 100;
+    record.helmet = false;
+    record.alive = true;
+    record.respawnAt = 0;
+    record.lifeSeq += 1;
+    record.spawnProtectionUntil = now + 1000;
+    record.inventory = onlineLoadoutInventory(record.team);
+    record.weaponId = record.inventory.currentId;
+    record.lastState = {
+      pos: { x: spawn.x, y: spawn.y, z: spawn.z },
+      yaw: spawn.yawRad,
+      pitch: 0,
+      crouch: false,
+      onGround: true,
+      moveSpeed: 0,
+      weaponId: record.weaponId,
+      reloading: false,
+      alive: true,
+    };
+    record.lastSafeState = {
+      ...record.lastState,
+      pos: { ...record.lastState.pos },
+    };
+    record.lastStateAt = now;
+    if (record.id === this.localId) this._spawnLocal(record, spawn);
+    else this._spawnRemote(record, spawn);
+
+    this._broadcast('respawn', {
+      playerId: record.id,
+      ...spawn,
+      health: 100,
+      armor: 100,
+      protectionMs: 1000,
+      lifeSeq: record.lifeSeq,
+      authoritySeq: this._nextAuthoritySeq(),
+    });
+    return true;
   }
 
   _hostEndRound(winnerTeam) {
@@ -687,21 +1060,44 @@ export class OnlineMatch {
   }
 
   _spawnLocal(record, spawn) {
+    let spawned = false;
     try {
-      this.game?.spawnOnlinePlayer?.(record.team, {
-        x: spawn.x,
-        y: spawn.y,
-        z: spawn.z,
-        yaw: spawn.yaw,
-      });
+      if (typeof this.game?.spawnOnlinePlayer === 'function') {
+        this.game.spawnOnlinePlayer(record.team, {
+          x: spawn.x,
+          y: spawn.y,
+          z: spawn.z,
+          yaw: spawn.yaw,
+        });
+        spawned = true;
+      }
     } catch (err) {
       console.warn('[online] local respawn', err);
     }
     const player = this.game?.player;
     if (player) {
+      if (!spawned) {
+        if (player.pos?.set) player.pos.set(spawn.x, spawn.y, spawn.z);
+        else if (player.pos) Object.assign(player.pos, { x: spawn.x, y: spawn.y, z: spawn.z });
+        player.yaw = Number.isFinite(Number(spawn.yawRad))
+          ? Number(spawn.yawRad)
+          : num(spawn.yaw) * Math.PI / 180;
+        player.pitch = 0;
+        player.crouching = false;
+        player.health = record.health;
+        player.armor = record.armor;
+        player.helmet = !!record.helmet;
+        player.vel?.set?.(0, 0, 0);
+      }
       player.name = record.name;
-      record.health = player.health;
-      record.armor = player.armor;
+      player.kills = record.kills;
+      player.deaths = record.deaths;
+      player.alive = true;
+      player.onGround = true;
+      if (spawned) {
+        record.health = player.health;
+        record.armor = player.armor;
+      }
       record.alive = player.alive;
     }
   }
@@ -735,8 +1131,13 @@ export class OnlineMatch {
       player.vel.z *= 0.2;
     }
     this.game?.audio?.play?.('death');
-    this.game?.ui?.showCenterMessage?.('HAS MUERTO', 1800);
-    this.game?.ui?.toast?.('Esperando el cierre de la ronda');
+    if (this.isDeathmatch) {
+      this.game?.ui?.showCenterMessage?.(`RESPAWN EN ${DEATHMATCH_RESPAWN_SECONDS.toFixed(1)} S`, 1300);
+      this.game?.ui?.toast?.('Deathmatch · respawn rápido');
+    } else {
+      this.game?.ui?.showCenterMessage?.('HAS MUERTO', 1800);
+      this.game?.ui?.toast?.('Esperando el cierre de la ronda');
+    }
   }
 
   /* ------------------------------------------------------------------ */
@@ -838,6 +1239,17 @@ export class OnlineMatch {
       alive: payload.alive !== false,
     };
     record.lastStateAt = Date.now();
+    if (
+      this.isDeathmatch &&
+      record.alive &&
+      record.lastState.alive &&
+      !this._isDeathmatchOutOfBoundsPosition(record.lastState.pos)
+    ) {
+      record.lastSafeState = {
+        ...record.lastState,
+        pos: { ...record.lastState.pos },
+      };
+    }
     record.weaponId = record.lastState.weaponId;
     if (payload.inventory && typeof payload.inventory === 'object') {
       const incoming = cloneInventory(payload.inventory);
@@ -886,10 +1298,11 @@ export class OnlineMatch {
     if (!this.isHost || !this.local) return;
     const player = this.game?.player;
     if (!player) return;
-    this.local.health = Math.max(0, Math.ceil(num(player.health)));
-    this.local.armor = Math.max(0, Math.ceil(num(player.armor)));
+    const waitingRespawn = this.isDeathmatch && !this.local.alive && !!this.local.respawnAt;
+    this.local.health = waitingRespawn ? 0 : Math.max(0, Math.ceil(num(player.health)));
+    this.local.armor = waitingRespawn ? 0 : Math.max(0, Math.ceil(num(player.armor)));
     this.local.helmet = !!player.helmet;
-    this.local.alive = player.alive !== false && this.local.health > 0;
+    this.local.alive = waitingRespawn ? false : player.alive !== false && this.local.health > 0;
     this.local.weaponId = this.game?.weapons?.currentId || this.local.weaponId;
     this.local.inventory = this.game?.weapons?.getInventorySnapshot?.() || this.local.inventory;
     this.local.lastStateAt = now;
@@ -907,10 +1320,26 @@ export class OnlineMatch {
       alive: !!p.alive,
       kills: p.kills,
       deaths: p.deaths,
+      lifeSeq: p.lifeSeq,
       weaponId: p.weaponId,
       connected: p.connected !== false,
+      respawnIn: this.isDeathmatch && p.respawnAt
+        ? round1(Math.max(0, (p.respawnAt - now) / 1000))
+        : 0,
+      state: p.lastState ? {
+        pos: p.lastState.pos ? { ...p.lastState.pos } : null,
+        yaw: num(p.lastState.yaw),
+        pitch: num(p.lastState.pitch),
+        crouch: !!p.lastState.crouch,
+        onGround: p.lastState.onGround !== false,
+        moveSpeed: Math.max(0, num(p.lastState.moveSpeed)),
+        weaponId: p.weaponId,
+        reloading: !!p.lastState.reloading,
+        alive: !!p.alive,
+      } : null,
     }));
     this._broadcast('snapshot', {
+      authoritySeq: this._nextAuthoritySeq(),
       phase: this.phase,
       roundNumber: this.roundNumber,
       roundResetIn: this.roundResetAt ? round1(Math.max(0, (this.roundResetAt - now) / 1000)) : 0,
@@ -953,6 +1382,15 @@ export class OnlineMatch {
         case 'kill':
           this._handleKill(payload);
           break;
+        case 'selfDeath':
+          if (this.isHost && this.isDeathmatch && from) this._hostHandleSelfDeath(from, payload, false);
+          break;
+        case 'environmentDeath':
+          if (!this.isHost) this._handleEnvironmentDeath(payload);
+          break;
+        case 'respawn':
+          if (!this.isHost) this._handleDeathmatchRespawn(payload);
+          break;
         case 'roundEnd':
           if (!this.isHost) this._handleRoundEnd(payload);
           break;
@@ -964,6 +1402,12 @@ export class OnlineMatch {
           break;
         case 'weaponDropRequest':
           if (this.isHost) this._hostDropRequest(from, payload);
+          break;
+        case 'dmBuy':
+          if (this.isHost && this.isDeathmatch && from) this._hostAuthorizeDeathmatchPurchase(from, payload, false);
+          break;
+        case 'dmBuyResult':
+          if (!this.isHost) this._handleDeathmatchBuyResult(payload);
           break;
         case 'weaponDropAdd':
           if (!this.isHost) this._applyDropAdd(payload?.drop);
@@ -1023,6 +1467,7 @@ export class OnlineMatch {
 
   _handleSnapshot(payload) {
     if (!payload || typeof payload !== 'object') return;
+    if (!this._acceptAuthoritySeq(payload)) return;
     if (payload.phase) this.phase = payload.phase;
     if (Number.isFinite(Number(payload.roundNumber))) this.roundNumber = Math.max(1, Math.round(Number(payload.roundNumber)));
     if (payload.teamScores) {
@@ -1032,27 +1477,77 @@ export class OnlineMatch {
     for (const state of Array.isArray(payload.players) ? payload.players : []) {
       const record = this.players.get(String(state.id));
       if (!record) continue;
+      const incomingLifeSeq = Math.max(0, Math.floor(num(state.lifeSeq, record.lifeSeq)));
+      if (incomingLifeSeq < record.lifeSeq) continue;
+      record.lifeSeq = incomingLifeSeq;
       record.health = clamp(num(state.health, record.health), 0, 100);
       record.armor = clamp(num(state.armor, record.armor), 0, 100);
       record.helmet = !!state.helmet;
       record.alive = state.alive !== false;
       record.kills = Math.max(0, Math.round(num(state.kills, record.kills)));
       record.deaths = Math.max(0, Math.round(num(state.deaths, record.deaths)));
+      if (this.isDeathmatch) {
+        record.respawnAt = state.respawnIn > 0
+          ? Date.now() + num(state.respawnIn) * 1000
+          : 0;
+      }
       record.weaponId = typeof state.weaponId === 'string' ? state.weaponId : record.weaponId;
       record.connected = state.connected !== false;
-      if (record.id === this.localId) {
-        const player = this.game?.player;
-        if (player) {
-          player.health = record.health;
-          player.armor = record.armor;
-          if (!record.alive && player.alive) this._applyLocalDeath();
-        }
-      } else {
-        const avatar = this._ensureRemotePlayer(record.id);
-        if (!record.alive && avatar?.alive) avatar.playDeath();
-      }
+      this._reconcileAuthoritativeLife(record, state.state);
     }
     if (Array.isArray(payload.drops)) this._applyDropSnapshot(payload.drops);
+  }
+
+  _spawnFromAuthoritativeState(state) {
+    if (!state || !isVec(state.pos)) return null;
+    if (this.isDeathmatch && this._isDeathmatchOutOfBoundsPosition(state.pos)) return null;
+    const yawRad = num(state.yaw);
+    return {
+      x: num(state.pos.x),
+      y: num(state.pos.y, 0.05),
+      z: num(state.pos.z),
+      yaw: yawRad * 180 / Math.PI,
+      yawRad,
+    };
+  }
+
+  _reconcileAuthoritativeLife(record, authoritativeState = null) {
+    if (!record) return;
+    const spawn = this._spawnFromAuthoritativeState(authoritativeState || record.lastState);
+    if (record.id === this.localId) {
+      const player = this.game?.player;
+      if (!player) return;
+      if (record.alive) {
+        if (this._pendingSelfDeath) {
+          const pending = this._pendingSelfDeath;
+          const expired = Date.now() - pending.at >= SELF_DEATH_PENDING_TIMEOUT_MS;
+          if (record.lifeSeq > pending.lifeSeq || expired) this._pendingSelfDeath = null;
+          else if (!player.alive) return;
+        }
+        if (!player.alive && spawn) {
+          if (this.isDeathmatch) {
+            record.inventory = onlineLoadoutInventory(record.team);
+            record.weaponId = record.inventory.currentId;
+          }
+          this._spawnLocal(record, spawn);
+        }
+        player.health = record.health;
+        player.armor = record.armor;
+        player.helmet = record.helmet;
+        player.kills = record.kills;
+        player.deaths = record.deaths;
+      } else if (player.alive) {
+        this._applyLocalDeath();
+      }
+      return;
+    }
+
+    const avatar = this._ensureRemotePlayer(record.id);
+    if (record.alive) {
+      if (avatar && !avatar.alive && spawn) this._spawnRemote(record, spawn);
+    } else if (avatar?.alive) {
+      avatar.playDeath();
+    }
   }
 
   _handleGuestShot(payload, senderId) {
@@ -1128,18 +1623,107 @@ export class OnlineMatch {
 
   _handleKill(payload) {
     if (!payload) return;
+    if (!this._acceptAuthoritySeq(payload)) return;
     const killer = this.players.get(String(payload.killerId));
     const victim = this.players.get(String(payload.victimId));
     if (!killer || !victim) return;
+    const incomingLifeSeq = Math.max(0, Math.floor(num(payload.lifeSeq, victim.lifeSeq)));
+    if (incomingLifeSeq < victim.lifeSeq) return;
+    victim.lifeSeq = incomingLifeSeq;
     if (!this.isHost) {
       killer.kills = Math.max(killer.kills, Math.round(num(payload.kills, killer.kills + 1)));
+      if (this.isDeathmatch && payload.killReward === true && killer.id !== victim.id) {
+        killer.health = clamp(num(payload.killerHealth, DEATHMATCH_KILL_REWARD_HEALTH), 0, DEATHMATCH_KILL_REWARD_HEALTH);
+        killer.armor = clamp(num(payload.killerArmor, DEATHMATCH_KILL_REWARD_ARMOR), 0, DEATHMATCH_KILL_REWARD_ARMOR);
+        if (killer.id === this.localId && this.game?.player?.alive) {
+          this.game.player.health = killer.health;
+          this.game.player.armor = killer.armor;
+        }
+      }
       victim.deaths = Math.max(victim.deaths, Math.round(num(payload.deaths, victim.deaths + 1)));
       victim.alive = false;
       victim.health = 0;
+      if (this.isDeathmatch) {
+        victim.respawnAt = Date.now() + Math.max(0, num(payload.respawnIn, DEATHMATCH_RESPAWN_SECONDS)) * 1000;
+      }
+      if (killer.id === this.localId && this.game?.player) this.game.player.kills = killer.kills;
+      if (victim.id === this.localId && this.game?.player) this.game.player.deaths = victim.deaths;
       if (victim.id === this.localId) this._applyLocalDeath();
       else this.avatars.get(victim.id)?.playDeath?.();
     }
     this._handleKillVisual(payload);
+  }
+
+  _handleEnvironmentDeath(payload) {
+    if (!this.isDeathmatch || !payload || !this._acceptAuthoritySeq(payload)) return;
+    const record = this.players.get(String(payload.playerId || ''));
+    if (!record) return;
+    const incomingLifeSeq = Math.max(0, Math.floor(num(payload.lifeSeq, record.lifeSeq)));
+    if (incomingLifeSeq < record.lifeSeq) return;
+    record.lifeSeq = incomingLifeSeq;
+    if (record.id === this.localId && this._pendingSelfDeath && record.lifeSeq > this._pendingSelfDeath.lifeSeq) {
+      this._pendingSelfDeath = null;
+    }
+    record.alive = false;
+    record.health = 0;
+    record.deaths = Math.max(record.deaths, Math.round(num(payload.deaths, record.deaths + 1)));
+    record.respawnAt = Date.now() + Math.max(0, num(payload.respawnIn, DEATHMATCH_RESPAWN_SECONDS)) * 1000;
+    if (record.lastState) record.lastState.alive = false;
+    if (record.id === this.localId) {
+      if (this.game?.player) this.game.player.deaths = record.deaths;
+      this._applyLocalDeath();
+    } else {
+      this.avatars.get(record.id)?.playDeath?.();
+    }
+  }
+
+  _handleDeathmatchRespawn(payload) {
+    if (!this.isDeathmatch || !payload) return;
+    if (!this._acceptAuthoritySeq(payload)) return;
+    const record = this.players.get(String(payload.playerId || ''));
+    if (!record) return;
+    const incomingLifeSeq = Math.max(0, Math.floor(num(payload.lifeSeq, record.lifeSeq)));
+    if (incomingLifeSeq < record.lifeSeq) return;
+    record.lifeSeq = incomingLifeSeq;
+    if (record.id === this.localId && this._pendingSelfDeath && record.lifeSeq > this._pendingSelfDeath.lifeSeq) {
+      this._pendingSelfDeath = null;
+    }
+    const yaw = num(payload.yaw);
+    const spawn = {
+      x: num(payload.x),
+      y: num(payload.y, 0.05),
+      z: num(payload.z),
+      yaw,
+      yawRad: Number.isFinite(Number(payload.yawRad))
+        ? Number(payload.yawRad)
+        : yaw * Math.PI / 180,
+    };
+    record.health = clamp(num(payload.health, 100), 0, 100);
+    record.armor = clamp(num(payload.armor, 100), 0, 100);
+    record.helmet = false;
+    record.alive = true;
+    record.respawnAt = 0;
+    record.spawnProtectionUntil = Date.now() + Math.max(0, num(payload.protectionMs, 1000));
+    record.inventory = onlineLoadoutInventory(record.team);
+    record.weaponId = record.inventory.currentId;
+    record.lastState = {
+      pos: { x: spawn.x, y: spawn.y, z: spawn.z },
+      yaw: spawn.yawRad,
+      pitch: 0,
+      crouch: false,
+      onGround: true,
+      moveSpeed: 0,
+      weaponId: record.weaponId,
+      reloading: false,
+      alive: true,
+    };
+    record.lastSafeState = {
+      ...record.lastState,
+      pos: { ...record.lastState.pos },
+    };
+    record.lastStateAt = Date.now();
+    if (record.id === this.localId) this._spawnLocal(record, spawn);
+    else this._spawnRemote(record, spawn);
   }
 
   _handleKillVisual(payload) {
@@ -1153,7 +1737,7 @@ export class OnlineMatch {
       victim: victim.name,
       weapon: weaponName,
       headshot: !!payload.headshot,
-      teamKill: killer.team === victim.team,
+      teamKill: this.isDeathmatch ? false : killer.team === victim.team,
       killerTeam: killer.team,
       victimTeam: victim.team,
       isPlayerKiller: killer.id === this.localId,
@@ -1225,8 +1809,127 @@ export class OnlineMatch {
   }
 
   /* ------------------------------------------------------------------ */
-  /* Drops / pickups                                                     */
+  /* Deathmatch purchases / drops / pickups                              */
   /* ------------------------------------------------------------------ */
+
+  notifyLocalPurchase(id) {
+    if (!this.isDeathmatch || this._disposed || !this._started || this.phase !== 'live') return false;
+    if (!this.local?.alive || typeof id !== 'string' || !id) return false;
+    const seq = ++this._purchaseSeq;
+    if (this.isHost) return this._hostAuthorizeDeathmatchPurchase(this.localId, { id, seq }, true);
+    return this._sendToHost('dmBuy', { id, seq });
+  }
+
+  _hostAuthorizeDeathmatchPurchase(playerId, payload, localPurchase = false) {
+    if (!this.isHost || !this.isDeathmatch || this.phase !== 'live') return false;
+    const record = this.players.get(String(playerId || ''));
+    const id = typeof payload?.id === 'string' ? payload.id : '';
+    const seq = Math.max(1, Math.floor(num(payload?.seq, 1)));
+    if (!record?.alive || record.connected === false || !id || seq <= record.lastPurchaseSeq) return false;
+
+    const weapon = WEAPONS[id] || null;
+    const equipment = EQUIPMENT[id] || null;
+    const weaponAllowed = !!weapon && weapon.type !== 'c4' && weapon.slot !== 3 && [1, 2, 4].includes(weapon.slot);
+    const equipmentAllowed = !!equipment && ['kevlar', 'assaultsuit', 'defusekit', 'ammo_primary', 'ammo_secondary'].includes(id);
+    if (!weaponAllowed && !equipmentAllowed) {
+      record.lastPurchaseSeq = seq;
+      if (record.id !== this.localId) this._sendDeathmatchPurchaseResult(record, id, seq, false);
+      return false;
+    }
+
+    let accepted = true;
+    if (localPurchase && record.id === this.localId) {
+      const incoming = cloneInventory(this.game?.weapons?.getInventorySnapshot?.());
+      if (incoming) record.inventory = incoming;
+      record.weaponId = this.game?.weapons?.currentId || record.inventory?.currentId || record.weaponId;
+      record.armor = clamp(num(this.game?.player?.armor, record.armor), 0, 100);
+      record.helmet = !!this.game?.player?.helmet;
+      record.hasDefuseKit = !!this.game?.player?.hasDefuseKit;
+    } else if (weaponAllowed) {
+      if (!record.inventory) record.inventory = onlineLoadoutInventory(record.team);
+      if (weapon.slot === 1 || weapon.slot === 2) {
+        const slot = weapon.slot === 1 ? 'primary' : 'secondary';
+        record.inventory[slot] = {
+          id,
+          magazine: Math.max(0, Math.round(num(weapon.magazine))),
+          reserve: 999,
+        };
+        record.inventory.lastId = record.inventory.currentId;
+        record.inventory.currentId = id;
+        record.weaponId = id;
+      } else if (weapon.slot === 4) {
+        const max = DEATHMATCH_GRENADE_MAX[id] || 1;
+        const current = Math.max(0, Math.round(num(record.inventory.grenades?.[id])));
+        if (current >= max) accepted = false;
+        else {
+          record.inventory.grenades[id] = current + 1;
+          record.inventory.lastId = record.inventory.currentId;
+          record.inventory.currentId = id;
+          record.weaponId = id;
+        }
+      }
+    } else if (id === 'kevlar') {
+      record.armor = 100;
+    } else if (id === 'assaultsuit') {
+      record.armor = 100;
+      record.helmet = true;
+    } else if (id === 'defusekit') {
+      record.hasDefuseKit = true;
+    } else if (id === 'ammo_primary') {
+      const entry = record.inventory?.primary;
+      const info = weaponInfo(entry?.id);
+      if (!entry || !info) accepted = false;
+      else entry.reserve = Math.max(entry.reserve, info.reserve);
+    } else if (id === 'ammo_secondary') {
+      const entry = record.inventory?.secondary;
+      const info = weaponInfo(entry?.id);
+      if (!entry || !info) accepted = false;
+      else entry.reserve = Math.max(entry.reserve, info.reserve);
+    }
+
+    record.lastPurchaseSeq = seq;
+    if (record.id !== this.localId) this._sendDeathmatchPurchaseResult(record, id, seq, accepted);
+    return accepted;
+  }
+
+  _sendDeathmatchPurchaseResult(record, id, seq, accepted) {
+    return this._sendTo(record.id, 'dmBuyResult', {
+      authoritySeq: this._nextAuthoritySeq(),
+      playerId: record.id,
+      id,
+      seq,
+      accepted: !!accepted,
+      weaponId: record.weaponId,
+      inventory: cloneInventory(record.inventory),
+      armor: clamp(num(record.armor), 0, 100),
+      helmet: !!record.helmet,
+      hasDefuseKit: !!record.hasDefuseKit,
+    });
+  }
+
+  _handleDeathmatchBuyResult(payload) {
+    if (!this.isDeathmatch || !payload || String(payload.playerId || '') !== this.localId) return;
+    if (!this._acceptAuthoritySeq(payload)) return;
+    const record = this.local;
+    if (!record) return;
+    const syncedInventory = cloneInventory(payload.inventory);
+    if (syncedInventory) {
+      record.inventory = syncedInventory;
+      this.game?.weapons?.applyInventorySnapshot?.(syncedInventory);
+    }
+    if (typeof payload.weaponId === 'string' && recordOwnsWeapon(record, payload.weaponId)) {
+      record.weaponId = payload.weaponId;
+    }
+    record.armor = clamp(num(payload.armor, record.armor), 0, 100);
+    record.helmet = !!payload.helmet;
+    record.hasDefuseKit = !!payload.hasDefuseKit;
+    const player = this.game?.player;
+    if (player) {
+      player.armor = record.armor;
+      player.helmet = record.helmet;
+      player.hasDefuseKit = record.hasDefuseKit;
+    }
+  }
 
   requestWeaponDrop(entry, transform = {}) {
     if (!entry?.id || !weaponInfo(entry.id)) return false;
@@ -1462,6 +2165,7 @@ export class OnlineMatch {
       pos: record.lastState.pos ? { ...record.lastState.pos } : null,
     } : null;
     return this._sendTo(record.id, 'playerSync', {
+      authoritySeq: this._nextAuthoritySeq(),
       playerId: record.id,
       phase: this.phase,
       roundNumber: this.roundNumber,
@@ -1474,6 +2178,12 @@ export class OnlineMatch {
         armor: record.armor,
         helmet: !!record.helmet,
         alive: !!record.alive,
+        kills: record.kills,
+        deaths: record.deaths,
+        lifeSeq: record.lifeSeq,
+        respawnIn: this.isDeathmatch && record.respawnAt
+          ? Math.max(0, (record.respawnAt - now) / 1000)
+          : 0,
         weaponId: record.weaponId,
         inventory: cloneInventory(record.inventory),
         state,
@@ -1484,9 +2194,13 @@ export class OnlineMatch {
 
   _handlePlayerSync(payload) {
     if (!payload || String(payload.playerId || '') !== this.localId) return;
+    if (!this._acceptAuthoritySeq(payload)) return;
     const record = this.local;
     const authoritative = payload.player;
     if (!record || !authoritative || typeof authoritative !== 'object') return;
+    const incomingLifeSeq = Math.max(0, Math.floor(num(authoritative.lifeSeq, record.lifeSeq)));
+    if (incomingLifeSeq < record.lifeSeq) return;
+    record.lifeSeq = incomingLifeSeq;
 
     if (payload.phase === 'countdown' || payload.phase === 'live' || payload.phase === 'roundover' || payload.phase === 'over') {
       this.phase = payload.phase;
@@ -1505,6 +2219,13 @@ export class OnlineMatch {
     record.armor = clamp(num(authoritative.armor, record.armor), 0, 100);
     record.helmet = !!authoritative.helmet;
     record.alive = authoritative.alive !== false;
+    record.kills = Math.max(0, Math.round(num(authoritative.kills, record.kills)));
+    record.deaths = Math.max(0, Math.round(num(authoritative.deaths, record.deaths)));
+    if (this.isDeathmatch) {
+      record.respawnAt = authoritative.respawnIn > 0
+        ? Date.now() + num(authoritative.respawnIn) * 1000
+        : 0;
+    }
     if (recordOwnsWeapon({ ...record, inventory: authoritative.inventory || record.inventory }, authoritative.weaponId)) {
       record.weaponId = authoritative.weaponId;
     }
@@ -1530,7 +2251,7 @@ export class OnlineMatch {
       };
       record.lastStateAt = Date.now();
       const player = this.game?.player;
-      if (player?.pos) {
+      if (player?.pos && player.alive && record.alive) {
         if (typeof player.pos.set === 'function') player.pos.set(record.lastState.pos.x, record.lastState.pos.y, record.lastState.pos.z);
         else Object.assign(player.pos, record.lastState.pos);
         player.yaw = record.lastState.yaw;
@@ -1541,14 +2262,7 @@ export class OnlineMatch {
       }
     }
 
-    const player = this.game?.player;
-    if (player) {
-      player.health = record.health;
-      player.armor = record.armor;
-      player.helmet = record.helmet;
-      if (record.alive) player.alive = true;
-      else if (player.alive) this._applyLocalDeath();
-    }
+    this._reconcileAuthoritativeLife(record, record.lastState);
     if (Array.isArray(payload.drops)) this._applyDropSnapshot(payload.drops);
     if (this.phase === 'over' && !this._over) {
       this._finish(payload.winnerTeam === 'T' ? 'T' : 'CT', true);
@@ -1559,13 +2273,17 @@ export class OnlineMatch {
     const record = this.players.get(String(playerId || ''));
     if (!record) return false;
     record.connected = !!connected;
-    if (connected && this.isHost && record.id !== this.localId) this._sendPlayerSync(record);
+    if (connected && this.isHost && record.id !== this.localId) {
+      if (this.isDeathmatch && !record.alive) record.respawnAt = Date.now() + 250;
+      this._sendPlayerSync(record);
+    }
     if (!connected && record.alive) {
       record.alive = false;
       record.health = 0;
+      record.respawnAt = 0;
       if (record.id === this.localId) this._applyLocalDeath();
       else this.avatars.get(record.id)?.playDeath?.();
-      if (this.isHost && this.phase === 'live') {
+      if (this.isHost && this.phase === 'live' && !this.isDeathmatch) {
         const aliveTeam = [...this.players.values()].some(
           (p) => p.connected !== false && p.team === record.team && p.alive,
         );
@@ -1591,16 +2309,21 @@ export class OnlineMatch {
           health: 100,
           armor: 100,
           helmet: false,
+          hasDefuseKit: false,
           alive: true,
           kills: 0,
           deaths: 0,
+          lifeSeq: 0,
+          respawnAt: 0,
           spawnProtectionUntil: 0,
           lastState: null,
+          lastSafeState: null,
           lastStateAt: 0,
           weaponId: item.team === 'T' ? 'ak47' : 'm4a1',
           inventory: onlineLoadoutInventory(item.team),
           ping: 0,
           lastShotAt: 0,
+          lastPurchaseSeq: 0,
         };
         this.players.set(id, record);
         if (id !== this.localId) this._ensureRemotePlayer(id);
@@ -1708,26 +2431,39 @@ export class OnlineMatch {
     const hostTeam = this.players.get(this.hostId)?.team || 'CT';
     const guestTeam = hostTeam === 'CT' ? 'T' : 'CT';
     const localAlive = !!player?.alive;
+    const ranked = [...this.players.values()]
+      .filter((record) => record.connected !== false)
+      .sort((a, b) => b.kills - a.kills || a.deaths - b.deaths || a.slot - b.slot);
+    const leader = ranked[0] || this.local;
     const roundResetIn = this.roundResetAt
       ? Math.max(0, (this.roundResetAt - Date.now()) / 1000)
+      : 0;
+    const deathmatchRespawnIn = this.isDeathmatch && this.local?.respawnAt
+      ? Math.max(0, (this.local.respawnAt - Date.now()) / 1000)
       : 0;
     return {
       phase: this.phase,
       round: this.roundNumber,
       roundNumber: this.roundNumber,
       mode: this.mode,
-      scoreCT: this.teamScores.CT,
-      scoreT: this.teamScores.T,
+      scoreCT: this.isDeathmatch ? (this.local?.kills || 0) : this.teamScores.CT,
+      scoreT: this.isDeathmatch ? (leader?.kills || 0) : this.teamScores.T,
       scoreHost: this.teamScores[hostTeam],
       scoreGuest: this.teamScores[guestTeam],
-      scoreYou: this.teamScores[this.myTeam],
-      scoreThem: this.teamScores[this.myTeam === 'CT' ? 'T' : 'CT'],
-      targetKills: this.targetRounds,
+      scoreYou: this.isDeathmatch ? (this.local?.kills || 0) : this.teamScores[this.myTeam],
+      scoreThem: this.isDeathmatch ? (leader?.kills || 0) : this.teamScores[this.myTeam === 'CT' ? 'T' : 'CT'],
+      scoreLeader: leader?.kills || 0,
+      leaderId: leader?.id || null,
+      leaderName: leader?.name || '',
+      targetKills: this.targetKills,
       targetRounds: this.targetRounds,
       health: Math.max(0, Math.ceil(num(player?.health))),
       armor: Math.max(0, Math.ceil(num(player?.armor))),
       alive: localAlive,
-      respawnIn: localAlive ? 0 : round1(roundResetIn),
+      respawnIn: localAlive ? 0 : round1(this.isDeathmatch ? deathmatchRespawnIn : roundResetIn),
+      objective: this.isDeathmatch
+        ? (localAlive ? 'DEATHMATCH · BAJAS LIBRES' : `RESPAWN ${round1(deathmatchRespawnIn).toFixed(1)}s`)
+        : undefined,
       ping: Math.round(this._rtt) || 0,
       role: this.role,
       playerId: this.localId,
@@ -1739,8 +2475,9 @@ export class OnlineMatch {
 
   getScoreboardData() {
     const teams = { CT: [], T: [] };
+    const ffa = [];
     for (const record of this.players.values()) {
-      teams[record.team].push({
+      const row = {
         id: record.id,
         name: record.name,
         team: record.team,
@@ -1753,23 +2490,29 @@ export class OnlineMatch {
         connected: record.connected !== false,
         hasBomb: false,
         hasKit: false,
-      });
+      };
+      teams[record.team].push(row);
+      ffa.push({ ...row });
     }
     for (const key of ['CT', 'T']) teams[key].sort((a, b) => b.kills - a.kills || a.deaths - b.deaths);
+    ffa.sort((a, b) => b.kills - a.kills || a.deaths - b.deaths || String(a.name).localeCompare(String(b.name)));
     return {
       online: true,
       mode: this.mode,
       mapName: onlineMapLabel(this.game?.map?.id || this.startPayload.map),
       phase: this.phase,
       round: this.roundNumber,
-      scoreCT: this.teamScores.CT,
-      scoreT: this.teamScores.T,
-      targetKills: this.targetRounds,
+      scoreCT: this.isDeathmatch ? (this.local?.kills || 0) : this.teamScores.CT,
+      scoreT: this.isDeathmatch ? (ffa[0]?.kills || 0) : this.teamScores.T,
+      targetKills: this.targetKills,
       targetRounds: this.targetRounds,
       teamScores: { ...this.teamScores },
       players: this.getRoster(),
       role: this.role,
       teams,
+      freeForAll: this.isDeathmatch,
+      ffa,
+      leader: ffa[0] || null,
     };
   }
 

@@ -12,11 +12,8 @@
  */
 import * as THREE from '../../vendor/three.module.js';
 import { clamp, lerp, angleDiff } from '../core/utils.js';
+import { collisionHullForMap, DEFAULT_PLAYER_STAND_HEIGHT } from '../core/player.js';
 
-const STAND_HEIGHT = 1.8;
-const CROUCH_HEIGHT = 1.32;
-const STAND_EYE = 1.62;
-const CROUCH_EYE = 1.12;
 const RADIUS = 0.38;
 const DEATH_DURATION = 0.55;
 
@@ -77,6 +74,11 @@ export class RemoteAvatar {
     this.game = game;
     this.name = opts.name || 'Rival';
     this.team = opts.team === 'T' ? 'T' : 'CT';
+    this._hull = collisionHullForMap(game?.map);
+    // The community character is normalized to 1.8 before map-level scaling.
+    // Its hip drop must reach the same crouch height as the physics hull.
+    this._communityCrouchDrop = DEFAULT_PLAYER_STAND_HEIGHT *
+      (1 - this._hull.crouchHeight / this._hull.standHeight);
 
     this.pos = new THREE.Vector3(0, 0, 0);
     this.yaw = 0;
@@ -86,7 +88,7 @@ export class RemoteAvatar {
     this.onGround = true;
     this.reloading = false;
     this.alive = true;
-    this.radius = RADIUS;
+    this.radius = RADIUS; // The hit registration width stays independent from navigation clearance.
 
     this._targetPos = new THREE.Vector3(0, 0, 0);
     this._targetYaw = 0;
@@ -138,6 +140,7 @@ export class RemoteAvatar {
     this.group = new THREE.Group();
     this.group.name = `remoteAvatar:${this.name}`;
     this.group.position.copy(this.pos);
+    this.group.scale.setScalar(this._hull.standHeight / DEFAULT_PLAYER_STAND_HEIGHT);
 
     // `_body` pivotea en los pies: sirve para agacharse y para la animaciÃ³n de muerte.
     this._body = new THREE.Group();
@@ -210,11 +213,11 @@ export class RemoteAvatar {
   }
 
   get height() {
-    return lerp(STAND_HEIGHT, CROUCH_HEIGHT, this.crouchAmount);
+    return lerp(this._hull.standHeight, this._hull.crouchHeight, this.crouchAmount);
   }
 
   get eyeHeight() {
-    return lerp(STAND_EYE, CROUCH_EYE, this.crouchAmount);
+    return lerp(this._hull.eyeStand, this._hull.eyeCrouch, this.crouchAmount);
   }
 
   get standing() {
@@ -357,7 +360,7 @@ export class RemoteAvatar {
     this.group.rotation.x = 0;
 
     // Agachado: comprimir el cuerpo desde los pies.
-    this._body.scale.y = 1 - 0.27 * this.crouchAmount;
+    this._body.scale.y = lerp(1, this._hull.crouchHeight / this._hull.standHeight, this.crouchAmount);
     this._headGroup.rotation.x = this.pitch * 0.75;
     this._weaponGroup.rotation.x = this.pitch * 0.9;
 
@@ -392,6 +395,7 @@ export class RemoteAvatar {
         alive: this.alive,
         onGround: this.onGround,
         crouching: this.crouchAmount > 0.5,
+        crouchDrop: this._communityCrouchDrop,
         pitch: this.pitch,
         yaw: this.yaw,
         weaponId: this.weaponId,

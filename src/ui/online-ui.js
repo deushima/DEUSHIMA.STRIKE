@@ -88,6 +88,7 @@ export class OnlineUI {
     this._views = [];
     this._button = null;
     this._screen = null; // 'home'|'host'|'lobby'|'error'|'matchEnd'|null
+    this._mode = 'classic';
 
     this._busy = false;
     this._role = null; // 'host'|'guest'|null
@@ -370,6 +371,7 @@ export class OnlineUI {
         <select class="online-input online-map-select" data-online-ref="hostMaxPlayersSelect" aria-label="Cantidad de jugadores">
           <option value="2">1V1 · 2 JUGADORES</option>
           <option value="4">2V2 · 4 JUGADORES</option>
+          <option value="10">DEATHMATCH · 10 JUGADORES</option>
         </select>
       </label>
       <div class="online-statusbar online-host-status">
@@ -407,6 +409,7 @@ export class OnlineUI {
         <select class="online-input online-map-select" data-online-ref="maxPlayersSelect" aria-label="Cantidad de jugadores">
           <option value="2">1V1 · 2 JUGADORES</option>
           <option value="4">2V2 · 4 JUGADORES</option>
+          <option value="10">DEATHMATCH · 10 JUGADORES</option>
         </select>
       </label>
 
@@ -638,7 +641,7 @@ export class OnlineUI {
   _changeMaxPlayers(select) {
     if (!select) return;
     const session = this._session();
-    const next = Number(select.value) === 4 ? 4 : 2;
+    const next = this._mode === 'deathmatch' ? 10 : Number(select.value) === 4 ? 4 : 2;
     if (this._roleNow() !== 'host' || typeof session?.setMaxPlayers !== 'function') {
       this._syncMaxPlayersSelects();
       return;
@@ -827,8 +830,10 @@ export class OnlineUI {
   /* Home                                                                   */
   /* ====================================================================== */
 
-  openHome() {
+  openHome(mode = 'classic') {
     if (!this._initialized) this.init();
+    this._mode = mode === 'deathmatch' ? 'deathmatch' : 'classic';
+    this._applyModeView();
     this._opSeq++;
     this._ensureMenuButton();
     this._resetLocalState();
@@ -873,6 +878,45 @@ export class OnlineUI {
     if (rematch) {
       rematch.disabled = false;
       rematch.textContent = 'REVANCHA';
+    }
+  }
+
+  _applyModeView() {
+    if (!this._overlay) return;
+    const dm = this._mode === 'deathmatch';
+    this._overlay.classList.toggle('is-deathmatch', dm);
+    const title = this._overlay.querySelector('.online-title');
+    if (title) title.textContent = dm ? 'DEATHMATCH ONLINE' : 'ONLINE 1V1 / 2V2';
+    const mapList = this._overlay.querySelector('.online-head-meta .online-chip b');
+    if (mapList) mapList.textContent = dm
+      ? 'DUST2 · DEATHMATCH'
+      : ONLINE_MAPS.filter((map) => map.id !== 'de_dust2_dm').map((map) => map.label).join(' · ');
+    const chips = this._overlay.querySelectorAll('.online-head-meta .online-chip');
+    if (chips[1]) chips[1].textContent = dm ? 'HASTA 10 JUGADORES' : 'PRIMERO A 13 RONDAS';
+    if (chips[2]) chips[2].textContent = dm ? 'RESPAWN CONTINUO' : 'RONDA · REINICIO AUTOMÁTICO';
+    this._refs.lobbyTarget?.closest('.online-chip')?.classList.toggle('online-hidden', dm);
+    const createCopy = this._overlay.querySelector('.online-panel-create .online-copy');
+    if (createCopy) createCopy.textContent = dm
+      ? 'Creá una sala Deathmatch de hasta 10 participantes. Compartí el código o enlace para invitarlos.'
+      : 'Creá una sala privada y compartí el código. El host puede jugar 1v1 o ampliar el lobby a 2v2.';
+    const hostCopy = this._overlay.querySelector('.online-host-panel .online-copy');
+    if (hostCopy) hostCopy.textContent = dm
+      ? 'Sala Deathmatch: hasta 10 jugadores. Compartí el enlace para que se unan tus amigos.'
+      : 'Compartí este código con tus amigos. Elegí 2 o 4 jugadores mientras esperás.';
+    for (const select of [this._refs.maxPlayersSelect, this._refs.hostMaxPlayersSelect]) {
+      if (!select) continue;
+      for (const opt of select.options) opt.hidden = dm ? opt.value !== '10' : opt.value === '10';
+      if (dm) select.value = '10';
+    }
+    const rules = this._overlay.querySelectorAll('.online-info li');
+    if (rules.length >= 8) {
+      rules[3].textContent = dm ? 'Todos compiten en Deathmatch, con respawn rápido y sin rondas.' : 'Gana el primer equipo que alcance el objetivo de rondas.';
+      rules[5].textContent = dm ? 'La partida sigue aunque un jugador sea eliminado.' : 'La ronda termina cuando cae un equipo completo.';
+      rules[7].textContent = dm ? 'Respawn en distintos puntos del mapa.' : 'La siguiente ronda comienza tras una breve pausa.';
+    }
+    if (this._refs.mapSelect) {
+      for (const opt of this._refs.mapSelect.options) opt.hidden = dm ? opt.value !== 'de_dust2_dm' : opt.value === 'de_dust2_dm';
+      if (dm) this._refs.mapSelect.value = 'de_dust2_dm';
     }
   }
 
@@ -957,7 +1001,9 @@ export class OnlineUI {
     }
 
     try {
-      const result = await session.host(name);
+      const result = await session.host(name, this._mode === 'deathmatch'
+        ? { mode: 'deathmatch', maxPlayers: 10, map: 'de_dust2_dm' }
+        : { maxPlayers: 2 });
       if (token !== this._opSeq) return;
       this._creatingHost = false;
       const code = normalizeCode((result && result.code) || this._sessionCode(session) || '');
@@ -1065,6 +1111,8 @@ export class OnlineUI {
 
   showLobby(lobby) {
     if (!lobby || typeof lobby !== 'object') return;
+    this._mode = lobby.mode === 'deathmatch' ? 'deathmatch' : 'classic';
+    this._applyModeView();
     this._lobby = lobby;
     this._resolveRole(lobby);
     const hasRemotePlayer = this._lobbyPlayers(lobby).some((player) => !player.isHost && player.slot !== 0);
@@ -1097,6 +1145,8 @@ export class OnlineUI {
 
   updateLobby(lobby) {
     if (!lobby || typeof lobby !== 'object') return;
+    this._mode = lobby.mode === 'deathmatch' ? 'deathmatch' : 'classic';
+    this._applyModeView();
     this._lobby = lobby;
     this._resolveRole(lobby);
     if (this._screen !== 'lobby') this.showLobby(lobby);
@@ -1151,12 +1201,36 @@ export class OnlineUI {
 
   _syncMaxPlayersSelects() {
     const lobby = this._lobby || this._sessionLobby(this._session());
-    const maxPlayers = Number(lobby?.maxPlayers) === 4 ? 4 : 2;
+    const maxPlayers = this._mode === 'deathmatch' ? 10 : Number(lobby?.maxPlayers) === 4 ? 4 : 2;
     const isHost = (this._roleNow() || this._role) === 'host';
     for (const select of [this._refs.hostMaxPlayersSelect, this._refs.maxPlayersSelect]) {
       if (!select) continue;
       select.value = String(maxPlayers);
-      select.disabled = !isHost;
+      select.disabled = !isHost || this._mode === 'deathmatch';
+    }
+  }
+
+  _ensureDeathmatchSlots() {
+    const grid = this._refs.slotsGrid;
+    if (!grid) return;
+    for (let index = 5; index <= 10; index++) {
+      if (this._refs[`slotPlayer${index}`]) continue;
+      const node = document.createElement('div');
+      node.className = 'online-slot online-hidden';
+      node.dataset.onlineRef = `slotPlayer${index}`;
+      node.innerHTML = `
+        <div class="slot-top">
+          <span class="slot-role">JUGADOR ${index}</span>
+          <span class="slot-team">FFA</span>
+          <span class="slot-you online-hidden" data-online-ref="player${index}You">VOS</span>
+        </div>
+        <div class="slot-name" data-online-ref="player${index}Name">ESPERANDO JUGADOR</div>
+        <div class="slot-state is-empty" data-online-ref="player${index}Ready">SIN CONECTAR</div>`;
+      grid.appendChild(node);
+      this._refs[`slotPlayer${index}`] = node;
+      for (const child of node.querySelectorAll('[data-online-ref]')) {
+        this._refs[child.dataset.onlineRef] = child;
+      }
     }
   }
 
@@ -1164,7 +1238,7 @@ export class OnlineUI {
     const lobby = this._lobby || {};
     const role = this._role;
     const players = this._lobbyPlayers(lobby);
-    const maxPlayers = Number(lobby.maxPlayers) === 4 ? 4 : 2;
+    const maxPlayers = this._mode === 'deathmatch' ? 10 : Number(lobby.maxPlayers) === 4 ? 4 : 2;
     const host = players.find((player) => player?.isHost || player?.slot === 0) || lobby.host || null;
     const guest = players.find((player) => player?.slot === 1) || lobby.guest || null;
     const player3 = players.find((player) => player?.slot === 2) || null;
@@ -1176,10 +1250,12 @@ export class OnlineUI {
 
     this._setText('lobbyCode', `SALA ${code || '-----'}`);
     this._setText('lobbyTarget', target);
-    this._setText('lobbyModeLabel', maxPlayers === 4 ? 'Lobby 2v2' : 'Lobby 1v1');
+    this._setText('lobbyModeLabel', this._mode === 'deathmatch' ? 'DEATHMATCH · HASTA 10' : maxPlayers === 4 ? 'Lobby 2v2' : 'Lobby 1v1');
     this._setText(
       'lobbyTip',
-      maxPlayers === 4
+      this._mode === 'deathmatch'
+        ? 'El host inicia la partida cuando hay al menos 2 jugadores conectados y todos están LISTOS.'
+        : maxPlayers === 4
         ? 'Cuando los 4 jugadores estén LISTOS, la partida empieza automáticamente.'
         : 'Cuando ambos estén LISTOS, la partida empieza automáticamente.',
     );
@@ -1187,30 +1263,37 @@ export class OnlineUI {
     this._setText('lobbyMapName', onlineMapLabel(map));
     if (this._refs.mapSelect) {
       this._refs.mapSelect.value = map;
-      this._refs.mapSelect.disabled = role !== 'host';
+      this._refs.mapSelect.disabled = role !== 'host' || this._mode === 'deathmatch';
     }
     this._syncMaxPlayersSelects();
+    this._ensureDeathmatchSlots();
     if (this._refs.slotsGrid) {
-      this._refs.slotsGrid.style.gridTemplateColumns = maxPlayers === 4
+      this._refs.slotsGrid.style.gridTemplateColumns = maxPlayers >= 4
         ? 'repeat(2, minmax(0, 1fr))'
         : '';
     }
-    if (this._refs.slotsVs) this._refs.slotsVs.classList.toggle('online-hidden', maxPlayers === 4);
+    if (this._refs.slotsVs) this._refs.slotsVs.classList.toggle('online-hidden', maxPlayers >= 4);
     for (const key of ['slotPlayer3', 'slotPlayer4']) {
       const node = this._refs[key];
-      if (node) node.classList.toggle('online-hidden', maxPlayers !== 4);
+      if (node) node.classList.toggle('online-hidden', maxPlayers < 4);
     }
     this._renderSlot('host', host, !!host && (localId ? host.id === localId : role === 'host'));
     this._renderSlot('guest', guest, !!guest && (localId ? guest.id === localId : role === 'guest'));
     this._renderSlot('player3', player3, !!player3 && !!localId && player3.id === localId);
     this._renderSlot('player4', player4, !!player4 && !!localId && player4.id === localId);
+    for (let index = 5; index <= 10; index++) {
+      const player = players.find((entry) => entry?.slot === index - 1) || null;
+      this._refs[`slotPlayer${index}`]?.classList.toggle('online-hidden', maxPlayers !== 10);
+      if (maxPlayers === 10) this._renderSlot(`player${index}`, player, !!player && !!localId && player.id === localId);
+    }
 
     const localReady = !!(local && local.ready);
     const connectedPlayers = players.filter((player) => player?.connected !== false);
-    const roomFull = players.length === maxPlayers && connectedPlayers.length === maxPlayers;
+    const roomFull = this._mode === 'deathmatch'
+      ? connectedPlayers.length >= 2 : players.length === maxPlayers && connectedPlayers.length === maxPlayers;
     const others = local ? players.filter((player) => player?.id !== local.id) : players;
     const othersReady = others.length > 0 && others.every((player) => player?.connected !== false && player?.ready);
-    const allReady = roomFull && players.every((player) => player?.ready);
+    const allReady = roomFull && connectedPlayers.every((player) => player?.ready);
 
     const readyBtn = this._refs.readyBtn;
     if (readyBtn) {
@@ -1235,7 +1318,7 @@ export class OnlineUI {
       message = 'LOS DEMÁS ESTÁN LISTOS · PULSÁ READY';
       kind = 'idle';
     } else {
-      message = 'LOBBY COMPLETO · PULSÁ READY';
+      message = this._mode === 'deathmatch' ? 'PULSÁ READY CUANDO QUIERAS EMPEZAR' : 'LOBBY COMPLETO · PULSÁ READY';
       kind = 'idle';
     }
     this._setStatus(message, kind);
@@ -1248,7 +1331,9 @@ export class OnlineUI {
         ? ['slotGuest', 'guestName', 'guestReady', 'guestYou']
         : role === 'player3'
           ? ['slotPlayer3', 'player3Name', 'player3Ready', 'player3You']
-          : ['slotPlayer4', 'player4Name', 'player4Ready', 'player4You'];
+        : role === 'player4'
+          ? ['slotPlayer4', 'player4Name', 'player4Ready', 'player4You']
+          : [`slot${role[0].toUpperCase()}${role.slice(1)}`, `${role}Name`, `${role}Ready`, `${role}You`];
     const [slotRef, nameRef, stateRef, youRef] = refs;
     const slot = this._refs[slotRef];
     const name = this._refs[nameRef];
@@ -1406,6 +1491,29 @@ export class OnlineUI {
     const refs = this._hudRefs;
     const lobbyNames = this._lobbyNames();
     const players = Array.isArray(hud.players) ? hud.players : [];
+    if (hud.mode === 'deathmatch') {
+      const leaders = [...players].sort((a, b) => num(b.kills) - num(a.kills));
+      const leader = leaders[0];
+      const you = players.find((p) => p?.id === this._sessionPlayerId()) || null;
+      this._setHudText('hostName', leader?.name || 'LÍDER');
+      this._setHudText('guestName', you?.name || 'VOS');
+      this._setHudText('scoreHost', num(leader?.kills, num(hud.scoreThem, 0)));
+      this._setHudText('scoreGuest', num(you?.kills, num(hud.scoreYou, 0)));
+      this._setHudText('target', `DEATHMATCH · ${players.length || 1}/10 JUGADORES`);
+      const ping = Number(hud.ping);
+      this._setHudText('ping', Number.isFinite(ping) && ping > 0 ? `PING ${Math.round(ping)} MS` : 'PING —');
+      if (refs.phase) refs.phase.classList.add('online-hidden');
+      if (refs.respawn) {
+        const time = num(hud.respawnIn, 0);
+        const dead = hud.alive === false;
+        refs.respawn.classList.toggle('online-hidden', !dead);
+        if (dead) this._setHudText('respawn', time > 0 ? `RESPAWN ${time.toFixed(1)}` : 'REAPARECIENDO');
+      }
+      this._hudRefs.hostYou?.classList.add('online-hidden');
+      this._hudRefs.guestYou?.classList.remove('online-hidden');
+      this._showOnlineHud();
+      return;
+    }
     const teamMode = hud.mode === '2v2' || players.length > 2;
     const hostTeam = players.find((player) => player?.isHost)?.team === 'T' ? 'T' : 'CT';
     const guestTeam = hostTeam === 'CT' ? 'T' : 'CT';
@@ -1512,6 +1620,10 @@ export class OnlineUI {
 
   showMatchEnd(data) {
     const payload = data && typeof data === 'object' ? data : {};
+    if (payload.mode === 'deathmatch') {
+      this._mode = 'deathmatch';
+      this._applyModeView();
+    }
     this._lastMatchEnd = payload;
     if (payload.role === 'host' || payload.role === 'guest') this._role = payload.role;
     else this._role = this._roleNow() || this._role;
@@ -1541,7 +1653,7 @@ export class OnlineUI {
     const kicker = this._refs.endKicker;
     if (kicker) {
       const maxPlayers = teamMode ? 4 : 2;
-      kicker.textContent = `ONLINE ${maxPlayers === 4 ? '2V2' : '1V1'} · FIN DE PARTIDA`;
+      kicker.textContent = payload.mode === 'deathmatch' ? 'DEATHMATCH · FIN DE PARTIDA' : `ONLINE ${maxPlayers === 4 ? '2V2' : '1V1'} · FIN DE PARTIDA`;
     }
 
     const title = this._refs.endTitle;

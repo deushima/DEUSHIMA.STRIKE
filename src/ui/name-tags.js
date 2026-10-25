@@ -32,14 +32,26 @@ export class NameTagLayer {
     return entry;
   }
 
+  _isDeathmatch() {
+    const game = this.game;
+    return !!(
+      game?.deathmatch ||
+      game?.matchConfig?.mode === 'deathmatch' ||
+      game?.matchConfig?.onlineMode === 'deathmatch' ||
+      game?.online?.mode === 'deathmatch' ||
+      game?.online?.startPayload?.mode === 'deathmatch'
+    );
+  }
+
   update() {
     if (!this.root) return;
     const game = this.game;
     const active = game.state === 'playing' || game.state === 'roundover';
-    if (!active) {
+    if (!active || this._isDeathmatch()) {
       this._setAll(false);
       return;
     }
+    this._visible = true;
     const player = game.player;
     if (!player) return;
     const seen = new Set();

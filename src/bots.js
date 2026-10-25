@@ -35,6 +35,7 @@ import {
   DEG,
   TAU,
 } from './core/utils.js';
+import { collisionHullForMap } from './core/player.js';
 
 /* ------------------------------------------------------------------------------------------------
  * Nombres estilo Counter-Strike
@@ -304,6 +305,7 @@ export class BotManager {
 
   _createBot(team, roleIndex) {
     const profile = this.profile;
+    const collisionHull = collisionHullForMap(this.game?.map);
     const bot = {
       isBot: true,
       isPlayer: false,
@@ -319,8 +321,9 @@ export class BotManager {
       pitch: 0,
       aimYaw: 0,
       aimPitch: 0,
-      radius: 0.38,
-      height: 1.8,
+      radius: collisionHull.radius,
+      hitboxRadius: 0.38,
+      height: collisionHull.standHeight,
       stepHeight: 0.4,
       onGround: false,
       speed: 0,
@@ -405,7 +408,20 @@ export class BotManager {
     };
 
     this._createModel(bot);
+    this._applyMapCollisionHull(bot);
     return bot;
+  }
+
+  _applyMapCollisionHull(bot) {
+    if (!bot) return;
+    const hull = collisionHullForMap(this.game?.map);
+    bot.radius = hull.radius;
+    // Character targetHeight is visual/model metadata. Dust2 needs a fixed
+    // navigation hull; classic maps keep their pre-existing model-derived height.
+    if (this.game?.map?.id === 'de_dust2_dm') bot.height = hull.standHeight;
+    // The imported Dust2 is not a GoldSrc BSP. Scale the entire visual rig
+    // (including weapons and arms) from its feet without changing classic maps.
+    bot.group?.scale.setScalar(hull.standHeight / 1.8);
   }
 
   _nextName() {
@@ -654,6 +670,7 @@ export class BotManager {
       bot.aimYaw = bot.yaw;
       bot.aimPitch = 0;
       bot.height = bot.parts?.character?.targetHeight || 1.8;
+      this._applyMapCollisionHull(bot);
       bot.onGround = false;
       bot.speed = 0;
       bot._moving = false;
@@ -842,7 +859,7 @@ export class BotManager {
     }
     const p = bot.pos;
     const h = bot.height || 1.8;
-    const r = bot.radius || 0.38;
+    const r = bot.hitboxRadius || bot.radius || 0.38;
     const boxes = bot._hitboxes;
     const set = (i, part, y0, y1, width) => {
       const e = boxes[i];
@@ -888,7 +905,7 @@ export class BotManager {
     bot.lastAttacker = source || null;
 
     // ReacciÃƒÆ’Ã‚Â³n al atacante aunque no lo estuviera viendo.
-    if (source && source !== bot && source.team && source.team !== bot.team && source.alive) {
+    if (source && source !== bot && source.team && (this.game.deathmatch || source.team !== bot.team) && source.alive) {
       if (!bot.target || !bot.targetVisible) {
         bot.target = source;
         bot.reactTimer = Math.min(bot.reactTimer || 0.3, 0.25);
@@ -1122,22 +1139,22 @@ export class BotManager {
     const list = this._enemyScratch;
     list.length = 0;
     const player = this.game.player;
-    if (player && player.alive && player.team !== bot.team) list.push(player);
+    if (player && player.alive && (this.game.deathmatch || player.team !== bot.team)) list.push(player);
     for (const b of this.bots) {
-      if (b !== bot && b.alive && b.team !== bot.team) list.push(b);
+      if (b !== bot && b.alive && (this.game.deathmatch || b.team !== bot.team)) list.push(b);
     }
     return list;
   }
 
   _eyePos(bot, out = this._sEye) {
-    return out.set(bot.pos.x, bot.pos.y + 1.62, bot.pos.z);
+    return out.set(bot.pos.x, bot.pos.y + (bot.height || 1.8) * 0.9, bot.pos.z);
   }
 
   _eyeOfEntity(entity, out) {
     if (!entity || !entity.pos) return out.set(0, 1.5, 0);
     const y = entity.isPlayer
       ? entity.pos.y + (entity.eyeHeight ?? 1.6)
-      : entity.pos.y + 1.45;
+      : entity.pos.y + (entity.height || 1.8) * (1.45 / 1.8);
     return out.set(entity.pos.x, y, entity.pos.z);
   }
 
@@ -1277,7 +1294,7 @@ export class BotManager {
     const pitch = clamp(bot.aimPitch + (Math.random() - 0.5) * spread * 2, -1.25, 1.25);
     const dir = dirFromYawPitch(yaw, pitch, this._sDir);
 
-    const hit = this.game.raycastShot?.(eye, dir, w.range, bot.team) || null;
+    const hit = this.game.raycastShot?.(eye, dir, w.range, bot.team, bot) || null;
     const muzzle = this._sMuzzle.copy(eye).addScaledVector(dir, 0.42);
     muzzle.y -= 0.05;
     const effects = this.game.effects;
@@ -1297,7 +1314,7 @@ export class BotManager {
         this.game.damagePlayer?.(damage, bot, hit.part, bot.weaponId);
       } else if (hit.type === 'bot') {
         const victim = hit.entity;
-        if (victim && victim !== bot && victim.team !== bot.team) {
+        if (victim && victim !== bot && (this.game.deathmatch || victim.team !== bot.team)) {
           this.game.damageBot?.(victim, damage, bot, hit.part, bot.weaponId);
         }
       } else if (effects?.bulletImpact) {
