@@ -131,7 +131,7 @@ export function createCommunityAnimator(model, team) {
     }
     // The weapon and its grip targets share the same transform. Aim rotates
     // upper-body joints; the player's root, collider and camera ray stay intact.
-    gun.pivot.position.set(.08,1.30-hipDrop,team==='CT'?-.11:-.22);
+    gun.pivot.position.set(.08,1.30-hipDrop,-.22);
     gun.pivot.rotation.set(pitch,0,0);
     if(actor.shooting)gun.pivot.position.z+=.012;
     root.updateWorldMatrix(true,true);
@@ -148,7 +148,7 @@ export function createCommunityAnimator(model, team) {
   }
   setWeapon(team==='T'?'ak47':'m4a1');update(0,{weaponId:weapon,onGround:true});
   return {root,model,gunMeshes:gun.meshes,aimBones,mixer:new THREE.AnimationMixer(model),actions:{},
-    yawOffset:0,targetHeight:1.8,characterId:team==='T'?'community-leet-fe6216ca':'community-sas-e9c56308',
+    yawOffset:0,targetHeight:1.8,characterId:team==='T'?'community-leet-fe6216ca':'community-sas-d2807183',
     get state(){return state;},setState(name){state=String(name).toLowerCase();},setWeapon,update,
     dispose(){gun.dispose();const seen=new Set();model.traverse(o=>{if(o.skeleton&&!seen.has(o.skeleton)){seen.add(o.skeleton);o.skeleton.dispose();}});root.removeFromParent();},
     getGripErrors(){const rows={};for(const [side,local]of [['R',V(0,-.065,.025)],['L',V(-.035,-.025,weaponFamily==='Pistol'?-.10:-.16)]])rows[side]=find('hand.'+side).getWorldPosition(V()).distanceTo(gun.pivot.localToWorld(local));return rows;},

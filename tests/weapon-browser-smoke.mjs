@@ -65,10 +65,32 @@ try {
       const screen = magazine.getWorldPosition(new vm.camera.position.constructor()).project(vm.camera);
       reloadFraming.push({ id, x: screen.x, y: screen.y });
     }
+    const povPoses = [];
+    for (const team of ['CT', 'T']) {
+      vm.update(0, { team });
+      await loadPovArms(team);
+      for (let tries = 0; tries < 100 && !vm.armsByTeam.has(team); tries++)
+        await new Promise(resolve => setTimeout(resolve, 10));
+      for (const id of ids) {
+        vm.setWeapon(id);
+        for (let tries = 0; tries < 100 && !vm.models.get(id)?.native; tries++)
+          await new Promise(resolve => setTimeout(resolve, 10));
+        vm.deploy = 1;
+        for (const progress of [0, .4, .85, 1]) {
+          vm.update(0, { team, reloading: progress > 0 && progress < 1, reloadProgress: progress });
+          const rig = vm.armsByTeam.get(team);
+          const targets = vm.povGripTargets;
+          const grip = rig.getGripErrors(targets.trigger, targets.support);
+          const shoulders = ['bicepr', 'bicepl'].map(name => rig.scene.getObjectByName(name)
+            .getWorldPosition(new vm.camera.position.constructor()).project(vm.camera).y);
+          povPoses.push({ team, id, progress, grip, shoulders });
+        }
+      }
+    }
     const loadMs = performance.now() - start;
     const loadedFrames = await sampleFrames();
     const gl = game.renderer.getContext();
-    return { ids: ids.length, models, arms, characters, reloadFraming,
+    return { ids: ids.length, models, arms, characters, reloadFraming, povPoses,
       loadMs,
       frameMs: { baseline: baselineFrames, loaded: loadedFrames },
       renderer: gl.getParameter(gl.RENDERER),
@@ -82,17 +104,23 @@ try {
   assert.deepEqual(result.arms.map(arm => arm.team), ['T', 'CT']);
   assert.ok(result.arms.every(arm => arm.bones > 20), 'unrigged POV arm');
   assert.ok(result.characters.every(actor => Math.max(...Object.values(actor.grip)) < .05));
-  assert.equal(result.characters.find(actor => actor.team === 'CT').id, 'community-sas-e9c56308');
+  assert.equal(result.characters.find(actor => actor.team === 'CT').id, 'community-sas-d2807183');
   assert.ok(result.reloadFraming.every(row => Math.abs(row.x) < 1 && Math.abs(row.y) < 1), 'reload magazine outside POV camera');
+  assert.equal(result.povPoses.length, 128);
+  assert.deepEqual(result.povPoses.filter(pose => Math.max(...Object.values(pose.grip)) >= .005), [], 'POV palm detached');
+  for (const pose of result.povPoses) {
+    assert.ok(pose.shoulders.every(y => Number.isFinite(y) && y < -1.1), `POV shoulder enters camera: ${JSON.stringify(pose)}`);
+  }
   assert.deepEqual(errors, []);
   const credits = await browser.newPage();
   await credits.goto(new URL('/character-credits.html', process.env.CS16_BASE_URL || 'http://127.0.0.1:8095/').href);
   assert.equal(await credits.locator('#weapons-creators').count(), 1);
-  for (const author of ['3dmodelscc0', 'Maia Studios', 'SirDraco65', 'locarem', 'WRiKS', 'BAMEN', 'DEUSHIMA STRIKE']) {
+  for (const author of ['3dmodelscc0', 'Maia Studios', 'SirDraco65', 'locarem', 'WRiKS', 'Jellypack', 'DEUSHIMA STRIKE']) {
     assert.ok((await credits.locator('body').innerText()).includes(author), `missing credit: ${author}`);
   }
   await credits.close();
-  console.log(JSON.stringify({ ...result, models: `${result.models.length} GLBs with meshes`, errors }, null, 2));
+  console.log(JSON.stringify({ ...result, models: `${result.models.length} GLBs with meshes`,
+    povPoses: `${result.povPoses.length} poses: palm contact < 5 mm, shoulder ends outside camera`, errors }, null, 2));
 } finally {
   await browser.close();
 }

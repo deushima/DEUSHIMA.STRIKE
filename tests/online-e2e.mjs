@@ -581,7 +581,7 @@ async function main() {
 
   // Require the user-selected identities on every actual remote avatar.
   for (const client of clients) {
-    await client.waitFor("[...window.__CS16__.online.avatars.values()].every(a=>a._kenney?.characterId === (a.team === 'T' ? 'community-leet-fe6216ca' : 'community-sas-e9c56308'))", 15000);
+    await client.waitFor("[...window.__CS16__.online.avatars.values()].every(a=>a._kenney?.characterId === (a.team === 'T' ? 'community-leet-fe6216ca' : 'community-sas-d2807183'))", 15000);
   }
   // Office has indoor ceilings and short corridors; the 30-jump open-arena
   // endurance check is specific to the AIM arenas, not the online protocol.

@@ -10,18 +10,19 @@ the original mesh, weights and complete finger skeleton.
 import sys
 from pathlib import Path
 import bpy
+from mathutils import Vector
 
 SOURCE = Path(sys.argv[-1]).resolve()
 DEST = Path(__file__).resolve().parents[1] / 'assets' / 'weapons'
 TEAMS = {
     'sas': {
         'glove': (0.014, 0.019, 0.023, 1),
-        'sleeve': (0.035, 0.055, 0.075, 1),
+        'sleeve': (0.014, 0.022, 0.035, 1),
         'cuff': (0.01, 0.013, 0.016, 1),
     },
     'leet': {
-        'glove': (0.055, 0.029, 0.012, 1),
-        'sleeve': (0.18, 0.10, 0.045, 1),
+        'glove': (0.025, 0.020, 0.015, 1),
+        'sleeve': (0.075, 0.055, 0.027, 1),
         'cuff': (0.022, 0.012, 0.006, 1),
     },
 }
@@ -33,6 +34,14 @@ for team, colors in TEAMS.items():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=str(SOURCE))
     mesh = next(o for o in bpy.context.scene.objects if o.type == 'MESH' and o.vertex_groups)
+    bpy.context.view_layer.objects.active = mesh
+    bevel = mesh.modifiers.new('POV silhouette smoothing', 'SUBSURF')
+    bevel.levels = 1
+    while mesh.modifiers.find(bevel.name) > 0:
+        bpy.ops.object.modifier_move_up(modifier=bevel.name)
+    bpy.ops.object.modifier_apply(modifier=bevel.name)
+    for poly in mesh.data.polygons:
+        poly.use_smooth = True
     mesh.data.materials.clear()
     for name, color in colors.items():
         mat = bpy.data.materials.new(f'{team}-{name}')
@@ -43,20 +52,22 @@ for team, colors in TEAMS.items():
         bsdf.inputs['Roughness'].default_value = 0.82 if name == 'glove' else 0.92
         mesh.data.materials.append(mat)
 
-    # Face material follows the dominant part of the source's skinning, so
-    # glove fingers and sleeves deform together with their authored bones.
+    armature = next(o for o in bpy.context.scene.objects if o.type == 'ARMATURE')
+    mesh_from_rig = mesh.matrix_world.inverted() @ armature.matrix_world
+    wrists = {}
+    for side in ('r', 'l'):
+        wrist = mesh_from_rig @ armature.data.bones[f'wrist.{side}'].head_local
+        elbow = mesh_from_rig @ armature.data.bones[f'forearm.{side}'].head_local
+        wrists[side] = (wrist, (wrist - elbow).normalized())
+
+    # A clean ring in bind space avoids a jagged glove/sleeve boundary caused
+    # by assigning every triangle from interpolated skin-weight thresholds.
     for poly in mesh.data.polygons:
-        scores = {'glove': 0.0, 'sleeve': 0.0, 'cuff': 0.0}
-        for vi in poly.vertices:
-            for weight in mesh.data.vertices[vi].groups:
-                bone = mesh.vertex_groups[weight.group].name.lower()
-                if bone.startswith('finger') or bone.startswith('wrist'):
-                    scores['glove'] += weight.weight
-                elif bone.startswith('forearm'):
-                    scores['cuff'] += weight.weight
-                else:
-                    scores['sleeve'] += weight.weight
-        poly.material_index = list(colors).index(max(scores, key=scores.get))
+        center = sum((mesh.data.vertices[vi].co for vi in poly.vertices), Vector()) / len(poly.vertices)
+        wrist, axis = min(wrists.values(), key=lambda pair: (center - pair[0]).length_squared)
+        distance = (center - wrist).dot(axis)
+        material = 'glove' if distance > -.04 else 'cuff' if distance > -.18 else 'sleeve'
+        poly.material_index = list(colors).index(material)
 
     # The input includes an unskinned IK helper sphere. It is not game art.
     for obj in tuple(bpy.context.scene.objects):

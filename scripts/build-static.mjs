@@ -44,11 +44,11 @@ for (const dir of ['branding', 'music', 'weapons']) {
   const src = path.join(root, 'assets', dir);
   if (fs.existsSync(src)) fs.cpSync(src, path.join(out, 'assets', dir), { recursive: true });
 }
-// Copy only the two credited runtime characters. The archived CC BY-NC source
-// and source packages must never be included in the public distribution.
+// Copy the two user-selected runtime characters and their attribution.
+// Source packages and the unselected replacement character stay outside dist.
 const characterOut = path.join(out, 'assets', 'characters', 'community');
 fs.mkdirSync(characterOut, { recursive: true });
-for (const file of ['leet.glb', 'sas-bamen.glb', 'T-LICENSE.txt', 'CT-RUNTIME-LICENSE.txt']) {
+for (const file of ['leet.glb', 'sas.glb', 'T-LICENSE.txt', 'CT-LICENSE.txt']) {
   fs.copyFileSync(path.join(root, 'assets', 'characters', 'community', file), path.join(characterOut, file));
 }
 // Sonidos requeridos por el juego en la versión publicada.
@@ -102,7 +102,7 @@ fs.writeFileSync(path.join(out, 'BUILD_INFO.txt'), [
   'Extracted GoldSrc HUD and classic model files are NOT included.',
 ].join('\n'));
 
-for (const forbidden of ['assets/cs16/models', 'assets/cs16/ui', 'assets/characters/community/sas.glb', 'assets/characters/community/SAS', 'server.mjs', 'package.json', 'node_modules']) {
+for (const forbidden of ['assets/cs16/models', 'assets/cs16/ui', 'assets/characters/community/sas-bamen.glb', 'assets/characters/community/SAS', 'server.mjs', 'package.json', 'node_modules']) {
   if (fs.existsSync(path.join(out, forbidden))) {
     throw new Error(`Build público contiene ${forbidden}`);
   }

@@ -516,15 +516,15 @@
     {
       "variant": "sas",
       "path": "assets/weapons/arms-sas.glb",
-      "bytes": 74144,
-      "sha256": "8d88c6643130e514b411aede391c49d05bbd89e61523db5e0cd72d868e65275e",
+      "bytes": 280512,
+      "sha256": "bebb7a049ea26b532e3b619f1561f5570e602e5c58261f0f6b15c4f8a9c27051",
       "joints": 50
     },
     {
       "variant": "leet",
       "path": "assets/weapons/arms-leet.glb",
-      "bytes": 74148,
-      "sha256": "66de7ca1aec6f40eabaa27d54f617981bf9492df4f079dae68e77a80345fcca7",
+      "bytes": 280516,
+      "sha256": "0f5162bab9deb0b4acd8109a32670ee26f9f0ebc7237de6873812ab2dd5cb646",
       "joints": 50
     }
   ]

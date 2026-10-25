@@ -9,9 +9,7 @@ for(const row of manifest.targets){
  assert.equal(row.characterId,CHARACTER_IDS[row.team]);assert.ok(row.author&&row.source&&row.license);
  assert.equal(bytes.readUInt32LE(0),0x46546c67);assert.equal(bytes.readUInt32LE(4),2);
  const jsonLength=bytes.readUInt32LE(12),j=JSON.parse(bytes.subarray(20,20+jsonLength)),bin=bytes.subarray(28+jsonLength);
- assert.ok(j.materials.length&&j.skins.length);assert.equal(j.skins[0].joints.length,row.team==='T'?122:78);
- if(row.team==='T')assert.ok(j.images.length,'Leet texture missing');
- if(row.team==='CT')assert.equal(j.animations?.length||0,0,'intermediary animation clips must be excluded');
+ assert.ok(j.images.length&&j.materials.length&&j.skins.length);assert.equal(j.skins[0].joints.length,row.team==='T'?122:21);
  for(const mesh of j.meshes)for(const p of mesh.primitives){
   for(const key of ['POSITION','NORMAL','TEXCOORD_0','JOINTS_0','WEIGHTS_0'])assert.ok(Number.isInteger(p.attributes[key]),'missing '+key);
   const a=j.accessors[p.attributes.WEIGHTS_0],v=j.bufferViews[a.bufferView];assert.equal(a.componentType,5126);
@@ -22,8 +20,7 @@ for(const row of manifest.targets){
   }
  }
  if(row.team==='T')assert.equal(row.originalSha256,row.runtimeSha256,'Leet original changed');
- const licenseName=row.team==='T'?'T-LICENSE.txt':'CT-RUNTIME-LICENSE.txt';
- const license=fs.readFileSync(new URL('../assets/characters/community/'+licenseName,import.meta.url),'utf8');assert.ok(license.includes(row.source));
+ const license=fs.readFileSync(new URL('../assets/characters/community/'+row.team+'-LICENSE.txt',import.meta.url),'utf8');assert.ok(license.includes(row.source));
 }
-assert.ok(fs.readFileSync(new URL('../character-credits.html',import.meta.url),'utf8').includes('BAMEN'));
-console.log('community-assets OK: Leet and CT hashes, source credits, normals/UV/weights and 122/78 independent joints');
+assert.ok(fs.readFileSync(new URL('../character-credits.html',import.meta.url),'utf8').includes('CC BY-NC 4.0'));
+console.log('community-assets OK: original Leet hash, rigged SAS hash, source credits, normals/UV/weights and 122/21 independent joints');

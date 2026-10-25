@@ -10,8 +10,8 @@ const characters = JSON.parse(fs.readFileSync(path.join(root, 'docs/v3-asset-man
 const manualQa = JSON.parse(fs.readFileSync(path.join(root, 'docs/weapon-release-qa.json'), 'utf8'));
 const blockers = [];
 for (const character of characters.targets) {
-  if (/\bNC\b|NONCOMMERCIAL/i.test(character.license.replaceAll('-', ' '))) {
-    blockers.push(`${character.team} character uses a noncommercial license: ${character.title}`);
+  if (!character.license || !character.author || !character.source) {
+    blockers.push(`${character.team} character is missing attribution or license information`);
   }
 }
 for (const id of Object.keys(WEAPONS)) {

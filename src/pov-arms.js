@@ -26,8 +26,8 @@ export function loadPovArms(team) {
 
 function createArmRig(scene) {
   scene.name = 'pov-arms';
-  scene.position.set(0, -0.28, -0.04);
-  scene.scale.setScalar(0.11);
+  scene.position.set(0, -0.32, -0.10);
+  scene.scale.setScalar(0.12);
   scene.traverse((part) => {
     part.frustumCulled = false;
     if (part.isMesh) part.renderOrder = 22;
@@ -42,15 +42,70 @@ function createArmRig(scene) {
     if (Object.values(joints[side]).some((bone) => !bone)) throw new Error(`Missing arm joint: ${side}`);
   }
   const rest = [];
-  scene.traverse((part) => { if (part.isBone) rest.push([part, part.position.clone(), part.quaternion.clone()]); });
+  scene.traverse((part) => { if (part.isBone) rest.push([part, part.position.clone(), part.quaternion.clone(), part.scale.clone()]); });
+  scene.updateWorldMatrix(true, true);
+  // Derive a palm frame from the actual skeleton. IK alone positions a wrist;
+  // it does not orient the palm or close the fingers around an object.
+  const palms = {};
+  for (const side of ['r', 'l']) {
+    const wrist = joints[side].wrist;
+    const origin = wrist.getWorldPosition(V());
+    const middle = scene.getObjectByName(`finger_middle1${side}`).getWorldPosition(V());
+    const next = scene.getObjectByName(`finger_middle2${side}`).getWorldPosition(V());
+    const index = scene.getObjectByName(`finger_index1${side}`).getWorldPosition(V());
+    const pinky = scene.getObjectByName(`finger_pinky1${side}`).getWorldPosition(V());
+    const forward = middle.clone().sub(origin).normalize();
+    const normal = index.sub(pinky).cross(forward).normalize();
+    if (normal.dot(next.sub(middle)) < 0) normal.negate();
+    const inverse = wrist.getWorldQuaternion(new THREE.Quaternion()).invert();
+    const localForward = forward.clone().applyQuaternion(inverse);
+    const localNormal = normal.clone().applyQuaternion(inverse);
+    const basis = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+      localForward.clone().cross(localNormal).normalize(), localForward, localNormal));
+    palms[side] = { basis, normal, offset: wrist.worldToLocal(middle.clone()).multiplyScalar(0.48) };
+  }
   const fingers = [];
   for (const side of ['r', 'l']) {
     for (const name of ['index', 'middle', 'ring', 'pinky', 'thumb']) {
       for (let segment = 1; segment <= 3; segment++) {
         const bone = scene.getObjectByName(`finger_${name}${segment}${side}`);
-        if (bone) fingers.push({ bone, segment, name });
+        if (bone) {
+          const direction = V(0, 1, 0).applyQuaternion(bone.getWorldQuaternion(new THREE.Quaternion()));
+          const axis = direction.cross(palms[side].normal).normalize()
+            .applyQuaternion(bone.getWorldQuaternion(new THREE.Quaternion()).invert());
+          fingers.push({ bone, segment, name, side, axis });
+        }
       }
     }
+  }
+
+  function orientPalm(side, target, forward, normal, pole) {
+    const { wrist } = joints[side];
+    const palm = palms[side];
+    const along = forward.clone().normalize();
+    const inward = normal.clone().addScaledVector(along, -normal.dot(along)).normalize();
+    const desired = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+      along.clone().cross(inward).normalize(), along, inward)).multiply(palm.basis.clone().invert());
+    wrist.scale.multiplyScalar(0.70);
+    scene.updateWorldMatrix(true, true);
+    const offset = palm.offset.clone().multiply(wrist.getWorldScale(V())).applyQuaternion(desired);
+    aim(side, target.clone().sub(offset), pole);
+    // Spread forearm roll through the source's twist bones instead of twisting
+    // the entire sleeve at the wrist seam.
+    const current = wrist.getWorldQuaternion(new THREE.Quaternion());
+    const delta = desired.clone().multiply(current.clone().invert());
+    const axis = wrist.getWorldPosition(V()).sub(joints[side].forearm.getWorldPosition(V())).normalize();
+    const projection = axis.clone().multiplyScalar(V(delta.x, delta.y, delta.z).dot(axis));
+    const twist = new THREE.Quaternion(projection.x, projection.y, projection.z, delta.w).normalize();
+    for (const name of [`forearmTwist0${side}`, `forearmTwist1${side}`]) {
+      const bone = scene.getObjectByName(name);
+      const fraction = new THREE.Quaternion().slerp(twist, 0.35);
+      const world = fraction.multiply(bone.getWorldQuaternion(new THREE.Quaternion()));
+      bone.quaternion.copy(bone.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(world));
+      bone.updateWorldMatrix(false, true);
+    }
+    wrist.quaternion.copy(wrist.parent.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(desired));
+    wrist.updateWorldMatrix(false, true);
   }
 
   function turnToward(bone, child, target) {
@@ -85,24 +140,51 @@ function createArmRig(scene) {
 
   return {
     scene,
-    pose(trigger, support, triggerPole, supportPole) {
-      for (const [bone, position, quaternion] of rest) {
+    pose(trigger, support, triggerPole, supportPole, orientation) {
+      for (const [bone, position, quaternion, scale] of rest) {
         bone.position.copy(position);
         bone.quaternion.copy(quaternion);
+        bone.scale.copy(scale);
       }
       scene.updateWorldMatrix(true, true);
-      aim('r', trigger, triggerPole);
-      aim('l', support, supportPole);
-      for (const { bone, segment, name } of fingers) {
-        bone.rotateX(name === 'thumb' ? (segment === 1 ? -0.25 : -0.38) : segment === 1 ? -0.55 : -0.72);
+      // Keep the open shoulder ends outside the POV frustum while the weapon
+      // rises for reload. Anchoring these to the weapon made entire upper arms
+      // float into view during reload and deploy.
+      for (const [side, target, sign] of [['r', trigger, 1], ['l', support, -1]]) {
+        const edge = 0.84;
+        const z = Math.min(-0.18, (target.z + edge * target.y) / (1 + edge * edge));
+        const position = V(target.x + sign * 0.16, Math.min(target.y - 0.16, z * edge), z);
+        const upper = joints[side].upper;
+        const shoulder = upper.parent;
+        const delta = position.sub(upper.getWorldPosition(V()));
+        shoulder.position.copy(shoulder.parent.worldToLocal(shoulder.getWorldPosition(V()).add(delta)));
+      }
+      scene.updateWorldMatrix(true, true);
+      orientPalm('r', trigger, orientation.rightForward, orientation.rightNormal, triggerPole);
+      orientPalm('l', support, orientation.leftForward, orientation.leftNormal, supportPole);
+      for (const { bone, segment, name, side, axis } of fingers) {
+        const curl = name === 'thumb' ? [0.18, 0.38, 0.4][segment - 1]
+          : name === 'index' && side === 'r' && orientation.triggerFinger ? [0.30, 0.85, 0.65][segment - 1]
+          : [0.90, 1.20, 0.75][segment - 1];
+        bone.rotateOnAxis(axis, curl);
+      }
+      scene.updateWorldMatrix(true, true);
+      for (const side of ['r', 'l']) {
+        const thumb1 = scene.getObjectByName(`finger_thumb1${side}`);
+        const thumb2 = scene.getObjectByName(`finger_thumb2${side}`);
+        const thumb3 = scene.getObjectByName(`finger_thumb3${side}`);
+        const index1 = scene.getObjectByName(`finger_index1${side}`).getWorldPosition(V());
+        const index2 = scene.getObjectByName(`finger_index2${side}`).getWorldPosition(V());
+        turnToward(thumb1, thumb2, index1);
+        turnToward(thumb2, thumb3, index2);
       }
       scene.updateWorldMatrix(true, true);
     },
     getGripErrors(trigger, support) {
       scene.updateWorldMatrix(true, true);
       return {
-        trigger: joints.r.wrist.getWorldPosition(V()).distanceTo(trigger),
-        support: joints.l.wrist.getWorldPosition(V()).distanceTo(support),
+        trigger: joints.r.wrist.localToWorld(palms.r.offset.clone()).distanceTo(trigger),
+        support: joints.l.wrist.localToWorld(palms.l.offset.clone()).distanceTo(support),
       };
     },
   };

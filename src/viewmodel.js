@@ -127,6 +127,17 @@ export class ViewModel {
     // Separate camera: stable weapon perspective, independent of world FOV,
     // and no intersection with nearby level geometry.
     this.scene = new THREE.Scene();
+    if (typeof document !== 'undefined') {
+      const faces = ['#84929d', '#5d6a76', '#c5d1da', '#30363d', '#8a969f', '#697782'].map(color => {
+        const canvas = document.createElement('canvas'); canvas.width = canvas.height = 32;
+        const context = canvas.getContext('2d'); context.fillStyle = color; context.fillRect(0, 0, 32, 32);
+        return canvas;
+      });
+      this.environment = new THREE.CubeTexture(faces);
+      this.environment.colorSpace = THREE.SRGBColorSpace;
+      this.environment.needsUpdate = true;
+      this.scene.environment = this.environment;
+    }
     this.camera = new THREE.PerspectiveCamera(camera.aspect < 1.2 ? 72 : 64, camera.aspect || 16 / 9, 0.01, 5);
     this.scene.add(this.root);
     this.scene.add(new THREE.HemisphereLight(0xe2e9f0, 0x68635b, 2.5));
@@ -554,6 +565,7 @@ export class ViewModel {
         if (this.models.get(id) !== entry) return;
         native.name = 'native-weapon';
         native.position.set(...WEAPON_ASSETS[id].offset);
+        native.scale.setScalar(WEAPON_ASSETS[id].viewScale || 1);
         if (WEAPON_ASSETS[id].rotation) native.rotation.set(...WEAPON_ASSETS[id].rotation);
         native.traverse((part) => {
           part.frustumCulled = false;
@@ -561,13 +573,14 @@ export class ViewModel {
           if (['magazine', 'slide', 'bolt', 'pump', 'feed_cover'].includes(part.name)) {
             part.userData.restPosition = part.position.clone();
             part.userData.restRotation = part.rotation.clone();
-            part.userData.motionScale = 1 / (native.getObjectByName(id)?.scale.x || 1);
+            part.userData.motionScale = 1 / ((native.getObjectByName(id)?.scale.x || 1) * native.scale.x);
           }
         });
         for (const child of group.children) child.visible = child.name === 'hand-rig' && !this.armsByTeam.get(this._team);
         group.add(native);
         entry.native = native;
-        entry.muzzle.set(...WEAPON_ASSETS[id].muzzle).add(native.position);
+        native.updateMatrix();
+        entry.muzzle.set(...WEAPON_ASSETS[id].muzzle).applyMatrix4(native.matrix);
         if (this.currentId === id) this.muzzleAnchor?.position.copy(entry.muzzle);
       }).catch((error) => console.warn(`[viewmodel] ${id} asset unavailable; procedural fallback retained`, error));
     }
@@ -602,26 +615,54 @@ export class ViewModel {
   _poseArms(ctx) {
     const rig = this.armsByTeam.get(this._team);
     if (!rig) return;
-    const group = this.models.get(this.currentId)?.group;
+    const entry = this.models.get(this.currentId);
+    const group = entry?.group;
     if (!group) return;
     this.root.updateWorldMatrix(true, true);
     const triggerHand = group.getObjectByName('trigger-hand');
     const supportHand = group.getObjectByName('support-hand');
-    const trigger = triggerHand?.getWorldPosition(new THREE.Vector3())
+    const asset = WEAPON_ASSETS[this.currentId];
+    const native = entry.native;
+    const trigger = native ? native.localToWorld(new THREE.Vector3(...asset.grip)) : triggerHand?.getWorldPosition(new THREE.Vector3())
       || this.root.localToWorld(new THREE.Vector3(0.04, -0.06, -0.05));
-    const support = supportHand?.getWorldPosition(new THREE.Vector3())
-      || this.root.localToWorld(new THREE.Vector3(-0.30, -0.24, 0.08));
+    const support = native && asset.support ? native.localToWorld(new THREE.Vector3(...asset.support)) : !native && supportHand ? supportHand.getWorldPosition(new THREE.Vector3())
+      : this.root.localToWorld(new THREE.Vector3(-0.30, -0.45, 0.02));
+    const pistol = ['usp', 'glock', 'deagle'].includes(this.currentId);
+    const knife = this.currentId === 'knife';
+    const direction = (v) => new THREE.Vector3(...v).transformDirection((native || group).matrixWorld);
+    const orientation = {
+      rightForward: direction(knife ? [-1, 0, 0] : [0, 0.12, -1]),
+      rightNormal: direction(knife ? [0, 1, 0] : [-1, 0, 0]),
+      leftForward: direction(pistol || this.currentId === 'c4' ? [0, 0.12, -1] : [1, 0.4, -0.35]),
+      leftNormal: direction(pistol || this.currentId === 'c4' ? [1, 0, 0] : [0, 1, 0]),
+      triggerFinger: !knife && !['he', 'flash', 'smoke', 'c4'].includes(this.currentId),
+    };
     const magazine = this.models.get(this.currentId)?.native?.getObjectByName('magazine')
       || group.getObjectByName('magazine');
-    if (magazine && ctx.reloading && supportHand) {
+    const pump = native?.getObjectByName('pump');
+    if (pump?.userData.restPosition) {
+      support.add(pump.getWorldPosition(new THREE.Vector3()).sub(pump.parent.localToWorld(pump.userData.restPosition.clone())));
+    }
+    if (magazine && ctx.reloading && (asset.support || supportHand)) {
       const rp = clamp(ctx.reloadProgress ?? 0, 0, 1);
       const approach = smoothstep(0.04, 0.24, rp);
       const returnToGrip = 1 - smoothstep(0.76, 0.95, rp);
-      support.lerp(magazine.getWorldPosition(new THREE.Vector3()), approach * returnToGrip);
+      const blend = approach * returnToGrip;
+      const contact = magazine.getWorldPosition(new THREE.Vector3()).add(direction([-1, 0, 0]).multiplyScalar(0.025));
+      support.lerp(contact, blend);
+      orientation.leftForward.lerp(direction([0, 0, -1]), blend).normalize();
+      orientation.leftNormal.lerp(direction([1, 0, 0]), blend).normalize();
+    } else if (native && ctx.reloading && ['m3', 'xm1014'].includes(this.currentId)) {
+      const rp = clamp(ctx.reloadProgress ?? 0, 0, 1);
+      const blend = smoothstep(0.04, 0.24, rp) * (1 - smoothstep(0.80, 0.98, rp));
+      const loadingPort = native.localToWorld(new THREE.Vector3(-0.02, -0.035, this.currentId === 'm3' ? -0.17 : -0.04));
+      support.lerp(loadingPort, blend);
+      orientation.leftForward.lerp(direction([0, 0, -1]), blend).normalize();
     }
-    const rightPole = this.root.localToWorld(new THREE.Vector3(0.42, -0.42, 0.22));
-    const leftPole = this.root.localToWorld(new THREE.Vector3(-0.42, -0.42, 0.12));
-    rig.pose(trigger, support, rightPole, leftPole);
+    const rightPole = trigger.clone().add(new THREE.Vector3(0.04, -0.90, 0.05));
+    const leftPole = support.clone().add(new THREE.Vector3(-0.12, -0.90, 0.05));
+    rig.pose(trigger, support, rightPole, leftPole, orientation);
+    this.povGripTargets = { trigger, support };
   }
 
   setWeapon(id) {
@@ -631,8 +672,8 @@ export class ViewModel {
     entry.group.visible = true;
     this.currentId = id;
     const pistol = ['deagle', 'usp', 'glock'].includes(id);
-    this.basePos.set(pistol ? 0.16 : 0.20, pistol ? -0.17 : -0.17, pistol ? -0.38 : -0.45);
-    this.baseRot.set(0.015, pistol ? 0.12 : 0.24, -0.025);
+    this.basePos.set(pistol ? 0.16 : 0.22, -0.20, pistol ? -0.42 : -0.52);
+    this.baseRot.set(0.015, pistol ? 0.08 : 0.18, -0.015);
     if (this.muzzleAnchor) this.muzzleAnchor.position.copy(entry.muzzle);
     this.deploy = 0;
     this.kick = 0;
@@ -865,6 +906,8 @@ export class ViewModel {
   }
 
   dispose() {
+    this.environment?.dispose();
+    this.environment = null;
     if (this.root) {
       // Cached GLB geometry is shared by all scene clones. Disposing a previous
       // viewmodel must not invalidate a later round or a second game instance.

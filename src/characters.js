@@ -5,7 +5,7 @@ import { clone as skeletonClone } from '../vendor/utils/SkeletonUtils.js';
 import { createCommunityAnimator } from './characters/community-rig.js';
 
 export { CHARACTER_IDS } from './characters/identities.js';
-const FILES={T:'/assets/characters/community/leet.glb',CT:'/assets/characters/community/sas-bamen.glb'};
+const FILES={T:'/assets/characters/community/leet.glb',CT:'/assets/characters/community/sas.glb'};
 
 // Sketchfab's metallic/roughness materials require image-based lighting. A
 // shared neutral cubemap supplies it without altering original material factors
