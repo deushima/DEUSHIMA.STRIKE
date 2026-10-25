@@ -119,6 +119,36 @@ assert.equal(botShooter.kills, 1);
 assert.equal(botShooter.health, 100);
 assert.equal(botShooter.armor, 100);
 
+// Bot -> player, different visual team. Shooter exclusion must not suppress a
+// legitimate CT/T opponent while neutral FFA remains active.
+game.deathmatch.respawns.delete(game.player);
+game.player.team = 'CT';
+game.player.pos.set(0, 0, -4);
+game.player.alive = true;
+game.player.health = 20;
+game.player.armor = 0;
+game.player.spawnProtection = 0;
+const differentTeamShooter = makeBot(20, 0, 'T', 57);
+manager.bots = [differentTeamShooter];
+manager._fire(differentTeamShooter, manager._weapon(differentTeamShooter));
+assert.equal(game.player.alive, false, 'Deathmatch bot must kill a different-team player');
+assert.equal(game.player.health, 0);
+assert.equal(differentTeamShooter.kills, 1);
+assert.equal(differentTeamShooter.health, 100);
+assert.equal(differentTeamShooter.armor, 100);
+
+// Bot -> bot, different visual team.
+game.player.alive = false;
+const differentBotShooter = makeBot(21, 0, 'CT', 63);
+const differentBotVictim = makeBot(22, -4, 'T', 20);
+manager.bots = [differentBotShooter, differentBotVictim];
+manager._fire(differentBotShooter, manager._weapon(differentBotShooter));
+assert.equal(differentBotVictim.alive, false, 'Deathmatch bot must kill a different-team bot');
+assert.equal(differentBotVictim.health, 0);
+assert.equal(differentBotShooter.kills, 1);
+assert.equal(differentBotShooter.health, 100);
+assert.equal(differentBotShooter.armor, 100);
+
 // Player -> bot, same visual team, through the normal local hitscan/damage path.
 game.player.team = 'CT';
 game.player.pos.set(0, 0, 0);
@@ -137,6 +167,20 @@ assert.equal(game.player.kills, 1);
 assert.equal(game.player.health, 100);
 assert.equal(game.player.armor, 100);
 
+// Player -> bot, different visual team. The local-player origin heuristic must
+// exclude only the player itself, never a valid T target.
+game.player.health = 46;
+game.player.armor = 8;
+const differentPlayerVictim = makeBot(23, -4, 'T', 20);
+manager.bots = [differentPlayerVictim];
+const differentPlayerHit = game.raycastShot(origin, direction, 20, game.player.team);
+assert.equal(differentPlayerHit?.entity, differentPlayerVictim, 'Deathmatch player hits different-team bot');
+game.damageBot(differentPlayerVictim, 40, game.player, differentPlayerHit.part, 'm4a1');
+assert.equal(differentPlayerVictim.alive, false);
+assert.equal(game.player.kills, 2);
+assert.equal(game.player.health, 100);
+assert.equal(game.player.armor, 100);
+
 // Classic regression: same-team actors remain friendly and therefore cannot
 // be hit merely because shooter exclusion exists.
 game.deathmatch = null;
@@ -151,5 +195,12 @@ manager.bots = [classicShooter];
 manager._fire(classicShooter, manager._weapon(classicShooter));
 assert.equal(game.player.health, 100, 'classic same-team bot cannot damage player');
 
+// Classic enemy combat is still live: shooter exclusion must remove only the
+// firing bot, not the normal opposing-team target used by 1v1/2v2 semantics.
+const classicEnemyShooter = makeBot(6, 0, 'T', 100);
+manager.bots = [classicEnemyShooter];
+manager._fire(classicEnemyShooter, manager._weapon(classicEnemyShooter));
+assert.ok(game.player.health < 100, 'classic different-team bot still damages player');
+
 manager.dispose();
-console.log('Deathmatch FFA fire OK: bot/player/bot same-team damage works; shooter self-hit excluded; classic preserved');
+console.log('Deathmatch FFA fire OK: SAME/DIFFERENT bot/player/bot matrix works; shooter self-hit excluded; classic preserved');
