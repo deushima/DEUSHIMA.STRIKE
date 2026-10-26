@@ -1,0 +1,29 @@
+[
+  {
+    "weapon": "ak47",
+    "rounds": 30,
+    "seconds": 2.9000000000000017,
+    "implementationRms": 7.693511927878497e-14,
+    "implementationMax": 1.5648080552598201e-13,
+    "cs2Rms": 7.693511927878497e-14,
+    "cs2Max": 1.5648080552598201e-13
+  },
+  {
+    "weapon": "m4a1",
+    "rounds": 30,
+    "seconds": 2.61,
+    "implementationRms": 5.149221871491926e-14,
+    "implementationMax": 8.801660205927878e-14,
+    "cs2Rms": 5.149221871491926e-14,
+    "cs2Max": 8.801660205927878e-14
+  },
+  {
+    "weapon": "m4a1s",
+    "rounds": 20,
+    "seconds": 1.9000000000000008,
+    "implementationRms": 2.3122835050380543e-14,
+    "implementationMax": 5.380814750005262e-14,
+    "cs2Rms": 2.3122835050380543e-14,
+    "cs2Max": 5.380814750005262e-14
+  }
+]

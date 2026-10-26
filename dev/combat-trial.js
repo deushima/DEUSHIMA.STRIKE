@@ -4,7 +4,6 @@ import {Player} from '../src/core/player.js';
 import {PhysicsWorld} from '../src/core/physics.js';
 import {CS2_PROFILES,CS2_SNAPSHOT} from '../src/combat/cs2-data.js';
 import {RECOIL_PATHS,RECOIL_REFERENCE} from '../src/combat/recoil-reference.js';
-import {OPENING_STRAIGHT_SHOTS} from '../src/combat/recoil.js';
 export function runTrial({id='ak47',fps=60,dispersion=false,mouseYaw=0,mousePitch=0,frameDrops=false}={}){
  const profile=CS2_PROFILES[id];
  const physics=new PhysicsWorld([new THREE.Box3(new THREE.Vector3(-100,-100,-25.05),new THREE.Vector3(100,100,-25))]);
@@ -24,10 +23,10 @@ export function runTrial({id='ak47',fps=60,dispersion=false,mouseYaw=0,mousePitc
  const first=weapons.shotLog[0]?.time||0,ref=RECOIL_PATHS[id],rows=weapons.shotLog.map((r,i)=>{
   const dir=new THREE.Vector3(...r.dir),yaw=Math.atan2(dir.x,-dir.z)*180/Math.PI,pitch=Math.asin(dir.y)*180/Math.PI;
   const target=ref?.[i];
-  const gameTarget=i<OPENING_STRAIGHT_SHOTS?[0,0]:ref?.[Math.min(i-OPENING_STRAIGHT_SHOTS+1,ref.length-1)];
+  const gameTarget=target;
   const error=gameTarget?Math.hypot(yaw-gameTarget[0],pitch-gameTarget[1]):null;
   const sourceError=target?Math.hypot(yaw-target[0],pitch-target[1]):null;
   return {...r,time:r.time-first,impactX:r.point?.[0],impactY:(r.point?.[1]??0)-player.eyeHeight,measuredYaw:yaw,measuredPitch:pitch,reference:target,gameTarget,error,sourceError,seed:profile.recoil.seed};
  });
- return {id,fps,dispersion,distanceWorld:25,csUnitsPerWorld:40,snapshot:CS2_SNAPSHOT.commit,rows,maxError:Math.max(...rows.map(r=>r.error||0)),rms:Math.sqrt(rows.reduce((n,r)=>n+(r.error||0)**2,0)/rows.length),maxSourceError:Math.max(...rows.map(r=>r.sourceError||0)),rmsSource:Math.sqrt(rows.reduce((n,r)=>n+(r.sourceError||0)**2,0)/rows.length),reference:RECOIL_REFERENCE,openingStraightShots:OPENING_STRAIGHT_SHOTS};
+ return {id,fps,dispersion,distanceWorld:25,csUnitsPerWorld:40,snapshot:CS2_SNAPSHOT.commit,rows,maxError:Math.max(...rows.map(r=>r.error||0)),rms:Math.sqrt(rows.reduce((n,r)=>n+(r.error||0)**2,0)/rows.length),maxSourceError:Math.max(...rows.map(r=>r.sourceError||0)),rmsSource:Math.sqrt(rows.reduce((n,r)=>n+(r.sourceError||0)**2,0)/rows.length),reference:RECOIL_REFERENCE};
 }

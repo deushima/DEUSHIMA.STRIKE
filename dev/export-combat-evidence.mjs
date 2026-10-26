@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {runTrial} from './combat-trial.js';
 import {renderPattern} from './pattern-chart.js';
-const out=path.resolve('docs/qa-20261026');
+const out=path.resolve('docs/qa-20261026/recoil-restored');
 fs.mkdirSync(out,{recursive:true});
 const summary=[];
 for(const id of ['ak47','m4a1','m4a1s']){

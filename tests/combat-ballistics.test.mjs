@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { CS2_PROFILES } from '../src/combat/cs2-data.js';
 import { WEAPONS } from '../src/weapons.js';
 import { calculateBulletDamage, resolveArmorDamage, HITGROUP } from '../src/combat/ballistics.js';
-import { RecoilState, OPENING_STRAIGHT_SHOTS } from '../src/combat/recoil.js';
+import { RecoilState } from '../src/combat/recoil.js';
 import { RECOIL_PATHS } from '../src/combat/recoil-reference.js';
 import { Player } from '../src/core/player.js';
 import { BotManager } from '../src/bots.js';
@@ -54,7 +54,7 @@ for(const id of Object.keys(RECOIL_PATHS)) {
    const r=state.fire(due);rows.push([-r.yaw*180/Math.PI,r.pitch*180/Math.PI]);due+=p.cycleTime[0];
   }
   rows.forEach((r,i)=>{
-   const target=i<OPENING_STRAIGHT_SHOTS?[0,0]:ref[Math.min(i-OPENING_STRAIGHT_SHOTS+1,ref.length-1)];
+   const target=ref[i];
    r.forEach((v,j)=>assert.ok(Math.abs(v-target[j])<1e-9,`${id}/${fps}/${i}`));
   });
  }

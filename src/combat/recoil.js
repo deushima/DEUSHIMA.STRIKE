@@ -1,10 +1,6 @@
 import { CS2_PROFILES } from './cs2-data.js';
 import { RECOIL_PATHS } from './recoil-reference.js';
 const RAD = Math.PI/180;
-// DEUSHIMA game rule: each new spray opens with five aimed rounds. CS2's
-// published trajectory is retained as the reference, but intentionally starts
-// on round six here. This is a product rule, not a CS2 parity claim.
-export const OPENING_STRAIGHT_SHOTS = 5;
 export function seededRandom(seed) {
   let state=seed>>>0;
   return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
@@ -18,18 +14,19 @@ export class RecoilState {
   sample(time,crouch=false) {
     const p=CS2_PROFILES[this.id]; const idle=Math.max(0,time-this.last-(p?.cycleTime[0]||.1));
     const factor=Math.exp(-idle*5/this.recovery(crouch));
-    return {pitch:this.pitch*factor,yaw:this.yaw*factor,index:this.index,inaccuracy:this.inaccuracy*factor};
+    // Firing inaccuracy recovers throughout the interval between shots. Recoil
+    // uses the post-cycle idle interval so a full spray follows its measured path.
+    const elapsed=Math.max(0,time-this.last);
+    const accuracyFactor=Math.exp(-elapsed*5/this.recovery(crouch));
+    return {pitch:this.pitch*factor,yaw:this.yaw*factor,index:this.index,inaccuracy:this.inaccuracy*accuracyFactor};
   }
   fire(time,{crouching=false}={}) {
     const p=CS2_PROFILES[this.id], path=RECOIL_PATHS[this.id];
     if(time-this.last>this.recovery(crouching)*2.5) this.reset();
     const current=this.sample(time,crouching);
-    const opening=this.index<OPENING_STRAIGHT_SHOTS;
-    const pathIndex=this.index-OPENING_STRAIGHT_SHOTS+1;
-    const next=!opening&&path?.[Math.min(pathIndex,path.length-1)];
-    if(opening) {
-      this.pitch=0;this.yaw=0;
-    } else if(next) {
+    const pathIndex=this.index;
+    const next=path?.[Math.min(pathIndex,path.length-1)];
+    if(next) {
       const previous=path[Math.min(pathIndex-1,path.length-1)]||[0,0];
       this.pitch=current.pitch+(next[1]-previous[1])*RAD;
       this.yaw=current.yaw-(next[0]-previous[0])*RAD;
