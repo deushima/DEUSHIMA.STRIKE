@@ -1184,12 +1184,13 @@ export class WeaponSystem {
     this.game.online?.notifyLocalShot?.({
       origin: eye.clone(),
       dir: rawAim.clone(),
+      shotTime,
       scoped:this.isScoped(),
       weaponId: w.id,
       hit: remoteHit,
     });
 
-    if (hitEnemy) {
+    if (hitEnemy && !this.game.online) {
       this.game.ui?.showHitmarker?.(headshot);
       this._play('hit', headshot ? 0.9 : 0.6);
     }
@@ -1249,7 +1250,6 @@ export class WeaponSystem {
       });
       this._play('knife_hit', 1);
       this.game.effects?.blood?.(hit.point, dir);
-      this.game.ui?.showHitmarker?.(hit.part === 'head');
       return;
     }
     const dealt = this.game.damageBot

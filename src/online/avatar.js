@@ -105,6 +105,8 @@ export class RemoteAvatar {
     this._targetJumpState = 'ground';
     this._stateTick = 0;
     this._stateSentAt = 0;
+    this._stateHostTime = 0;
+    this.renderHostTime = 0;
     this._stateReceivedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
     this._time = 0;
@@ -243,6 +245,7 @@ export class RemoteAvatar {
   /** Copia el target y salta directo a Ã©l (spawn/respawn). */
   snapToTarget() {
     this.pos.copy(this._targetPos);
+    this.renderHostTime = this._stateHostTime;
     this.yaw = this._targetYaw;
     this.pitch = this._targetPitch;
     this.crouchAmount = this._targetCrouch;
@@ -276,6 +279,7 @@ export class RemoteAvatar {
     jumpState = null,
     sentAt = 0,
     physicsTick = 0,
+    hostTime = 0,
   ) {
     if (this._disposed) return;
     if (pos) {
@@ -309,6 +313,8 @@ export class RemoteAvatar {
       : (this._targetOnGround ? 'ground' : this._targetVelocity.y > 0.12 ? 'rise' : 'fall');
     this._stateTick = Math.max(this._stateTick, Math.round(Number(physicsTick) || 0));
     this._stateSentAt = Number.isFinite(Number(sentAt)) ? Number(sentAt) : 0;
+    this._stateHostTime = Number.isFinite(hostTime) ? hostTime : 0;
+    if(!this.renderHostTime)this.renderHostTime=this._stateHostTime;
     this._stateReceivedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
     const nextAlive = alive !== false;
@@ -337,6 +343,7 @@ export class RemoteAvatar {
     const age = clamp((nowMs - this._stateReceivedAt) / 1000, 0, 0.08);
     this._predictedPos.copy(this._targetPos).addScaledVector(this._targetVelocity, age);
     this.pos.lerp(this._predictedPos, k);
+    if(this._stateHostTime>0)this.renderHostTime=lerp(this.renderHostTime||this._stateHostTime,this._stateHostTime+age*1000,k);
     if (this.pos.distanceToSquared(this._predictedPos) < 1e-6) this.pos.copy(this._predictedPos);
 
     // Yaw por el camino mÃ¡s corto.

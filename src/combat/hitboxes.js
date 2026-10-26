@@ -12,10 +12,12 @@ export function bonePart(name, team) {
   if(/pelvis|hip/.test(n) || (team==='T' && /^(spine|spine001)$/.test(n)))return 'stomach';
   return 'chest';
 }
-const caster=new THREE.Raycaster(), localPoint=new THREE.Vector3(), a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),bary=new THREE.Vector3();
+const caster=new THREE.Raycaster(), inverseWorld=new THREE.Matrix4(), localPoint=new THREE.Vector3(), a=new THREE.Vector3(),b=new THREE.Vector3(),c=new THREE.Vector3(),bary=new THREE.Vector3();
 function classify(mesh, hit, team) {
   if(!mesh.isSkinnedMesh || !hit.face)return 'chest';
-  localPoint.copy(hit.point);mesh.worldToLocal(localPoint);
+  // Use the raycast pose, including a historical pose during online rewind.
+  // worldToLocal updates matrices from the live transform and would undo it.
+  localPoint.copy(hit.point).applyMatrix4(inverseWorld.copy(mesh.matrixWorld).invert());
   const indices=[hit.face.a,hit.face.b,hit.face.c];
   mesh.getVertexPosition(indices[0],a);mesh.getVertexPosition(indices[1],b);mesh.getVertexPosition(indices[2],c);
   THREE.Triangle.getBarycoord(localPoint,a,b,c,bary);

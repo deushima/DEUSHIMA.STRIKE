@@ -1,6 +1,8 @@
 import { CS2_PROFILES } from '../combat/cs2-data.js';
 import { RecoilState, accuracyRadius } from '../combat/recoil.js';
 import { shotDirections } from '../combat/shot.js';
+import { shotClock, shotMotion } from './shot-sync.js';
+import { HitHistory, MAX_REWIND_MS } from './hit-history.js';
 import { CHARACTER_IDS } from '../characters/identities.js';
 /**
  * OnlineMatch — authoritative AIM rounds for 1v1 / 2v2 over OnlineSession.
@@ -373,6 +375,7 @@ export class OnlineMatch {
     for (const avatar of this.avatars.values()) {
       try { avatar.dispose(); } catch { /* ignore */ }
     }
+    this._shotHistory?.clear();
     this.avatars.clear();
     this.entities.clear();
     this.avatar = null;
@@ -501,20 +504,29 @@ export class OnlineMatch {
     if (!origin || !dir || dir.lengthSq() < 1e-8) return;
     dir.normalize();
     const seq = ++this._shotSeq;
-    if (shot.hit) this._lastPredictedHitAt = Date.now();
+    const context = {
+      shotTime: shot.shotTime ?? this.game.weapons?.time,
+      motion: shotMotion(player, this.game.weapons?.isScoped?.()),
+      round: this.roundNumber,
+      lifeSeq: this.players?.get(this.localId)?.lifeSeq,
+      viewTimes: Object.fromEntries([...(this.avatars || new Map())]
+        .filter(([, avatar]) => avatar.renderHostTime > 0)
+        .map(([id, avatar]) => [id, avatar.renderHostTime])),
+    };
     if (this.isHost) {
-      this._hostResolveShot(this.localId, origin, dir, weaponId, shot.hit || null, seq);
+      this._hostResolveShot(this.localId, origin, dir, weaponId, null, seq, context);
     } else {
       this._sendToHost('shot', {
         seq,
-        origin: vecPlain(origin),
-        dir: vecPlain(dir),
+        origin: { x: origin.x, y: origin.y, z: origin.z },
+        dir: { x: dir.x, y: dir.y, z: dir.z },
         weaponId,
+        ...context,
       });
     }
   }
 
-  _hostResolveShot(shooterId, origin, dir, weaponId, trustedHit = null, seq = 0) {
+  _hostResolveShot(shooterId, origin, dir, weaponId, trustedHit = null, seq = 0, context = null) {
     if (!this.isHost || this.phase !== 'live') return;
     const shooter = this.players.get(shooterId);
     const weapon = weaponInfo(weaponId);
@@ -522,41 +534,56 @@ export class OnlineMatch {
     if (shooterId !== this.localId && !this._validShotOrigin(shooter, origin)) return;
     const now = Date.now();
     if(seq>0 && seq <= (shooter.acceptedShotSeq||0))return;
+    if(context?.round != null && context.round !== this.roundNumber)return;
+    if(context?.lifeSeq != null && context.lifeSeq !== shooter.lifeSeq)return;
     const cycle=1000*weapon.fireInterval;
-    if(now+5<(shooter.nextShotAt||0))return;
+    const timed = Number.isFinite(context?.shotTime);
+    const clock = timed ? shotClock(shooter,context.shotTime,now,cycle,shooterId===this.localId) : null;
+    if(timed ? !clock : now+5<(shooter.nextShotAt||0))return;
     this._advanceHostReload(shooter,now);
+    if(clock && shooter.reloadReadyAt && Number.isFinite(shooter.reloadClientReadyAt) && clock.time + .01 >= shooter.reloadClientReadyAt)
+      this._advanceHostReload(shooter,shooter.reloadReadyAt);
     if(shooter.reloadReadyAt)return;
     const entry=weapon.slot===1?shooter.inventory?.primary:weapon.slot===2?shooter.inventory?.secondary:null;
-    if(weapon.magazine && (!entry||entry.magazine<=0))return;
+    if(weapon.magazine && (!entry || (shooterId!==this.localId && entry.magazine<=0)))return;
     if(entry && shooterId!==this.localId)entry.magazine--;
     shooter.acceptedShotSeq=seq;
-    const fireTime=Math.max(now-cycle,shooter.nextShotAt||now);
+    if(clock)shooter.shotClock=clock;
+    const fireTime=clock?.time ?? Math.max(now-cycle,shooter.nextShotAt||now);
     shooter.nextShotAt=fireTime+cycle;shooter.lastShotAt=now;
     const profile=CS2_PROFILES[weaponId];
-    if(!profile){this._hostResolvePellet(shooter,origin,dir,weaponId,seq);return;}
+    if(!profile){this._hostResolvePellet(shooter,origin,dir,weaponId,seq,context);return;}
     shooter.recoilStates ||= new Map();
     if(!shooter.recoilStates.has(weaponId))shooter.recoilStates.set(weaponId,new RecoilState(weaponId,profile.recoil.seed));
     const recoil=shooter.recoilStates.get(weaponId);
     const state=shooterId===this.localId?this.game.player:shooter.lastState||{};
-    const actor={...state,crouching:state.crouching??state.crouch,vel:state.vel??state.velocity,speed:state.moveSpeed??state.speed};
-    const scoped=shooterId===this.localId ? !!this.game.weapons?.isScoped?.() : !!state.scoped;
+    const fallback=shooterId===this.localId ? shotMotion(state,this.game.weapons?.isScoped?.())
+      : {...state,speed:state.moveSpeed??state.speed,crouching:state.crouch};
+    const motion=context?.motion;
+    const actor=motion && Number.isFinite(motion.speed) ? {
+      speed:clamp(motion.speed,0,50),crouching:!!motion.crouching,
+      onGround:motion.onGround!==false,landingTime:clamp(num(motion.landingTime),0,1),
+    } : fallback;
+    const scoped=weapon.type==='sniper' && !!(motion?.scoped ?? fallback.scoped);
     const accuracy=accuracyRadius(weaponId,actor,recoil,fireTime/1000,scoped);
     const punch=recoil.fire(fireTime/1000,actor);
     // Resolve every pellet on the host. Client contacts/damage are never used.
-    for(const direction of shotDirections(weaponId,dir,punch,accuracy))this._hostResolvePellet(shooter,origin,direction,weaponId,seq);
+    for(const direction of shotDirections(weaponId,dir,punch,accuracy))this._hostResolvePellet(shooter,origin,direction,weaponId,seq,context);
   }
 
   _advanceHostReload(record,now=Date.now()) {
     if(!record.reloadReadyAt || now<record.reloadReadyAt)return;
     const w=weaponInfo(record.reloadId),entry=w?.slot===1?record.inventory?.primary:record.inventory?.secondary;
     if(entry?.id===record.reloadId){const take=Math.min(w.magazine-entry.magazine,entry.reserve);entry.magazine+=take;entry.reserve-=take;}
-    record.reloadReadyAt=0;record.reloadId=null;
+    record.reloadReadyAt=0;record.reloadClientReadyAt=null;record.reloadId=null;
   }
 
-  _hostResolvePellet(shooter,origin,dir,weaponId,seq) {
+  _hostResolvePellet(shooter,origin,dir,weaponId,seq,context=null) {
     const shooterId=shooter.id,weapon=weaponInfo(weaponId);
     let hit = null;
-    if (this.isDeathmatch) {
+    if (shooterId!==this.localId && this._shotHistory?.players.size) {
+      hit=this._rewoundRaycast(origin,dir,Math.max(2.4,num(weapon.range,120)),shooter,context);
+    } else if (this.isDeathmatch) {
       hit = this._deathmatchRaycast(origin, dir, Math.max(2.4, num(weapon.range, 120)), shooterId);
     } else if (typeof this.game?.raycastShot === 'function') {
       hit = this.game.raycastShot(origin, dir, Math.max(2.4, num(weapon.range, 120)), shooter.team, shooterId===this.localId?this.game.player:this.getRemoteEntities().find(e=>e.onlinePlayerId===shooterId));
@@ -621,6 +648,42 @@ export class OnlineMatch {
     const avatar = this.avatars.get(targetId);
     avatar?.playHit?.();
     if (result.dead) this._hostKill(shooterId, targetId, weaponId, headshot);
+  }
+
+  captureShotHistory() {
+    if(!this.isHost || this.phase!=='live')return;
+    const now=Date.now(), local=this.game.player;
+    if(now-(this._historyCapturedAt||0)<1000/30)return;
+    this._historyCapturedAt=now;
+    this._shotHistory ||= new HitHistory();
+    if(local?.alive)this._shotHistory.capture(this.localId,now,this.game.getPlayerHitboxes(local));
+    for(const remote of this.getRemoteEntities())
+      this._shotHistory.capture(remote.onlinePlayerId,now,this.getRemoteHitboxes(remote));
+  }
+
+  _rewoundRaycast(origin,dir,range,shooter,context) {
+    const now=Date.now();
+    const world=this.game.physics?.raycast?.(origin,dir,range);
+    let best=world?{...world,type:'world'}:null;
+    const targets=[this.game.player,...this.getRemoteEntities()].filter(Boolean);
+    for(const entity of targets) {
+      const id=entity===this.game.player?this.localId:entity.onlinePlayerId;
+      if(!entity.alive || id===shooter.id || (!this.isDeathmatch&&entity.team===shooter.team))continue;
+      // Host-issued render times are bounded by measured RTT + interpolation.
+      const budget=Math.min(MAX_REWIND_MS,Math.max(100,num(shooter.ping)+100));
+      const requested=context?.viewTimes?.[id];
+      const time=clamp(Number.isFinite(requested)?requested:now-num(shooter.ping)/2-55,now-budget,now);
+      const historical=this._shotHistory.raycast(id,time,origin,dir,best?.t??range);
+      let hit=historical.hit;
+      if(!historical.available) {
+        for(const hb of this.game.getPlayerHitboxes(entity)) {
+          const current=intersectHitbox(origin,dir,hb,hit?.t??best?.t??range);
+          if(current&&(!hit||current.t<hit.t))hit=current;
+        }
+      }
+      if(hit&&hit.t<(best?.t??range))best={...hit,entity,type:id===this.localId?'player':'remote',point:origin.clone().addScaledVector(dir,hit.t)};
+    }
+    return best;
   }
 
   _deathmatchRaycast(origin, dir, maxDist, shooterId) {
@@ -881,6 +944,7 @@ export class OnlineMatch {
     record.spawnProtectionUntil = Date.now() + 1000;
     record.inventory = onlineLoadoutInventory(record.team);
     record.recoilStates=new Map();record.nextShotAt=0;record.reloadReadyAt=0;record.acceptedShotSeq=0;
+    record.shotClock=null;record.reloadClientReadyAt=null;this._shotHistory?.delete(record.id);
     record.weaponId = record.inventory.currentId;
     record.lastState = {
       pos: { x: safe.x, y: safe.y, z: safe.z },
@@ -965,6 +1029,7 @@ export class OnlineMatch {
     record.spawnProtectionUntil = now + 1000;
     record.inventory = onlineLoadoutInventory(record.team);
     record.recoilStates=new Map();record.nextShotAt=0;record.reloadReadyAt=0;record.acceptedShotSeq=0;
+    record.shotClock=null;record.reloadClientReadyAt=null;this._shotHistory?.delete(record.id);
     record.weaponId = record.inventory.currentId;
     record.lastState = {
       pos: { x: spawn.x, y: spawn.y, z: spawn.z },
@@ -1042,6 +1107,7 @@ export class OnlineMatch {
       record.spawnProtectionUntil = Date.now() + 1000;
       record.inventory = onlineLoadoutInventory(record.team);
     record.recoilStates=new Map();record.nextShotAt=0;record.reloadReadyAt=0;record.acceptedShotSeq=0;
+    record.shotClock=null;record.reloadClientReadyAt=null;this._shotHistory?.delete(record.id);
       record.weaponId = record.inventory.currentId;
       const spawn = this._spawnForRecord(record, spawnRolls.get(record.id));
       record.lastState = {
@@ -1216,9 +1282,12 @@ export class OnlineMatch {
       jumpState: player.onGround !== false ? 'ground' : (num(player.vel?.y) > 0.12 ? 'rise' : 'fall'),
       physicsTick: Math.max(0, Math.round(num(player._physicsTick))),
       sentAt: Date.now(),
+      hostTime: this.isHost ? Date.now() : undefined,
       movementPreset: player.movementPresetId || null,
       weaponId: this.game?.weapons?.currentId || 'knife',
       reloading: !!this.game?.weapons?.reloading,
+      weaponTime: this.game?.weapons?.time,
+      reloadRemaining: this.game?.weapons?.reloadTimer,
       scoped:!!this.game?.weapons?.isScoped?.(),
       alive: player.alive !== false,
       inventory: this.game?.weapons?.getInventorySnapshot?.() || null,
@@ -1261,6 +1330,7 @@ export class OnlineMatch {
       jumpState: payload.jumpState === 'rise' || payload.jumpState === 'fall' ? payload.jumpState : 'ground',
       physicsTick: Math.max(0, Math.round(num(payload.physicsTick))),
       sentAt: Number.isFinite(Number(payload.sentAt)) ? Number(payload.sentAt) : Date.now(),
+      hostTime: this.isHost ? Date.now() : num(payload.hostTime),
       movementPreset: typeof payload.movementPreset === 'string' ? payload.movementPreset : null,
       weaponId: acceptedWeaponId,
       reloading: !!payload.reloading,
@@ -1283,9 +1353,11 @@ export class OnlineMatch {
       this._advanceHostReload(record);
       const w=weaponInfo(record.lastState.weaponId);
       const entry=w?.slot===1?record.inventory?.primary:record.inventory?.secondary;
-      if(record.reloadId && (record.reloadId!==record.lastState.weaponId || !payload.reloading)){record.reloadReadyAt=0;record.reloadId=null;}
+      if(record.reloadId && record.reloadId!==record.lastState.weaponId){record.reloadReadyAt=0;record.reloadClientReadyAt=null;record.reloadId=null;}
       if(payload.reloading && !record.reloadReadyAt && entry?.magazine<w?.magazine && entry.reserve>0) {
         record.reloadId=w.id;record.reloadReadyAt=Date.now()+1000*w.reloadTime;
+        record.reloadClientReadyAt=Number.isFinite(payload.weaponTime)&&Number.isFinite(payload.reloadRemaining)
+          ? 1000*(payload.weaponTime+clamp(payload.reloadRemaining,Math.max(0,w.reloadTime-.15),w.reloadTime)) : null;
       }
     }
     record.weaponId = record.lastState.weaponId;
@@ -1327,6 +1399,7 @@ export class OnlineMatch {
         record.lastState.jumpState,
         record.lastState.sentAt,
         record.lastState.physicsTick,
+        record.lastState.hostTime,
       );
     }
   }
@@ -1370,6 +1443,7 @@ export class OnlineMatch {
         crouch: !!p.lastState.crouch,
         onGround: p.lastState.onGround !== false,
         moveSpeed: Math.max(0, num(p.lastState.moveSpeed)),
+        hostTime: num(p.lastState.hostTime),
         weaponId: p.weaponId,
         reloading: !!p.lastState.reloading,
         alive: !!p.alive,
@@ -1493,8 +1567,9 @@ export class OnlineMatch {
     if (this.isHost) {
       const id = senderId || claimed;
       if (!id || id === this.localId || !this.players.has(id)) return;
-      this._acceptState(id, { ...payload, playerId: id });
-      this._broadcast('state', { ...payload, playerId: id }, id);
+      const state={...payload,playerId:id,hostTime:Date.now()};
+      this._acceptState(id,state);
+      this._broadcast('state',state,id);
       return;
     }
     const id = claimed || senderId;
@@ -1565,6 +1640,7 @@ export class OnlineMatch {
           if (this.isDeathmatch) {
             record.inventory = onlineLoadoutInventory(record.team);
     record.recoilStates=new Map();record.nextShotAt=0;record.reloadReadyAt=0;record.acceptedShotSeq=0;
+    record.shotClock=null;record.reloadClientReadyAt=null;this._shotHistory?.delete(record.id);
             record.weaponId = record.inventory.currentId;
           }
           this._spawnLocal(record, spawn);
@@ -1601,6 +1677,7 @@ export class OnlineMatch {
       typeof payload.weaponId === 'string' ? payload.weaponId : 'ak47',
       null,
       num(payload.seq),
+      payload,
     );
   }
 
@@ -1645,10 +1722,6 @@ export class OnlineMatch {
 
   _handleHitConfirm(payload) {
     if (!payload || payload.miss) return;
-    if (this._lastPredictedHitAt && Date.now() - this._lastPredictedHitAt < 1200) {
-      this._lastPredictedHitAt = 0;
-      return;
-    }
     this.game?.ui?.showHitmarker?.(!!payload.headshot);
     this.game?.audio?.play?.('hit', { volume: payload.headshot ? 0.9 : 0.6 });
   }
@@ -1744,6 +1817,7 @@ export class OnlineMatch {
     record.spawnProtectionUntil = Date.now() + Math.max(0, num(payload.protectionMs, 1000));
     record.inventory = onlineLoadoutInventory(record.team);
     record.recoilStates=new Map();record.nextShotAt=0;record.reloadReadyAt=0;record.acceptedShotSeq=0;
+    record.shotClock=null;record.reloadClientReadyAt=null;this._shotHistory?.delete(record.id);
     record.weaponId = record.inventory.currentId;
     record.lastState = {
       pos: { x: spawn.x, y: spawn.y, z: spawn.z },
@@ -2592,6 +2666,7 @@ export class OnlineMatch {
   }
 
   _sendTo(playerId, type, payload) {
+    if(playerId===this.localId && type==='hitConfirm'){this._handleHitConfirm(payload);return true;}
     if (!playerId || playerId === this.localId) return false;
     if (typeof this.session?.sendTo === 'function') return !!this.session.sendTo(playerId, type, payload);
     return !!this.session?.send?.(type, payload);

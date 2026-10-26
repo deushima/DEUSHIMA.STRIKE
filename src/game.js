@@ -1569,6 +1569,7 @@ export class Game {
     }
 
     if(this.characters?.ready && this.player?.alive)this._updateBallisticProxy(this.player,dt);
+    this.online?.captureShotHistory?.();
     if (this.bots && this.state === 'playing') {
       this.bots.update(dt);
     }
