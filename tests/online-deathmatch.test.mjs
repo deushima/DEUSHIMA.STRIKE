@@ -455,13 +455,15 @@ assert.ok(sameVisualTeamTarget.respawnAt > Date.now());
 const reconnectSync = sent.findLast((event) => event.playerId === 'player01' && event.type === 'playerSync');
 assert.ok(reconnectSync?.payload?.player?.respawnIn > 0);
 
-// Host environmental fall: no killer gets a frag, death is authoritative and respawns after 1.35s.
+// A fall is harmless; other explicitly reported environmental deaths still use the host pipeline.
 {
   const killsBefore = hostRecord.kills;
   const deathsBefore = hostRecord.deaths;
   hostPlayer.pos.set(0, -7, 0);
   hostPlayer.alive = false;
-  assert.equal(match.onKill(null, hostPlayer, 'fall', false), true);
+  assert.equal(match.onKill(null, hostPlayer, 'fall', false), false);
+  assert.equal(hostRecord.deaths, deathsBefore, 'fall must not count as a death');
+  assert.equal(match.onKill(null, hostPlayer, 'environment', false), true);
   assert.equal(hostRecord.alive, false);
   assert.equal(hostRecord.health, 0);
   assert.equal(hostRecord.deaths, deathsBefore + 1);
@@ -475,7 +477,7 @@ assert.ok(reconnectSync?.payload?.player?.respawnIn > 0);
   assert.ok(hostRecord.lifeSeq > hostLifeAfterDeath, 'respawn advances authoritative life version');
 }
 
-// Guest onKill emits selfDeath; the host validates the sender's fall and cannot be tricked into killing another ID.
+// Guest cannot emit a fall death; an unrelated environmental report remains sender-scoped.
 {
   const requests = [];
   const guestPlayer = {
@@ -499,7 +501,9 @@ assert.ok(reconnectSync?.payload?.player?.respawnIn > 0);
   });
   guestMatch._started = true;
   guestMatch.phase = 'live';
-  assert.equal(guestMatch.onKill(null, guestPlayer, 'fall', false), true);
+  assert.equal(guestMatch.onKill(null, guestPlayer, 'fall', false), false);
+  assert.equal(requests.length,0,'fall cannot send selfDeath');
+  assert.equal(guestMatch.onKill(null, guestPlayer, 'environment', false), true);
   const request = requests.at(-1);
   assert.equal(request?.type, 'selfDeath');
   assert.equal(request?.payload?.lifeSeq, 0);
@@ -523,7 +527,7 @@ assert.ok(reconnectSync?.payload?.player?.respawnIn > 0);
   assert.equal(guestRecord.alive, false);
   assert.ok(guestRecord.respawnAt > Date.now());
   match._hostUpdateDeathmatchRespawns(Date.now() + 2000);
-  assert.equal(guestRecord.alive, true, 'guest receives a host-authoritative respawn after fall');
+  assert.equal(guestRecord.alive, true, 'guest receives a host-authoritative respawn after environmental death');
 }
 
 // An unverified selfDeath becomes safe recovery with no extra death or frag.
@@ -543,7 +547,7 @@ assert.ok(reconnectSync?.payload?.player?.respawnIn > 0);
   match.handleMessage('selfDeath', {
     playerId: 'host001',
     lifeSeq: record.lifeSeq,
-    reason: 'fall',
+    reason: 'environment',
     pos: { x: 999, y: -100, z: 999 },
   }, record.id);
   assert.equal(record.deaths, deathsBefore, 'unverified death does not increment score');

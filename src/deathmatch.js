@@ -47,6 +47,7 @@ export class Deathmatch {
   }
 
   onKill(killer, victim, weaponId, headshot) {
+    if (weaponId === 'fall') return;
     if (!victim || this.respawns.has(victim)) return;
     victim.deaths = (victim.deaths || 0) + 1;
     if (killer && killer !== victim) {

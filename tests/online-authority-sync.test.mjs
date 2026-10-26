@@ -135,9 +135,12 @@ const guestState = {
   },
 };
 
-hostMatch._acceptState('guest', guestState);
 const guestRecord = hostMatch.players.get('guest');
-assert.equal(guestRecord.inventory.primary.magazine, 13, 'host mirror accepts ammo for the owned primary');
+guestRecord.inventory.primary.magazine=13;guestRecord.inventory.primary.reserve=44;
+guestState.inventory.primary.magazine=999;guestState.inventory.primary.reserve=999;
+hostMatch._acceptState('guest', guestState);
+assert.equal(guestRecord.inventory.primary.magazine,13,'untrusted state cannot refill authoritative ammo');
+assert.equal(guestRecord.inventory.primary.reserve,44,'untrusted state cannot refill reserve');
 
 const drop = hostMatch._hostCreateDrop('guest', {
   entry: { id: 'ak47', magazine: 999, reserve: 999 },

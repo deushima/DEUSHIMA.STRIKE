@@ -5,6 +5,7 @@ export const ONLINE_MAPS = Object.freeze([
   Object.freeze({ id: 'aim_1v1', label: 'AIM_MAP' }),
   Object.freeze({ id: 'cs_assault', label: 'ASSAULT' }),
   Object.freeze({ id: 'cs_office', label: 'CS_OFFICE' }),
+  Object.freeze({ id: 'dust_short', label: 'DUST SHORT' }),
   Object.freeze({ id: 'de_dust2_dm', label: 'DUST2 · DEATHMATCH' }),
 ]);
 

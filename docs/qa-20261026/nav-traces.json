@@ -1,0 +1,6890 @@
+[
+  {
+    "team": "T",
+    "seed": 324508639,
+    "reachedAt": 8.700000000000001,
+    "minDistance": 0.14447112381413635,
+    "trace": [
+      {
+        "time": 0,
+        "pos": [
+          30.60005530647235,
+          3.413651230606025,
+          17.999924787835187
+        ],
+        "vel": [
+          0.8449363420781444,
+          0,
+          -0.8521024993914939
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 1,
+        "repathTimer": 2.392626949213445,
+        "replanningReason": "route"
+      },
+      {
+        "time": 1,
+        "pos": [
+          34.02186493429016,
+          3.413817019134287,
+          14.578132175674682
+        ],
+        "vel": [
+          3.5355441536916965,
+          0,
+          -3.535523658193319
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.3926269492134442,
+        "replanningReason": "route"
+      },
+      {
+        "time": 2,
+        "pos": [
+          36.35980205215094,
+          3.396219298570447,
+          10.456546534505623
+        ],
+        "vel": [
+          3.5110824527104363,
+          0,
+          -3.5612348663464304
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 0.3926269492134433,
+        "replanningReason": "route"
+      },
+      {
+        "time": 3,
+        "pos": [
+          37.20160987456035,
+          3.395027887121961,
+          6.693075053661341
+        ],
+        "vel": [
+          0.040716407901748346,
+          0,
+          -5.00004335884102
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 5,
+        "repathTimer": 1.2052082152105863,
+        "replanningReason": "route"
+      },
+      {
+        "time": 4,
+        "pos": [
+          36.51459816188341,
+          3.6761963516329548,
+          1.7889709644335354
+        ],
+        "vel": [
+          0.465756400661705,
+          0,
+          -4.983012243571634
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 0.2052082152105855,
+        "replanningReason": "route"
+      },
+      {
+        "time": 5,
+        "pos": [
+          36.6004399922182,
+          3.6781795493316976,
+          -3.2079468679019794
+        ],
+        "vel": [
+          -0.0005605182431572707,
+          0,
+          -5.0000015881436655
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 7,
+        "repathTimer": 1.0316484516300255,
+        "replanningReason": "route"
+      },
+      {
+        "time": 6,
+        "pos": [
+          32.42035488441254,
+          3.6782888948066743,
+          -4.791046585778771
+        ],
+        "vel": [
+          -4.999533542538899,
+          0,
+          -0.06837374928200916
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 15,
+        "repathTimer": 0.031648451630024846,
+        "replanningReason": "route"
+      },
+      {
+        "time": 7,
+        "pos": [
+          27.517235188785197,
+          3.6762026411028526,
+          -4.304091216183408
+        ],
+        "vel": [
+          -4.397598384215744,
+          0,
+          2.9059508105702547
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 9,
+        "repathTimer": 1.4639321128465226,
+        "replanningReason": "route"
+      },
+      {
+        "time": 8,
+        "pos": [
+          23.122958034493294,
+          3.6741644845471066,
+          -1.7747092175741335
+        ],
+        "vel": [
+          -4.972417672872595,
+          0,
+          1.6313897948506269
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 16,
+        "repathTimer": 0.4639321128465217,
+        "replanningReason": "route"
+      },
+      {
+        "time": 9,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": 1.9444181035459036,
+        "replanningReason": "route"
+      },
+      {
+        "time": 10,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": 0.9444181035459027,
+        "replanningReason": "route"
+      },
+      {
+        "time": 11,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -0.05558189645409785,
+        "replanningReason": "route"
+      },
+      {
+        "time": 12,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -1.0555818964540984,
+        "replanningReason": "route"
+      },
+      {
+        "time": 13,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -2.055581896454099,
+        "replanningReason": "route"
+      },
+      {
+        "time": 14,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -3.0555818964541,
+        "replanningReason": "route"
+      },
+      {
+        "time": 15,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -4.0555818964540995,
+        "replanningReason": "route"
+      },
+      {
+        "time": 16,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -5.055581896454078,
+        "replanningReason": "route"
+      },
+      {
+        "time": 17,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -6.055581896454057,
+        "replanningReason": "route"
+      },
+      {
+        "time": 18,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -7.0555818964540356,
+        "replanningReason": "route"
+      },
+      {
+        "time": 19,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -8.055581896454015,
+        "replanningReason": "route"
+      },
+      {
+        "time": 20,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -9.055581896453994,
+        "replanningReason": "route"
+      },
+      {
+        "time": 21,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -10.055581896453972,
+        "replanningReason": "route"
+      },
+      {
+        "time": 22,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -11.055581896453951,
+        "replanningReason": "route"
+      },
+      {
+        "time": 23,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -12.05558189645393,
+        "replanningReason": "route"
+      },
+      {
+        "time": 24,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -13.055581896453909,
+        "replanningReason": "route"
+      },
+      {
+        "time": 25,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -14.055581896453887,
+        "replanningReason": "route"
+      },
+      {
+        "time": 26,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -15.055581896453866,
+        "replanningReason": "route"
+      },
+      {
+        "time": 27,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -16.055581896453845,
+        "replanningReason": "route"
+      },
+      {
+        "time": 28,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -17.055581896453823,
+        "replanningReason": "route"
+      },
+      {
+        "time": 29,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -18.055581896453802,
+        "replanningReason": "route"
+      },
+      {
+        "time": 30,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -19.05558189645378,
+        "replanningReason": "route"
+      },
+      {
+        "time": 31,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -20.05558189645376,
+        "replanningReason": "route"
+      },
+      {
+        "time": 32,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -21.055581896453738,
+        "replanningReason": "route"
+      },
+      {
+        "time": 33,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -22.055581896453717,
+        "replanningReason": "route"
+      },
+      {
+        "time": 34,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -23.055581896453695,
+        "replanningReason": "route"
+      },
+      {
+        "time": 35,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -24.055581896453674,
+        "replanningReason": "route"
+      },
+      {
+        "time": 36,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -25.055581896453653,
+        "replanningReason": "route"
+      },
+      {
+        "time": 37,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -26.05558189645363,
+        "replanningReason": "route"
+      },
+      {
+        "time": 38,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -27.05558189645361,
+        "replanningReason": "route"
+      },
+      {
+        "time": 39,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -28.05558189645359,
+        "replanningReason": "route"
+      },
+      {
+        "time": 40,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -29.055581896453567,
+        "replanningReason": "route"
+      },
+      {
+        "time": 41,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -30.055581896453546,
+        "replanningReason": "route"
+      },
+      {
+        "time": 42,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -31.055581896453525,
+        "replanningReason": "route"
+      },
+      {
+        "time": 43,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -32.05558189645351,
+        "replanningReason": "route"
+      },
+      {
+        "time": 44,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -33.05558189645367,
+        "replanningReason": "route"
+      },
+      {
+        "time": 45,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -34.05558189645382,
+        "replanningReason": "route"
+      },
+      {
+        "time": 46,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -35.05558189645398,
+        "replanningReason": "route"
+      },
+      {
+        "time": 47,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -36.055581896454136,
+        "replanningReason": "route"
+      },
+      {
+        "time": 48,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -37.05558189645429,
+        "replanningReason": "route"
+      },
+      {
+        "time": 49,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -38.05558189645445,
+        "replanningReason": "route"
+      },
+      {
+        "time": 50,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -39.055581896454605,
+        "replanningReason": "route"
+      },
+      {
+        "time": 51,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -40.05558189645476,
+        "replanningReason": "route"
+      },
+      {
+        "time": 52,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -41.05558189645492,
+        "replanningReason": "route"
+      },
+      {
+        "time": 53,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -42.055581896455074,
+        "replanningReason": "route"
+      },
+      {
+        "time": 54,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -43.05558189645523,
+        "replanningReason": "route"
+      },
+      {
+        "time": 55,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -44.05558189645539,
+        "replanningReason": "route"
+      },
+      {
+        "time": 56,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -45.05558189645554,
+        "replanningReason": "route"
+      },
+      {
+        "time": 57,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -46.0555818964557,
+        "replanningReason": "route"
+      },
+      {
+        "time": 58,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -47.055581896455855,
+        "replanningReason": "route"
+      },
+      {
+        "time": 59,
+        "pos": [
+          19.247083773896435,
+          3.6738854957184763,
+          -1.0634166047728024
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -48.05558189645601,
+        "replanningReason": "route"
+      }
+    ]
+  },
+  {
+    "team": "CT",
+    "seed": -1923030426,
+    "reachedAt": 8.82,
+    "minDistance": 0.02613175956915268,
+    "trace": [
+      {
+        "time": 0,
+        "pos": [
+          19.219901421606536,
+          3.673883580243564,
+          -1.2000000001065212
+        ],
+        "vel": [
+          1.1999740750760013,
+          0,
+          -3.8356836852476766e-8
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 1,
+        "repathTimer": 2.0657600737176836,
+        "replanningReason": "route"
+      },
+      {
+        "time": 1,
+        "pos": [
+          23.979132812029913,
+          3.6742003382883435,
+          -1.627499017928347
+        ],
+        "vel": [
+          4.210332485399516,
+          0,
+          -3.1739305612739113
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 9,
+        "repathTimer": 1.0657600737176827,
+        "replanningReason": "route"
+      },
+      {
+        "time": 2,
+        "pos": [
+          28.007754144470233,
+          3.67677192097714,
+          -4.594838026205556
+        ],
+        "vel": [
+          3.3756893264144843,
+          0,
+          -3.688714281653497
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 15,
+        "repathTimer": 0.06576007371768201,
+        "replanningReason": "route"
+      },
+      {
+        "time": 3,
+        "pos": [
+          32.95417446527531,
+          3.678447914999006,
+          -4.80167260190778
+        ],
+        "vel": [
+          4.999995246616702,
+          0,
+          0.008081095522439541
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 9,
+        "repathTimer": 1.615556037724017,
+        "replanningReason": "route"
+      },
+      {
+        "time": 4,
+        "pos": [
+          36.384026248761494,
+          3.677506318934202,
+          -2.4860999294217523
+        ],
+        "vel": [
+          3.3830629296952575,
+          0,
+          4.098834329650626
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 16,
+        "repathTimer": 0.6155560377240161,
+        "replanningReason": "route"
+      },
+      {
+        "time": 5,
+        "pos": [
+          36.60162608853591,
+          3.676075925202553,
+          2.487351685597899
+        ],
+        "vel": [
+          -0.009244238889538792,
+          0,
+          4.999994518688581
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 4,
+        "repathTimer": 2.197729693334549,
+        "replanningReason": "route"
+      },
+      {
+        "time": 6,
+        "pos": [
+          36.50758714465476,
+          3.395181848398419,
+          6.663209243050456
+        ],
+        "vel": [
+          -0.8029218391440578,
+          0,
+          5.131400701541564
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 11,
+        "repathTimer": 1.1977296933345483,
+        "replanningReason": "route"
+      },
+      {
+        "time": 7,
+        "pos": [
+          35.79761899064644,
+          3.4012292898924565,
+          11.526021850105032
+        ],
+        "vel": [
+          -2.4948167982524296,
+          0,
+          4.404888620560282
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 19,
+        "repathTimer": 0.19772969333454746,
+        "replanningReason": "route"
+      },
+      {
+        "time": 8,
+        "pos": [
+          33.91737766236093,
+          3.4151278821368125,
+          14.815144528994274
+        ],
+        "vel": [
+          -2.925629697599015,
+          0,
+          4.472925735996697
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 5,
+        "repathTimer": 0.9421457963064306,
+        "replanningReason": "route"
+      },
+      {
+        "time": 9,
+        "pos": [
+          30.62966823047245,
+          3.413680475501274,
+          17.97312262799834
+        ],
+        "vel": [
+          -0.568772314777454,
+          0,
+          0.5684806248446597
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -0.057854203693569986,
+        "replanningReason": "route"
+      },
+      {
+        "time": 10,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -1.0578542036935705,
+        "replanningReason": "route"
+      },
+      {
+        "time": 11,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -2.057854203693571,
+        "replanningReason": "route"
+      },
+      {
+        "time": 12,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -3.057854203693572,
+        "replanningReason": "route"
+      },
+      {
+        "time": 13,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -4.057854203693572,
+        "replanningReason": "route"
+      },
+      {
+        "time": 14,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -5.057854203693551,
+        "replanningReason": "route"
+      },
+      {
+        "time": 15,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -6.0578542036935294,
+        "replanningReason": "route"
+      },
+      {
+        "time": 16,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -7.057854203693508,
+        "replanningReason": "route"
+      },
+      {
+        "time": 17,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -8.057854203693488,
+        "replanningReason": "route"
+      },
+      {
+        "time": 18,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -9.057854203693466,
+        "replanningReason": "route"
+      },
+      {
+        "time": 19,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -10.057854203693445,
+        "replanningReason": "route"
+      },
+      {
+        "time": 20,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -11.057854203693424,
+        "replanningReason": "route"
+      },
+      {
+        "time": 21,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -12.057854203693402,
+        "replanningReason": "route"
+      },
+      {
+        "time": 22,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -13.057854203693381,
+        "replanningReason": "route"
+      },
+      {
+        "time": 23,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -14.05785420369336,
+        "replanningReason": "route"
+      },
+      {
+        "time": 24,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -15.057854203693338,
+        "replanningReason": "route"
+      },
+      {
+        "time": 25,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -16.057854203693317,
+        "replanningReason": "route"
+      },
+      {
+        "time": 26,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -17.057854203693296,
+        "replanningReason": "route"
+      },
+      {
+        "time": 27,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -18.057854203693275,
+        "replanningReason": "route"
+      },
+      {
+        "time": 28,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -19.057854203693253,
+        "replanningReason": "route"
+      },
+      {
+        "time": 29,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -20.057854203693232,
+        "replanningReason": "route"
+      },
+      {
+        "time": 30,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -21.05785420369321,
+        "replanningReason": "route"
+      },
+      {
+        "time": 31,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -22.05785420369319,
+        "replanningReason": "route"
+      },
+      {
+        "time": 32,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -23.057854203693168,
+        "replanningReason": "route"
+      },
+      {
+        "time": 33,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -24.057854203693147,
+        "replanningReason": "route"
+      },
+      {
+        "time": 34,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -25.057854203693125,
+        "replanningReason": "route"
+      },
+      {
+        "time": 35,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -26.057854203693104,
+        "replanningReason": "route"
+      },
+      {
+        "time": 36,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -27.057854203693083,
+        "replanningReason": "route"
+      },
+      {
+        "time": 37,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -28.05785420369306,
+        "replanningReason": "route"
+      },
+      {
+        "time": 38,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -29.05785420369304,
+        "replanningReason": "route"
+      },
+      {
+        "time": 39,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -30.05785420369302,
+        "replanningReason": "route"
+      },
+      {
+        "time": 40,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -31.057854203692997,
+        "replanningReason": "route"
+      },
+      {
+        "time": 41,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -32.05785420369298,
+        "replanningReason": "route"
+      },
+      {
+        "time": 42,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -33.05785420369314,
+        "replanningReason": "route"
+      },
+      {
+        "time": 43,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -34.057854203693296,
+        "replanningReason": "route"
+      },
+      {
+        "time": 44,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -35.05785420369345,
+        "replanningReason": "route"
+      },
+      {
+        "time": 45,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -36.05785420369361,
+        "replanningReason": "route"
+      },
+      {
+        "time": 46,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -37.057854203693765,
+        "replanningReason": "route"
+      },
+      {
+        "time": 47,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -38.05785420369392,
+        "replanningReason": "route"
+      },
+      {
+        "time": 48,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -39.05785420369408,
+        "replanningReason": "route"
+      },
+      {
+        "time": 49,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -40.057854203694234,
+        "replanningReason": "route"
+      },
+      {
+        "time": 50,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -41.05785420369439,
+        "replanningReason": "route"
+      },
+      {
+        "time": 51,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -42.057854203694546,
+        "replanningReason": "route"
+      },
+      {
+        "time": 52,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -43.0578542036947,
+        "replanningReason": "route"
+      },
+      {
+        "time": 53,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -44.05785420369486,
+        "replanningReason": "route"
+      },
+      {
+        "time": 54,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -45.057854203695015,
+        "replanningReason": "route"
+      },
+      {
+        "time": 55,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -46.05785420369517,
+        "replanningReason": "route"
+      },
+      {
+        "time": 56,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -47.05785420369533,
+        "replanningReason": "route"
+      },
+      {
+        "time": 57,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -48.057854203695484,
+        "replanningReason": "route"
+      },
+      {
+        "time": 58,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -49.05785420369564,
+        "replanningReason": "route"
+      },
+      {
+        "time": 59,
+        "pos": [
+          30.619818273212175,
+          3.41367994830757,
+          17.982967533793737
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 10,
+        "repathTimer": -50.0578542036958,
+        "replanningReason": "route"
+      }
+    ]
+  },
+  {
+    "team": "T",
+    "seed": 610839776,
+    "reachedAt": 8.48,
+    "minDistance": 0.13890735189949818,
+    "trace": [
+      {
+        "time": 0,
+        "pos": [
+          30.60005530647235,
+          3.413651230606025,
+          17.999924787835187
+        ],
+        "vel": [
+          0.8449363420781444,
+          0,
+          -0.8521024993914939
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 1,
+        "repathTimer": 2.4008109089918435,
+        "replanningReason": "route"
+      },
+      {
+        "time": 1,
+        "pos": [
+          34.02186493429016,
+          3.413817019134287,
+          14.578132175674682
+        ],
+        "vel": [
+          3.5355441536916965,
+          0,
+          -3.535523658193319
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.4008109089918426,
+        "replanningReason": "route"
+      },
+      {
+        "time": 2,
+        "pos": [
+          36.35980205215094,
+          3.396219298570447,
+          10.456546534505623
+        ],
+        "vel": [
+          3.5110824527104363,
+          0,
+          -3.5612348663464304
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 0.4008109089918417,
+        "replanningReason": "route"
+      },
+      {
+        "time": 3,
+        "pos": [
+          37.196877268701805,
+          3.4242197249998587,
+          5.586246949288473
+        ],
+        "vel": [
+          0.08579410613227689,
+          0,
+          -4.999264047800239
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 5,
+        "repathTimer": 2.1869559348374596,
+        "replanningReason": "route"
+      },
+      {
+        "time": 4,
+        "pos": [
+          36.614644438936175,
+          3.6767370098741448,
+          0.6859181567703021
+        ],
+        "vel": [
+          0.15875913916864573,
+          0,
+          -5.002848991680056
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 14,
+        "repathTimer": 1.1869559348374588,
+        "replanningReason": "route"
+      },
+      {
+        "time": 5,
+        "pos": [
+          36.13980312834074,
+          3.6779133046739587,
+          -4.206937150545951
+        ],
+        "vel": [
+          -3.6075507382833116,
+          0,
+          -3.4874366376128165
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 22,
+        "repathTimer": 0.18695593483745798,
+        "replanningReason": "route"
+      },
+      {
+        "time": 6,
+        "pos": [
+          31.315085365580465,
+          3.6779596446671823,
+          -4.8019117534770315
+        ],
+        "vel": [
+          -5.000035256213798,
+          0,
+          -0.012084762178879176
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 8,
+        "repathTimer": 1.7986163921654215,
+        "replanningReason": "route"
+      },
+      {
+        "time": 7,
+        "pos": [
+          26.528276342625475,
+          3.6749787561281493,
+          -3.761405830691211
+        ],
+        "vel": [
+          -4.002967567478456,
+          0,
+          3.1039902627152736
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 15,
+        "repathTimer": 0.7986163921654206,
+        "replanningReason": "route"
+      },
+      {
+        "time": 8,
+        "pos": [
+          21.97647871274967,
+          3.6740819599600028,
+          -1.7555407936374106
+        ],
+        "vel": [
+          -4.984149755722509,
+          0,
+          -0.41943009461485437
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 2,
+        "repathTimer": 2.529834481142461,
+        "replanningReason": "route"
+      },
+      {
+        "time": 9,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.5298344811424602,
+        "replanningReason": "route"
+      },
+      {
+        "time": 10,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 0.5298344811424593,
+        "replanningReason": "route"
+      },
+      {
+        "time": 11,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -0.470165518857541,
+        "replanningReason": "route"
+      },
+      {
+        "time": 12,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -1.4701655188575418,
+        "replanningReason": "route"
+      },
+      {
+        "time": 13,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -2.4701655188575424,
+        "replanningReason": "route"
+      },
+      {
+        "time": 14,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -3.4701655188575433,
+        "replanningReason": "route"
+      },
+      {
+        "time": 15,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -4.4701655188575335,
+        "replanningReason": "route"
+      },
+      {
+        "time": 16,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -5.470165518857512,
+        "replanningReason": "route"
+      },
+      {
+        "time": 17,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -6.470165518857491,
+        "replanningReason": "route"
+      },
+      {
+        "time": 18,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -7.47016551885747,
+        "replanningReason": "route"
+      },
+      {
+        "time": 19,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -8.47016551885745,
+        "replanningReason": "route"
+      },
+      {
+        "time": 20,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -9.470165518857428,
+        "replanningReason": "route"
+      },
+      {
+        "time": 21,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -10.470165518857407,
+        "replanningReason": "route"
+      },
+      {
+        "time": 22,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -11.470165518857385,
+        "replanningReason": "route"
+      },
+      {
+        "time": 23,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -12.470165518857364,
+        "replanningReason": "route"
+      },
+      {
+        "time": 24,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -13.470165518857343,
+        "replanningReason": "route"
+      },
+      {
+        "time": 25,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -14.470165518857321,
+        "replanningReason": "route"
+      },
+      {
+        "time": 26,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -15.4701655188573,
+        "replanningReason": "route"
+      },
+      {
+        "time": 27,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -16.47016551885728,
+        "replanningReason": "route"
+      },
+      {
+        "time": 28,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -17.470165518857257,
+        "replanningReason": "route"
+      },
+      {
+        "time": 29,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -18.470165518857236,
+        "replanningReason": "route"
+      },
+      {
+        "time": 30,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -19.470165518857215,
+        "replanningReason": "route"
+      },
+      {
+        "time": 31,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -20.470165518857193,
+        "replanningReason": "route"
+      },
+      {
+        "time": 32,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -21.470165518857172,
+        "replanningReason": "route"
+      },
+      {
+        "time": 33,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -22.47016551885715,
+        "replanningReason": "route"
+      },
+      {
+        "time": 34,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -23.47016551885713,
+        "replanningReason": "route"
+      },
+      {
+        "time": 35,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -24.470165518857108,
+        "replanningReason": "route"
+      },
+      {
+        "time": 36,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -25.470165518857087,
+        "replanningReason": "route"
+      },
+      {
+        "time": 37,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -26.470165518857065,
+        "replanningReason": "route"
+      },
+      {
+        "time": 38,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -27.470165518857044,
+        "replanningReason": "route"
+      },
+      {
+        "time": 39,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -28.470165518857023,
+        "replanningReason": "route"
+      },
+      {
+        "time": 40,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -29.470165518857,
+        "replanningReason": "route"
+      },
+      {
+        "time": 41,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -30.47016551885698,
+        "replanningReason": "route"
+      },
+      {
+        "time": 42,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -31.47016551885696,
+        "replanningReason": "route"
+      },
+      {
+        "time": 43,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -32.47016551885702,
+        "replanningReason": "route"
+      },
+      {
+        "time": 44,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -33.47016551885718,
+        "replanningReason": "route"
+      },
+      {
+        "time": 45,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -34.470165518857335,
+        "replanningReason": "route"
+      },
+      {
+        "time": 46,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -35.47016551885749,
+        "replanningReason": "route"
+      },
+      {
+        "time": 47,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -36.47016551885765,
+        "replanningReason": "route"
+      },
+      {
+        "time": 48,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -37.470165518857804,
+        "replanningReason": "route"
+      },
+      {
+        "time": 49,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -38.47016551885796,
+        "replanningReason": "route"
+      },
+      {
+        "time": 50,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -39.47016551885812,
+        "replanningReason": "route"
+      },
+      {
+        "time": 51,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -40.47016551885827,
+        "replanningReason": "route"
+      },
+      {
+        "time": 52,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -41.47016551885843,
+        "replanningReason": "route"
+      },
+      {
+        "time": 53,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -42.470165518858586,
+        "replanningReason": "route"
+      },
+      {
+        "time": 54,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -43.47016551885874,
+        "replanningReason": "route"
+      },
+      {
+        "time": 55,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -44.4701655188589,
+        "replanningReason": "route"
+      },
+      {
+        "time": 56,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -45.470165518859055,
+        "replanningReason": "route"
+      },
+      {
+        "time": 57,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -46.47016551885921,
+        "replanningReason": "route"
+      },
+      {
+        "time": 58,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -47.47016551885937,
+        "replanningReason": "route"
+      },
+      {
+        "time": 59,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": -48.470165518859524,
+        "replanningReason": "route"
+      }
+    ]
+  },
+  {
+    "team": "CT",
+    "seed": -1168124583,
+    "reachedAt": 9.14,
+    "minDistance": 0.04410167926378464,
+    "trace": [
+      {
+        "time": 0,
+        "pos": [
+          19.219901421606536,
+          3.673883580243564,
+          -1.2000000001065212
+        ],
+        "vel": [
+          1.1999740750760013,
+          0,
+          -3.8356836852476766e-8
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 1,
+        "repathTimer": 2.577652822062373,
+        "replanningReason": "route"
+      },
+      {
+        "time": 1,
+        "pos": [
+          23.979132812029913,
+          3.6742003382883435,
+          -1.627499017928347
+        ],
+        "vel": [
+          4.210332485399516,
+          0,
+          -3.1739305612739113
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 9,
+        "repathTimer": 1.577652822062372,
+        "replanningReason": "route"
+      },
+      {
+        "time": 2,
+        "pos": [
+          28.007754144470233,
+          3.67677192097714,
+          -4.594838026205556
+        ],
+        "vel": [
+          3.3756893264144843,
+          0,
+          -3.688714281653497
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 15,
+        "repathTimer": 0.5776528220623711,
+        "replanningReason": "route"
+      },
+      {
+        "time": 3,
+        "pos": [
+          32.95417446527531,
+          3.678447914999006,
+          -4.80167260190778
+        ],
+        "vel": [
+          4.999995246616702,
+          0,
+          0.008081095522439541
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 5,
+        "repathTimer": 1.4435783298872407,
+        "replanningReason": "route"
+      },
+      {
+        "time": 4,
+        "pos": [
+          36.384026248761494,
+          3.677506318934202,
+          -2.4860999294217523
+        ],
+        "vel": [
+          3.3830629296952575,
+          0,
+          4.098834329650626
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 12,
+        "repathTimer": 0.4435783298872398,
+        "replanningReason": "route"
+      },
+      {
+        "time": 5,
+        "pos": [
+          36.60058775373595,
+          3.676448961695282,
+          1.3734252901303807
+        ],
+        "vel": [
+          -0.004054292899436154,
+          0,
+          4.999998883687707
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 4,
+        "repathTimer": 2.0220687789283684,
+        "replanningReason": "route"
+      },
+      {
+        "time": 6,
+        "pos": [
+          37.09471192697336,
+          3.4249993518480664,
+          5.576563888798781
+        ],
+        "vel": [
+          -2.465001025547145,
+          0,
+          4.664974877177872
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 11,
+        "repathTimer": 1.0220687789283676,
+        "replanningReason": "route"
+      },
+      {
+        "time": 7,
+        "pos": [
+          36.42232665798565,
+          3.3968625100225034,
+          10.458494038954447
+        ],
+        "vel": [
+          -2.6111685655359116,
+          0,
+          4.557316050672344
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 19,
+        "repathTimer": 0.022068778928366926,
+        "replanningReason": "route"
+      },
+      {
+        "time": 8,
+        "pos": [
+          34.264756707990735,
+          3.402382044662812,
+          13.18245299159073
+        ],
+        "vel": [
+          -2.840659284756292,
+          0,
+          4.353519621399879
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.428292736373841,
+        "replanningReason": "route"
+      },
+      {
+        "time": 9,
+        "pos": [
+          31.448495997706726,
+          3.4136616909977247,
+          17.14840939434254
+        ],
+        "vel": [
+          -3.5009884182629287,
+          0,
+          3.569771761220572
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 12,
+        "repathTimer": 0.42829273637384,
+        "replanningReason": "route"
+      },
+      {
+        "time": 10,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -0.5717072636261603,
+        "replanningReason": "route"
+      },
+      {
+        "time": 11,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -1.571707263626161,
+        "replanningReason": "route"
+      },
+      {
+        "time": 12,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -2.5717072636261618,
+        "replanningReason": "route"
+      },
+      {
+        "time": 13,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -3.5717072636261626,
+        "replanningReason": "route"
+      },
+      {
+        "time": 14,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -4.571707263626151,
+        "replanningReason": "route"
+      },
+      {
+        "time": 15,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -5.57170726362613,
+        "replanningReason": "route"
+      },
+      {
+        "time": 16,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -6.5717072636261085,
+        "replanningReason": "route"
+      },
+      {
+        "time": 17,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -7.571707263626087,
+        "replanningReason": "route"
+      },
+      {
+        "time": 18,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -8.571707263626067,
+        "replanningReason": "route"
+      },
+      {
+        "time": 19,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -9.571707263626045,
+        "replanningReason": "route"
+      },
+      {
+        "time": 20,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -10.571707263626024,
+        "replanningReason": "route"
+      },
+      {
+        "time": 21,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -11.571707263626003,
+        "replanningReason": "route"
+      },
+      {
+        "time": 22,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -12.571707263625981,
+        "replanningReason": "route"
+      },
+      {
+        "time": 23,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -13.57170726362596,
+        "replanningReason": "route"
+      },
+      {
+        "time": 24,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -14.571707263625939,
+        "replanningReason": "route"
+      },
+      {
+        "time": 25,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -15.571707263625918,
+        "replanningReason": "route"
+      },
+      {
+        "time": 26,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -16.571707263625896,
+        "replanningReason": "route"
+      },
+      {
+        "time": 27,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -17.571707263625875,
+        "replanningReason": "route"
+      },
+      {
+        "time": 28,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -18.571707263625854,
+        "replanningReason": "route"
+      },
+      {
+        "time": 29,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -19.571707263625832,
+        "replanningReason": "route"
+      },
+      {
+        "time": 30,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -20.57170726362581,
+        "replanningReason": "route"
+      },
+      {
+        "time": 31,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -21.57170726362579,
+        "replanningReason": "route"
+      },
+      {
+        "time": 32,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -22.57170726362577,
+        "replanningReason": "route"
+      },
+      {
+        "time": 33,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -23.571707263625747,
+        "replanningReason": "route"
+      },
+      {
+        "time": 34,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -24.571707263625726,
+        "replanningReason": "route"
+      },
+      {
+        "time": 35,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -25.571707263625704,
+        "replanningReason": "route"
+      },
+      {
+        "time": 36,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -26.571707263625683,
+        "replanningReason": "route"
+      },
+      {
+        "time": 37,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -27.57170726362566,
+        "replanningReason": "route"
+      },
+      {
+        "time": 38,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -28.57170726362564,
+        "replanningReason": "route"
+      },
+      {
+        "time": 39,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -29.57170726362562,
+        "replanningReason": "route"
+      },
+      {
+        "time": 40,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -30.571707263625598,
+        "replanningReason": "route"
+      },
+      {
+        "time": 41,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -31.571707263625576,
+        "replanningReason": "route"
+      },
+      {
+        "time": 42,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -32.571707263625655,
+        "replanningReason": "route"
+      },
+      {
+        "time": 43,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -33.57170726362581,
+        "replanningReason": "route"
+      },
+      {
+        "time": 44,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -34.57170726362597,
+        "replanningReason": "route"
+      },
+      {
+        "time": 45,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -35.571707263626124,
+        "replanningReason": "route"
+      },
+      {
+        "time": 46,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -36.57170726362628,
+        "replanningReason": "route"
+      },
+      {
+        "time": 47,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -37.571707263626436,
+        "replanningReason": "route"
+      },
+      {
+        "time": 48,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -38.57170726362659,
+        "replanningReason": "route"
+      },
+      {
+        "time": 49,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -39.57170726362675,
+        "replanningReason": "route"
+      },
+      {
+        "time": 50,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -40.571707263626905,
+        "replanningReason": "route"
+      },
+      {
+        "time": 51,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -41.57170726362706,
+        "replanningReason": "route"
+      },
+      {
+        "time": 52,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -42.57170726362722,
+        "replanningReason": "route"
+      },
+      {
+        "time": 53,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -43.571707263627374,
+        "replanningReason": "route"
+      },
+      {
+        "time": 54,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -44.57170726362753,
+        "replanningReason": "route"
+      },
+      {
+        "time": 55,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -45.57170726362769,
+        "replanningReason": "route"
+      },
+      {
+        "time": 56,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -46.57170726362784,
+        "replanningReason": "route"
+      },
+      {
+        "time": 57,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -47.571707263628,
+        "replanningReason": "route"
+      },
+      {
+        "time": 58,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -48.571707263628156,
+        "replanningReason": "route"
+      },
+      {
+        "time": 59,
+        "pos": [
+          30.632529246065232,
+          3.4136802078901223,
+          17.970220707457813
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": -49.57170726362831,
+        "replanningReason": "route"
+      }
+    ]
+  },
+  {
+    "team": "T",
+    "seed": 1592594996,
+    "reachedAt": 8.48,
+    "minDistance": 0.13890735189949818,
+    "trace": [
+      {
+        "time": 0,
+        "pos": [
+          30.60005530647235,
+          3.413651230606025,
+          17.999924787835187
+        ],
+        "vel": [
+          0.8449363420781444,
+          0,
+          -0.8521024993914939
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 1,
+        "repathTimer": 2.782177347782999,
+        "replanningReason": "route"
+      },
+      {
+        "time": 1,
+        "pos": [
+          34.02186493429016,
+          3.413817019134287,
+          14.578132175674682
+        ],
+        "vel": [
+          3.5355441536916965,
+          0,
+          -3.535523658193319
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.7821773477829983,
+        "replanningReason": "route"
+      },
+      {
+        "time": 2,
+        "pos": [
+          36.35980205215094,
+          3.396219298570447,
+          10.456546534505623
+        ],
+        "vel": [
+          3.5110824527104363,
+          0,
+          -3.5612348663464304
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 0.7821773477829974,
+        "replanningReason": "route"
+      },
+      {
+        "time": 3,
+        "pos": [
+          37.196877268701805,
+          3.4242197249998587,
+          5.586246949288473
+        ],
+        "vel": [
+          0.08579410613227689,
+          0,
+          -4.999264047800239
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 2,
+        "repathTimer": 2.40591104151681,
+        "replanningReason": "route"
+      },
+      {
+        "time": 4,
+        "pos": [
+          36.614644438936175,
+          3.6767370098741448,
+          0.6859181567703021
+        ],
+        "vel": [
+          0.15875913916864573,
+          0,
+          -5.002848991680056
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 11,
+        "repathTimer": 1.4059110415168092,
+        "replanningReason": "route"
+      },
+      {
+        "time": 5,
+        "pos": [
+          36.13980312834074,
+          3.6779133046739587,
+          -4.206937150545951
+        ],
+        "vel": [
+          -3.6075507382833116,
+          0,
+          -3.4874366376128165
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 19,
+        "repathTimer": 0.40591104151680835,
+        "replanningReason": "route"
+      },
+      {
+        "time": 6,
+        "pos": [
+          31.315085365580465,
+          3.6779596446671823,
+          -4.8019117534770315
+        ],
+        "vel": [
+          -5.000035256213798,
+          0,
+          -0.012084762178879176
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 2.171529719028621,
+        "replanningReason": "route"
+      },
+      {
+        "time": 7,
+        "pos": [
+          26.528276342625475,
+          3.6749787561281493,
+          -3.761405830691211
+        ],
+        "vel": [
+          -4.002967567478456,
+          0,
+          3.1039902627152736
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 1.1715297190286202,
+        "replanningReason": "route"
+      },
+      {
+        "time": 8,
+        "pos": [
+          21.97647871274967,
+          3.6740819599600028,
+          -1.7555407936374106
+        ],
+        "vel": [
+          -4.984149755722509,
+          0,
+          -0.41943009461485437
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 21,
+        "repathTimer": 0.17152971902861947,
+        "replanningReason": "route"
+      },
+      {
+        "time": 9,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": 0.9948624856956296,
+        "replanningReason": "route"
+      },
+      {
+        "time": 10,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -0.0051375143043709895,
+        "replanningReason": "route"
+      },
+      {
+        "time": 11,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -1.0051375143043715,
+        "replanningReason": "route"
+      },
+      {
+        "time": 12,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -2.0051375143043724,
+        "replanningReason": "route"
+      },
+      {
+        "time": 13,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -3.0051375143043733,
+        "replanningReason": "route"
+      },
+      {
+        "time": 14,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -4.005137514304374,
+        "replanningReason": "route"
+      },
+      {
+        "time": 15,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -5.005137514304352,
+        "replanningReason": "route"
+      },
+      {
+        "time": 16,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -6.005137514304331,
+        "replanningReason": "route"
+      },
+      {
+        "time": 17,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -7.00513751430431,
+        "replanningReason": "route"
+      },
+      {
+        "time": 18,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -8.00513751430429,
+        "replanningReason": "route"
+      },
+      {
+        "time": 19,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -9.005137514304268,
+        "replanningReason": "route"
+      },
+      {
+        "time": 20,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -10.005137514304247,
+        "replanningReason": "route"
+      },
+      {
+        "time": 21,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -11.005137514304225,
+        "replanningReason": "route"
+      },
+      {
+        "time": 22,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -12.005137514304204,
+        "replanningReason": "route"
+      },
+      {
+        "time": 23,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -13.005137514304183,
+        "replanningReason": "route"
+      },
+      {
+        "time": 24,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -14.005137514304161,
+        "replanningReason": "route"
+      },
+      {
+        "time": 25,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -15.00513751430414,
+        "replanningReason": "route"
+      },
+      {
+        "time": 26,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -16.00513751430412,
+        "replanningReason": "route"
+      },
+      {
+        "time": 27,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -17.0051375143041,
+        "replanningReason": "route"
+      },
+      {
+        "time": 28,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -18.005137514304078,
+        "replanningReason": "route"
+      },
+      {
+        "time": 29,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -19.005137514304057,
+        "replanningReason": "route"
+      },
+      {
+        "time": 30,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -20.005137514304035,
+        "replanningReason": "route"
+      },
+      {
+        "time": 31,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -21.005137514304014,
+        "replanningReason": "route"
+      },
+      {
+        "time": 32,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -22.005137514303993,
+        "replanningReason": "route"
+      },
+      {
+        "time": 33,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -23.00513751430397,
+        "replanningReason": "route"
+      },
+      {
+        "time": 34,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -24.00513751430395,
+        "replanningReason": "route"
+      },
+      {
+        "time": 35,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -25.00513751430393,
+        "replanningReason": "route"
+      },
+      {
+        "time": 36,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -26.005137514303907,
+        "replanningReason": "route"
+      },
+      {
+        "time": 37,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -27.005137514303886,
+        "replanningReason": "route"
+      },
+      {
+        "time": 38,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -28.005137514303865,
+        "replanningReason": "route"
+      },
+      {
+        "time": 39,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -29.005137514303843,
+        "replanningReason": "route"
+      },
+      {
+        "time": 40,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -30.005137514303822,
+        "replanningReason": "route"
+      },
+      {
+        "time": 41,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -31.0051375143038,
+        "replanningReason": "route"
+      },
+      {
+        "time": 42,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -32.00513751430378,
+        "replanningReason": "route"
+      },
+      {
+        "time": 43,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -33.00513751430394,
+        "replanningReason": "route"
+      },
+      {
+        "time": 44,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -34.005137514304096,
+        "replanningReason": "route"
+      },
+      {
+        "time": 45,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -35.00513751430425,
+        "replanningReason": "route"
+      },
+      {
+        "time": 46,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -36.00513751430441,
+        "replanningReason": "route"
+      },
+      {
+        "time": 47,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -37.005137514304565,
+        "replanningReason": "route"
+      },
+      {
+        "time": 48,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -38.00513751430472,
+        "replanningReason": "route"
+      },
+      {
+        "time": 49,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -39.00513751430488,
+        "replanningReason": "route"
+      },
+      {
+        "time": 50,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -40.005137514305034,
+        "replanningReason": "route"
+      },
+      {
+        "time": 51,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -41.00513751430519,
+        "replanningReason": "route"
+      },
+      {
+        "time": 52,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -42.005137514305346,
+        "replanningReason": "route"
+      },
+      {
+        "time": 53,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -43.0051375143055,
+        "replanningReason": "route"
+      },
+      {
+        "time": 54,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -44.00513751430566,
+        "replanningReason": "route"
+      },
+      {
+        "time": 55,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -45.005137514305815,
+        "replanningReason": "route"
+      },
+      {
+        "time": 56,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -46.00513751430597,
+        "replanningReason": "route"
+      },
+      {
+        "time": 57,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -47.00513751430613,
+        "replanningReason": "route"
+      },
+      {
+        "time": 58,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -48.005137514306284,
+        "replanningReason": "route"
+      },
+      {
+        "time": 59,
+        "pos": [
+          19.21242456629281,
+          3.6738830009183148,
+          -1.0616494215257248
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -49.00513751430644,
+        "replanningReason": "route"
+      }
+    ]
+  },
+  {
+    "team": "CT",
+    "seed": -1059427443,
+    "reachedAt": 8.6,
+    "minDistance": 0.024510997981274818,
+    "trace": [
+      {
+        "time": 0,
+        "pos": [
+          19.219901421606536,
+          3.673883580243564,
+          -1.2000000001065212
+        ],
+        "vel": [
+          1.1999740750760013,
+          0,
+          -3.8356836852476766e-8
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 1,
+        "repathTimer": 2.399533303827047,
+        "replanningReason": "route"
+      },
+      {
+        "time": 1,
+        "pos": [
+          23.979132812029913,
+          3.6742003382883435,
+          -1.627499017928347
+        ],
+        "vel": [
+          4.210332485399516,
+          0,
+          -3.1739305612739113
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 9,
+        "repathTimer": 1.399533303827046,
+        "replanningReason": "route"
+      },
+      {
+        "time": 2,
+        "pos": [
+          28.007754144470233,
+          3.67677192097714,
+          -4.594838026205556
+        ],
+        "vel": [
+          3.3756893264144843,
+          0,
+          -3.688714281653497
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 15,
+        "repathTimer": 0.3995333038270452,
+        "replanningReason": "route"
+      },
+      {
+        "time": 3,
+        "pos": [
+          32.95417446527531,
+          3.678447914999006,
+          -4.80167260190778
+        ],
+        "vel": [
+          4.999995246616702,
+          0,
+          0.008081095522439541
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.363993725739419,
+        "replanningReason": "route"
+      },
+      {
+        "time": 4,
+        "pos": [
+          36.384026248761494,
+          3.677506318934202,
+          -2.4860999294217523
+        ],
+        "vel": [
+          3.3830629296952575,
+          0,
+          4.098834329650626
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 0.36399372573941813,
+        "replanningReason": "route"
+      },
+      {
+        "time": 5,
+        "pos": [
+          36.60162608853591,
+          3.676075925202553,
+          2.487351685597899
+        ],
+        "vel": [
+          -0.009244238889538792,
+          0,
+          4.999994518688581
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 6,
+        "repathTimer": 1.4681495150737458,
+        "replanningReason": "route"
+      },
+      {
+        "time": 6,
+        "pos": [
+          36.50758714465476,
+          3.395181848398419,
+          6.663209243050456
+        ],
+        "vel": [
+          -0.8029218391440578,
+          0,
+          5.131400701541564
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 13,
+        "repathTimer": 0.4681495150737449,
+        "replanningReason": "route"
+      },
+      {
+        "time": 7,
+        "pos": [
+          35.79761899064644,
+          3.4012292898924565,
+          11.526021850105032
+        ],
+        "vel": [
+          -2.4948167982524296,
+          0,
+          4.404888620560282
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 5,
+        "repathTimer": 1.1258937236107882,
+        "replanningReason": "route"
+      },
+      {
+        "time": 8,
+        "pos": [
+          33.09796578611337,
+          3.414495270509338,
+          15.57484338719463
+        ],
+        "vel": [
+          -4.010376855950633,
+          0,
+          3.0115649676305134
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 12,
+        "repathTimer": 0.12589372361078752,
+        "replanningReason": "route"
+      },
+      {
+        "time": 9,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": 1.1624577981978645,
+        "replanningReason": "route"
+      },
+      {
+        "time": 10,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": 0.1624577981978638,
+        "replanningReason": "route"
+      },
+      {
+        "time": 11,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -0.8375422018021367,
+        "replanningReason": "route"
+      },
+      {
+        "time": 12,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -1.8375422018021375,
+        "replanningReason": "route"
+      },
+      {
+        "time": 13,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -2.837542201802138,
+        "replanningReason": "route"
+      },
+      {
+        "time": 14,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -3.837542201802139,
+        "replanningReason": "route"
+      },
+      {
+        "time": 15,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -4.837542201802122,
+        "replanningReason": "route"
+      },
+      {
+        "time": 16,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -5.8375422018021,
+        "replanningReason": "route"
+      },
+      {
+        "time": 17,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -6.837542201802079,
+        "replanningReason": "route"
+      },
+      {
+        "time": 18,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -7.837542201802058,
+        "replanningReason": "route"
+      },
+      {
+        "time": 19,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -8.837542201802037,
+        "replanningReason": "route"
+      },
+      {
+        "time": 20,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -9.837542201802016,
+        "replanningReason": "route"
+      },
+      {
+        "time": 21,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -10.837542201801995,
+        "replanningReason": "route"
+      },
+      {
+        "time": 22,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -11.837542201801973,
+        "replanningReason": "route"
+      },
+      {
+        "time": 23,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -12.837542201801952,
+        "replanningReason": "route"
+      },
+      {
+        "time": 24,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -13.83754220180193,
+        "replanningReason": "route"
+      },
+      {
+        "time": 25,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -14.83754220180191,
+        "replanningReason": "route"
+      },
+      {
+        "time": 26,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -15.837542201801888,
+        "replanningReason": "route"
+      },
+      {
+        "time": 27,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -16.837542201801867,
+        "replanningReason": "route"
+      },
+      {
+        "time": 28,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -17.837542201801845,
+        "replanningReason": "route"
+      },
+      {
+        "time": 29,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -18.837542201801824,
+        "replanningReason": "route"
+      },
+      {
+        "time": 30,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -19.837542201801803,
+        "replanningReason": "route"
+      },
+      {
+        "time": 31,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -20.83754220180178,
+        "replanningReason": "route"
+      },
+      {
+        "time": 32,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -21.83754220180176,
+        "replanningReason": "route"
+      },
+      {
+        "time": 33,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -22.83754220180174,
+        "replanningReason": "route"
+      },
+      {
+        "time": 34,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -23.837542201801718,
+        "replanningReason": "route"
+      },
+      {
+        "time": 35,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -24.837542201801696,
+        "replanningReason": "route"
+      },
+      {
+        "time": 36,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -25.837542201801675,
+        "replanningReason": "route"
+      },
+      {
+        "time": 37,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -26.837542201801654,
+        "replanningReason": "route"
+      },
+      {
+        "time": 38,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -27.837542201801632,
+        "replanningReason": "route"
+      },
+      {
+        "time": 39,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -28.83754220180161,
+        "replanningReason": "route"
+      },
+      {
+        "time": 40,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -29.83754220180159,
+        "replanningReason": "route"
+      },
+      {
+        "time": 41,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -30.83754220180157,
+        "replanningReason": "route"
+      },
+      {
+        "time": 42,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -31.837542201801547,
+        "replanningReason": "route"
+      },
+      {
+        "time": 43,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -32.837542201801675,
+        "replanningReason": "route"
+      },
+      {
+        "time": 44,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -33.83754220180183,
+        "replanningReason": "route"
+      },
+      {
+        "time": 45,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -34.83754220180199,
+        "replanningReason": "route"
+      },
+      {
+        "time": 46,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -35.837542201802144,
+        "replanningReason": "route"
+      },
+      {
+        "time": 47,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -36.8375422018023,
+        "replanningReason": "route"
+      },
+      {
+        "time": 48,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -37.83754220180246,
+        "replanningReason": "route"
+      },
+      {
+        "time": 49,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -38.83754220180261,
+        "replanningReason": "route"
+      },
+      {
+        "time": 50,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -39.83754220180277,
+        "replanningReason": "route"
+      },
+      {
+        "time": 51,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -40.837542201802925,
+        "replanningReason": "route"
+      },
+      {
+        "time": 52,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -41.83754220180308,
+        "replanningReason": "route"
+      },
+      {
+        "time": 53,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -42.83754220180324,
+        "replanningReason": "route"
+      },
+      {
+        "time": 54,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -43.837542201803394,
+        "replanningReason": "route"
+      },
+      {
+        "time": 55,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -44.83754220180355,
+        "replanningReason": "route"
+      },
+      {
+        "time": 56,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -45.83754220180371,
+        "replanningReason": "route"
+      },
+      {
+        "time": 57,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -46.83754220180386,
+        "replanningReason": "route"
+      },
+      {
+        "time": 58,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -47.83754220180402,
+        "replanningReason": "route"
+      },
+      {
+        "time": 59,
+        "pos": [
+          30.618983788328173,
+          3.413686789003822,
+          17.984495007167073
+        ],
+        "vel": [
+          0,
+          0,
+          0
+        ],
+        "grounded": true,
+        "supported": true,
+        "collision": false,
+        "waypoint": 3,
+        "repathTimer": -48.837542201804176,
+        "replanningReason": "route"
+      }
+    ]
+  }
+]

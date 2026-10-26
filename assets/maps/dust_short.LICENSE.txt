@@ -1,0 +1,11 @@
+Model Information:
+* title:	Dust2-short
+* source:	https://sketchfab.com/3d-models/dust2-short-211b9b2535e144fb9d1021228cc93d53
+* author:	frostychaos144 (https://sketchfab.com/frostychaos144)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Dust2-short" (https://sketchfab.com/3d-models/dust2-short-211b9b2535e144fb9d1021228cc93d53) by frostychaos144 (https://sketchfab.com/frostychaos144) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

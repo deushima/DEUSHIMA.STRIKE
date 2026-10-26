@@ -1,4 +1,6 @@
 import * as THREE from '../vendor/three.module.js';
+import { hitgroupMultiplier } from './combat/ballistics.js';
+import { characterHitboxes, logicalHitboxes, intersectHitbox } from './combat/hitboxes.js';
 import { Input } from './core/input.js';
 import { Player } from './core/player.js';
 import { PhysicsWorld } from './core/physics.js';
@@ -26,6 +28,7 @@ import { OnlineMatch } from './online/match.js';
 import { Deathmatch, chooseDeathmatchSpawn } from './deathmatch.js';
 import { DeathmatchUI } from './ui/deathmatch-ui.js';
 import { buildDust2DeathmatchMap } from './world/dust2_map.js';
+import { DEFAULT_OFFLINE_DUEL_MAP, isOfflineDuelMap, offlineDuelMapLabel } from './ui/offline-maps.js';
 
 const DEFAULT_SETTINGS = {
   sensitivity: 1.0,
@@ -286,11 +289,9 @@ export class Game {
           this.map.dispose?.();
           this.map = null;
         }
-        this.map = mapId === 'de_dust2_dm' ? await buildDust2DeathmatchMap(this)
-          : mapId === 'aim_redline' ? buildRedlineMap(this)
-          : mapId === 'aim_forge' ? buildForgeMap(this)
-          : mapId === 'cs_assault' ? buildAssaultMap(this)
-          : mapId === 'cs_office' ? buildMap(this, mapId) : buildAimMap(this);
+        this.map = mapId === 'de_dust2_dm'
+          ? await buildDust2DeathmatchMap(this)
+          : await this._buildDuelMap(mapId);
       }
       this.physics.setColliders(this.map.colliders, this.map.slopes || []);
       this.applyMapEnvironment(this.map);
@@ -608,15 +609,30 @@ export class Game {
     this.classicVM = null;
   }
 
-  /**
-   * Duelo 1v1 por rondas (modo principal): cuatro arenas compartidas con online.
-   * Usa un BotManager con un ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âºnico bot enemigo y el manager Duel.
-   */
+  /** Stable local-1v1 entry point used by the unified classic menu. */
+  startOffline(mapId = DEFAULT_OFFLINE_DUEL_MAP, config = {}) {
+    const selected = isOfflineDuelMap(mapId) ? mapId : DEFAULT_OFFLINE_DUEL_MAP;
+    return this.startDuel({ ...config, map: selected });
+  }
+
+  async _buildDuelMap(mapId) {
+    if (mapId === 'dust_short') {
+      const { buildDustShortMap } = await import('./world/dust_short_map.js');
+      return buildDustShortMap(this);
+    }
+    if (mapId === 'de_dust2' || mapId === 'cs_office') return buildMap(this, mapId);
+    return mapId === 'aim_redline' ? buildRedlineMap(this)
+      : mapId === 'aim_forge' ? buildForgeMap(this)
+      : mapId === 'cs_assault' ? buildAssaultMap(this)
+      : buildAimMap(this);
+  }
+
+  /** Local 1v1 round duel across every arena exposed by OFFLINE_DUEL_MAPS. */
   async startDuel(config = {}) {
     this.audio.init();
     this._ignoreUnlockUntil = performance.now() + 2500;
     this.input.requestPointerLock();
-    const mapId = isOnlineMap(config.map) && config.map !== 'de_dust2_dm' ? config.map : DEFAULT_ONLINE_MAP;
+    const mapId = isOfflineDuelMap(config.map) ? config.map : DEFAULT_OFFLINE_DUEL_MAP;
     const team = config.team === 'CT' || config.team === 'T'
       ? config.team
       : Math.random() < 0.5 ? 'CT' : 'T';
@@ -634,7 +650,7 @@ export class Game {
     this._lockHintShown = false;
     this.state = 'loading';
     this.ui.hideAll();
-    this.ui.showLoading(`Cargando ${mapId} ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· duel...`);
+    this.ui.showLoading(`Cargando ${offlineDuelMapLabel(mapId)} · 1V1 OFFLINE...`);
     await new Promise((r) => requestAnimationFrame(r));
 
     try {
@@ -644,10 +660,7 @@ export class Game {
           this.map.dispose?.();
           this.map = null;
         }
-        this.map = mapId === 'aim_redline' ? buildRedlineMap(this)
-          : mapId === 'aim_forge' ? buildForgeMap(this)
-          : mapId === 'cs_assault' ? buildAssaultMap(this)
-          : mapId === 'cs_office' ? buildMap(this, mapId) : buildAimMap(this);
+        this.map = await this._buildDuelMap(mapId);
       }
       this.physics.setColliders(this.map.colliders, this.map.slopes || []);
       this.applyMapEnvironment(this.map);
@@ -919,6 +932,17 @@ export class Game {
     );
   }
 
+  recoverPlayerFromVoid() {
+    const spawn = this.map?.spawns?.[this.player?.team]?.[0];
+    if (!spawn || !this.player) return false;
+    this.player.pos.set(spawn.x, spawn.y, spawn.z);
+    this.player.vel.set(0, 0, 0);
+    this.player.onGround = true;
+    this.player._physicsAccumulator = 0;
+    this.player.updateCamera(0, true);
+    return true;
+  }
+
   isPointerLocked() {
     return this.input.locked;
   }
@@ -969,24 +993,30 @@ export class Game {
   }
 
   getPlayerHitboxes(entity = this.player) {
-    const p = entity.pos;
-    const h = entity.height || 1.8;
-    // Door clearance is map-specific; hit registration should preserve the
-    // original character proportions independently of the collision hull.
-    const r = entity.hitboxRadius || entity.radius || 0.38;
-    const make = (part, y0, y1, width, mult) => {
-      const box = new THREE.Box3(
-        new THREE.Vector3(p.x - width / 2, p.y + y0, p.z - width / 2),
-        new THREE.Vector3(p.x + width / 2, p.y + y1, p.z + width / 2),
-      );
-      return { part, box, damageMult: mult };
-    };
-    return [
-      make('head', h - 0.3, h, 0.28, HIT_MULT.head),
-      make('chest', h * 0.56, h - 0.3, Math.max(0.4, r * 1.15), HIT_MULT.chest),
-      make('stomach', h * 0.42, h * 0.56, Math.max(0.38, r * 1.1), HIT_MULT.stomach),
-      make('legs', 0.02, h * 0.42, Math.max(0.34, r), HIT_MULT.legs),
-    ];
+    const visible = entity.ballisticCharacter || entity.parts?.character;
+    if (visible) return characterHitboxes(visible,entity.team);
+    if (this.characters?.ready) {
+      if(!entity._ballisticProxy)this._updateBallisticProxy(entity,0);
+      return characterHitboxes(entity._ballisticProxy,entity.team);
+    }
+    return logicalHitboxes(entity);
+  }
+
+  _updateBallisticProxy(entity,dt) {
+    if(this.characters?.ready) {
+      if (!entity._ballisticProxy || entity._ballisticProxyTeam !== entity.team) {
+        entity._ballisticProxy?.dispose();
+        entity._ballisticProxy = this.characters.create(entity.team);
+        entity._ballisticProxyTeam = entity.team;
+      }
+      const c=entity._ballisticProxy;
+      c.root.position.copy(entity.pos);c.root.rotation.y=entity.yaw||0;
+      c.root.scale.setScalar((entity.standHeight || (entity.crouching ? 1.8 : entity.height) || 1.8)/1.8);
+      c.update(dt,{...entity,velocity:entity.vel,speed:entity.getVelocity2D?.()||0},(entity.getVelocity2D?.()||0)>.6);
+      entity._ballisticProxyTime=this.time;
+      return characterHitboxes(c,entity.team);
+    }
+    return logicalHitboxes(entity);
   }
 
   raycastShot(origin, dir, maxDist = 200, shooterTeam = null, shooterEntity = null) {
@@ -1006,7 +1036,7 @@ export class Game {
 
     const consider = (boxes, entity, type) => {
       for (const hb of boxes) {
-        const hit = rayBox(origin, direction, hb.box, bestT);
+        const hit = intersectHitbox(origin, direction, hb, bestT);
         if (hit && hit.t < bestT) {
           bestT = hit.t;
           best = {
@@ -1015,7 +1045,7 @@ export class Game {
             normal: hit.normal,
             type,
             entity,
-            part: hb.part,
+            part: hit.part || hb.part,
             damageMult: hb.damageMult ?? 1,
           };
         }
@@ -1049,13 +1079,13 @@ export class Game {
   }
 
   damagePlayer(amount, source, part = 'chest', weaponId = 'unknown') {
-    const mult = HIT_MULT[part] ?? 1;
+    const mult = hitgroupMultiplier(weaponId, part);
     return this.player.takeDamage(amount * mult, source, part, weaponId);
   }
 
   damageBot(bot, amount, source, part = 'chest', weaponId = 'unknown') {
     if (!this.bots || !bot) return 0;
-    const mult = HIT_MULT[part] ?? 1;
+    const mult = hitgroupMultiplier(weaponId, part);
     return this.bots.damageBot(bot, amount * mult, source, part, weaponId);
   }
 
@@ -1521,7 +1551,7 @@ export class Game {
 
     if (this.state === 'playing' || this.state === 'roundover') {
       this.player.update(dt);
-      // Seguro contra huecos/roturas del piso o caÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­das fuera del mapa.
+      // Recover an out-of-bounds player without damage or a death event.
       if (
         this.player.alive &&
         (this.player.pos.y < -6 ||
@@ -1530,20 +1560,21 @@ export class Game {
           this.player.pos.z < (this.map?.bounds?.minZ ?? -999) - 8 ||
           this.player.pos.z > (this.map?.bounds?.maxZ ?? 999) + 8)
       ) {
-        this.player.die(null, 'fall');
+        this.recoverPlayerFromVoid();
       }
-    }
-
-    if (this.weapons && (this.state === 'playing' || this.state === 'roundover')) {
-      this.weapons.update(dt);
     }
 
     if (this.online && (this.state === 'playing' || this.state === 'roundover')) {
       this.online.update(dt);
     }
 
+    if(this.characters?.ready && this.player?.alive)this._updateBallisticProxy(this.player,dt);
     if (this.bots && this.state === 'playing') {
       this.bots.update(dt);
+    }
+
+    if (this.weapons && (this.state === 'playing' || this.state === 'roundover')) {
+      this.weapons.update(dt);
     }
 
     if (this.rounds && (this.state === 'playing' || this.state === 'roundover')) {

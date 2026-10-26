@@ -649,6 +649,20 @@ export class OnlineUI {
     if (!session.setMaxPlayers(next)) this._syncMaxPlayersSelects();
   }
 
+  _syncMapSelectOptions(maxPlayers = null) {
+    const select = this._refs.mapSelect;
+    if (!select) return;
+    const lobby = this._lobby || this._sessionLobby(this._session());
+    const players = maxPlayers ?? (this._mode === 'deathmatch' ? 10 : Number(lobby?.maxPlayers) === 4 ? 4 : 2);
+    const deathmatch = this._mode === 'deathmatch';
+    for (const opt of select.options) {
+      const dmOnly = opt.value === 'de_dust2_dm';
+      const oneVsOneOnly = opt.value === 'dust_short';
+      opt.hidden = deathmatch ? !dmOnly : dmOnly || (players === 4 && oneVsOneOnly);
+      opt.disabled = !deathmatch && players === 4 && oneVsOneOnly;
+    }
+  }
+
   _on(target, type, fn, opts) {
     if (!target || typeof target.addEventListener !== 'function') return;
     target.addEventListener(type, fn, opts);
@@ -915,7 +929,7 @@ export class OnlineUI {
       rules[7].textContent = dm ? 'Respawn en distintos puntos del mapa.' : 'La siguiente ronda comienza tras una breve pausa.';
     }
     if (this._refs.mapSelect) {
-      for (const opt of this._refs.mapSelect.options) opt.hidden = dm ? opt.value !== 'de_dust2_dm' : opt.value === 'de_dust2_dm';
+      this._syncMapSelectOptions(dm ? 10 : 2);
       if (dm) this._refs.mapSelect.value = 'de_dust2_dm';
     }
   }
@@ -1262,6 +1276,7 @@ export class OnlineUI {
     const map = isOnlineMap(lobby.map) ? lobby.map : DEFAULT_ONLINE_MAP;
     this._setText('lobbyMapName', onlineMapLabel(map));
     if (this._refs.mapSelect) {
+      this._syncMapSelectOptions(maxPlayers);
       this._refs.mapSelect.value = map;
       this._refs.mapSelect.disabled = role !== 'host' || this._mode === 'deathmatch';
     }

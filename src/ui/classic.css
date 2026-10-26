@@ -247,6 +247,39 @@
 .cm-close:hover { background: rgba(255, 176, 0, 0.24); color: #fff3c7; }
 .cm-help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; font-size: 12px; color: #aaa58f; }
 .cm-help-grid b { color: #eee4c8; font-weight: 600; }
+.cm-offline-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 8px 0 4px;
+}
+.cm-offline-map {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px;
+  border: 1px solid rgba(255, 176, 0, 0.32);
+  background: rgba(0, 0, 0, 0.42);
+  color: #d8d2ba;
+  text-align: left;
+  cursor: pointer;
+}
+.cm-offline-map:hover,
+.cm-offline-map:focus-visible {
+  outline: none;
+  border-color: rgba(255, 196, 64, 0.78);
+  background: rgba(255, 176, 0, 0.14);
+  color: #fff6d5;
+}
+.cm-offline-index { color: var(--cs-gold-dim); font-size: 10px; }
+.cm-offline-copy { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.cm-offline-copy b { overflow: hidden; text-overflow: ellipsis; font-size: 12px; letter-spacing: .08em; }
+.cm-offline-copy small { color: #8e8f7a; font-size: 9px; letter-spacing: .12em; }
+.cm-offline-map:hover .cm-offline-copy small,
+.cm-offline-map:focus-visible .cm-offline-copy small { color: var(--cs-gold-bright); }
+.cm-offline-arrow { justify-self: end; font: 18px/1 monospace; color: var(--cs-gold-dim); }
 
 /* ---------------------------------------------------------------- banners */
 #classic-banner {
@@ -334,6 +367,9 @@
   .cm-keys { display: none; }
   .cm-legal { margin-left: auto; max-width: 72vw; font-size: 7px; }
   .cm-legal-logo { width: 105px; }
+  .cm-card { width: min(94vw, 620px); max-height: 88dvh; padding: 16px; }
+  .cm-offline-grid { grid-template-columns: 1fr; gap: 5px; }
+  .cm-offline-map { padding: 9px 9px; }
 }
 
 /* ==========================================================================

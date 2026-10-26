@@ -157,12 +157,14 @@ function normalizeMode(value, maxPlayers = 2) {
 
 function isSupportedMapForMode(mapId, mode) {
   if (mode === MODE_DEATHMATCH) return mapId === DEATHMATCH_MAP;
+  // Dust Short was authored for one spawn per side and must not appear in 2v2.
+  if (mapId === 'dust_short') return mode === MODE_1V1;
   return isOnlineMap(mapId);
 }
 
 function normalizeMapForMode(mapId, mode) {
   if (mode === MODE_DEATHMATCH) return DEATHMATCH_MAP;
-  return isOnlineMap(mapId) ? mapId : DEFAULT_ONLINE_MAP;
+  return isSupportedMapForMode(mapId, mode) ? mapId : DEFAULT_ONLINE_MAP;
 }
 
 function teamForSlot(slot) {
@@ -611,6 +613,10 @@ export class OnlineSession {
     this._cancelStartTimer();
     this._lobby.maxPlayers = next;
     this._maxPlayers = next;
+    this._lobby.mode = next === 4 ? MODE_2V2 : MODE_1V1;
+    if (!isSupportedMapForMode(this._lobby.map, this._lobby.mode)) {
+      this._lobby.map = DEFAULT_ONLINE_MAP;
+    }
     for (const player of Object.values(this._lobby.roster || {})) {
       if (player) player.ready = false;
     }

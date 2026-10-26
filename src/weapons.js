@@ -1,3 +1,4 @@
+import { aimDirection, shotDirections } from './combat/shot.js';
 /**
  * CS 1.6 inspired weapon system: data table, hitscan shooting, recoil/spread, reloads,
  * weapon switching, grenades (physics + HE/flash/smoke effects), C4 slot and the buy menu.
@@ -9,6 +10,10 @@ import * as THREE from '../vendor/three.module.js';
 import { clamp, expDamp, rand, DEG } from './core/utils.js';
 import { ViewModel } from './viewmodel.js';
 import { DroppedWeaponSystem } from './world/dropped-weapons.js';
+
+import { RecoilState, accuracyRadius } from './combat/recoil.js';
+import { CS2_PROFILES } from './combat/cs2-data.js';
+import { rangedDamage, CS_UNITS_PER_WORLD } from './combat/ballistics.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const GRENADE_IDS = ['he', 'flash', 'smoke'];
@@ -460,9 +465,17 @@ export const WEAPONS = {
   },
 };
 
+// Legacy visuals retain their public IDs. M4A1 (unsuppressed) aliases CS2 M4A4.
+// MP5 Navy -> MP5-SD, M3 -> Nova, Scout -> SSG08, USP -> USP-S are gameplay aliases.
+for (const [id,p] of Object.entries(CS2_PROFILES)) {
+  const w = WEAPONS[id]; if (!w) continue;
+  Object.assign(w, { ballisticProfile:p, damage:p.baseDamage, headshotMult:p.headshotMultiplier,
+    armorRatio:p.armorRatio, rangeModifier:p.rangeModifier, range:p.rangeCS/CS_UNITS_PER_WORLD,
+    reloadTime:p.reloadLockout, fireRate:1/p.cycleTime[0], magazine:p.magazine, reserve:p.reserve, pellets:p.pellets, auto:p.fullAuto });
+}
 // Derived / default values shared by every weapon.
 for (const w of Object.values(WEAPONS)) {
-  w.fireInterval = 1 / (w.fireRate || 1);
+  w.fireInterval = w.ballisticProfile?.cycleTime[0] ?? 1 / (w.fireRate || 1);
   w.pellets = w.pellets || 1;
   w.airSpread = w.airSpread ?? (w.type === 'sniper' ? 9 : 6);
   w.spreadPerShot = w.spreadPerShot ?? 0;
@@ -555,8 +568,11 @@ function weaponDescription(w) {
 }
 
 export class WeaponSystem {
-  constructor(game) {
+  constructor(game, testOptions = null) {
     this.game = game;
+    this.testOptions = testOptions;
+    this.recoilStates = new Map();
+    this.shotLog = [];
 
     /** @type {{primary:?{id:string,magazine:number,reserve:number},secondary:?{id:string,magazine:number,reserve:number},grenades:{he:number,flash:number,smoke:number}}} */
     this.inventory = {
@@ -579,6 +595,7 @@ export class WeaponSystem {
     this.dynamicSpread = 0;
     this.shotIndex = 0;
     this.lastShotTime = -10;
+    this.recoilStates.clear();this.nextShotAt=0;this._triggerHeld=false;
 
     this.scoped = false;
     this._baseSensitivity = null;
@@ -648,10 +665,12 @@ export class WeaponSystem {
     this.dynamicSpread = 0;
     this.shotIndex = 0;
     this.lastShotTime = -10;
+    this.recoilStates.clear();this.nextShotAt=0;this._triggerHeld=false;
     if (this.viewmodel) this.viewmodel.setWeapon(this.currentId);
   }
 
   resetForRound(team = this.game?.player?.team || 'CT') {
+    this.recoilStates.clear();this.nextShotAt=this.time;this._triggerHeld=false;
     this._cancelReload();
     this._unscope();
     this._clearDropped();
@@ -826,6 +845,9 @@ export class WeaponSystem {
     if (this.scoped) this._unscope();
     if (this.currentId && this.currentId !== id) this.lastId = this.currentId;
     this.currentId = id;
+    const punch=this.recoilStates.get(id)?.sample(this.time)||{pitch:0,yaw:0};
+    if(this.game.player){this.game.player.recoilPitch=punch.pitch;this.game.player.recoilYaw=punch.yaw;}
+    this._triggerHeld=false;this.nextShotAt=Math.max(this.nextShotAt||0,this.time+.1);
     this.shotIndex = 0;
     this.dynamicSpread = Math.min(this.dynamicSpread, 1.4);
     this.deployTimer = opts.silent ? Math.min(this.deployTimer, 0.12) : 0.34;
@@ -917,6 +939,7 @@ export class WeaponSystem {
       game.state === 'playing' && player.alive && !!input?.locked && !ui?.isOverlayOpen;
     if (canControl && input) this._handleInput(input);
 
+    player.updateCamera?.(0);
     this._updateVisuals(dt);
   }
 
@@ -951,11 +974,19 @@ export class WeaponSystem {
     if (input.wasMousePressed?.(2)) this._toggleScope();
 
     if (!this.game.canUseWeapons?.()) return;
-    if (this.reloading || this.deployTimer > 0 || this.cooldown > 0) return;
+    if (this.reloading || this.deployTimer > 0) {this._triggerHeld=false;return;}
     const w = this._currentWeapon();
     if (!w) return;
     const wantsFire = w.auto ? input.isMouseDown?.(0) : input.wasMousePressed?.(0);
-    if (wantsFire) this._fire();
+    if (!wantsFire) {this._triggerHeld=false;return;}
+    if(!this._triggerHeld)this.nextShotAt=Math.max(this.time,this.nextShotAt||0);
+    this._triggerHeld=true;
+    for(let catchup=0;catchup<12 && this.time+1e-8>=(this.nextShotAt||0) && !this.reloading;catchup++) {
+      this._scheduledShotTime=this.nextShotAt||this.time;
+      this._fire();
+      if(!w.auto || w.type==='knife' || w.type==='grenade')break;
+    }
+    this._scheduledShotTime=null;
   }
 
   _updateReload(dt) {
@@ -988,10 +1019,10 @@ export class WeaponSystem {
     if (!entry || this.reloading) return false;
     if (entry.magazine >= w.magazine || entry.reserve <= 0) return false;
     this.reloading = true;
-    this.reloadTimer = RELOAD_TIME;
-    this.reloadTotal = RELOAD_TIME;
+    this.reloadTimer = w.reloadTime || RELOAD_TIME;
+    this.reloadTotal = this.reloadTimer;
     this.reloadWeaponId = w.id;
-    this._play(RELOAD_SOUND, 0.9, { duration: RELOAD_TIME });
+    this._play(RELOAD_SOUND, 0.9, { duration: this.reloadTotal });
     return true;
   }
 
@@ -1004,7 +1035,12 @@ export class WeaponSystem {
 
   _updateSpread(dt) {
     const idleTime = this.time - this.lastShotTime;
-    if (idleTime > 0.4 && this.shotIndex !== 0) this.shotIndex = 0;
+    const w = this._currentWeapon();
+    const state = this.recoilStates.get(this.currentId);
+    if (state && CS2_PROFILES[w?.id]) {
+      const punch=state.sample(this.time,this.game.player.crouching);
+      this.game.player.recoilPitch=punch.pitch;this.game.player.recoilYaw=punch.yaw;
+    }
     const lambda = idleTime > 0.16 ? 7.5 : 1.6;
     this.dynamicSpread = expDamp(this.dynamicSpread, 0, lambda, dt);
     if (this.dynamicSpread < 0.01) this.dynamicSpread = 0;
@@ -1015,6 +1051,7 @@ export class WeaponSystem {
     const w = this._currentWeapon();
     if (!w || w.type === 'knife' || w.type === 'grenade' || w.type === 'c4') return 0;
     const p = this.game?.player;
+    if(CS2_PROFILES[w.id]){const a=accuracyRadius(w.id,p,this.recoilStates.get(w.id),this.time,this.isScoped());return Math.atan(a.spread+a.inaccuracy)/DEG;}
     let spread = w.spread;
     const speed = p?.getVelocity2D?.() ?? 0;
     if (p?.crouching) spread *= w.crouchSpread;
@@ -1045,20 +1082,29 @@ export class WeaponSystem {
         this._startReload();
         return;
       }
-      this.cooldown = 0.3;
+      this.cooldown = 0.3;this.nextShotAt=this.time+.3;
       this._play('empty', 0.7);
       return;
     }
 
     const player = this.game.player;
+    if(!this.recoilStates.has(w.id))this.recoilStates.set(w.id,new RecoilState(w.id,CS2_PROFILES[w.id]?.recoil.seed||1));
+    const recoilState=this.recoilStates.get(w.id);
+    const shotTime=this._scheduledShotTime??this.time;
+    const accuracy=accuracyRadius(w.id,player,recoilState,shotTime,this.isScoped());
+    const punch=recoilState.fire(shotTime,player);
+    player.recoilPitch=punch.pitch;player.recoilYaw=punch.yaw;
     entry.magazine--;
-    this.lastShotTime = this.time;
-    this.cooldown = Math.max(0.04, 1 / (w.fireRate || 1));
+    this.lastShotTime = shotTime;
+    this.nextShotAt = shotTime + w.fireInterval;
+    this.cooldown = Math.max(0, this.nextShotAt-this.time);
     this.deployTimer = 0;
 
-    const spread = this.currentSpread();
+    const spread=Math.atan((accuracy.spread||0)+(accuracy.inaccuracy||0))/DEG;
     const eye = player.getEyePosition(this._eye);
+    const rawAim=aimDirection(player.yaw||0,player.pitch||0);
     const baseDir = player.getAimDirection(this._dir);
+    const directions=shotDirections(w.id,rawAim,punch,accuracy,{dispersion:!this.testOptions?.disableDispersion});
     const muzzle = this._muzzleWorld(eye, baseDir, this._muzzle);
     const pellets = w.pellets || 1;
     let hitEnemy = false;
@@ -1066,10 +1112,14 @@ export class WeaponSystem {
     let remoteHit = null;
 
     for (let i = 0; i < pellets; i++) {
-      this._applySpread(baseDir, spread, this._shotDir);
+      this._shotDir.copy(directions[i]);
       const hit = this.game.raycastShot
         ? this.game.raycastShot(eye, this._shotDir, w.range, player.team)
         : null;
+      if(i===0) {
+        this.shotLog.push({weapon:w.id,index:punch.index,time:shotTime,yaw:punch.yaw/DEG,pitch:punch.pitch/DEG,dir:this._shotDir.toArray(),point:hit?.point?.toArray()||null,part:hit?.part||null});
+        if(this.shotLog.length>120)this.shotLog.shift();
+      }
       let endPoint;
       if (hit) {
         endPoint = hit.point;
@@ -1078,7 +1128,7 @@ export class WeaponSystem {
           const deathmatch = !!this.game?.deathmatch || this.game?.matchConfig?.mode === 'deathmatch';
           if (enemy !== player && (deathmatch || enemy.team !== player.team)) {
             const dealt = this.game.damageBot
-              ? this.game.damageBot(enemy, w.damage, player, hit.part || 'chest', w.id)
+              ? this.game.damageBot(enemy, rangedDamage(w.id, hit.t ?? eye.distanceTo(hit.point)), player, hit.part || 'chest', w.id)
               : 0;
             if (dealt > 0) {
               hitEnemy = true;
@@ -1133,7 +1183,8 @@ export class WeaponSystem {
 
     this.game.online?.notifyLocalShot?.({
       origin: eye.clone(),
-      dir: (remoteHit?.dir || baseDir).clone(),
+      dir: rawAim.clone(),
+      scoped:this.isScoped(),
       weaponId: w.id,
       hit: remoteHit,
     });
@@ -1151,6 +1202,7 @@ export class WeaponSystem {
     const player = this.game.player;
     this.lastShotTime = this.time;
     this.cooldown = 1 / (w.fireRate || 1.8);
+    this.nextShotAt=this.time+this.cooldown;
     this.shotIndex = 0;
     const eye = player.getEyePosition(this._eye);
     const dir = player.getAimDirection(this._dir);
@@ -1180,7 +1232,7 @@ export class WeaponSystem {
       const dz = player.pos.z - target.pos.z;
       const len = Math.hypot(dx, dz) || 1;
       const dot = (dx / len) * facingX + (dz / len) * facingZ;
-      if (dot > 0.55) damage *= 2.2; // stab in the back
+      if (dot < -0.55) damage *= 2.2; // legacy back attack; CS2 knife parity unverified
     }
     if (target.isRemote) {
       this.game.online?.notifyLocalShot?.({
@@ -1228,7 +1280,7 @@ export class WeaponSystem {
 
   _applyRecoil(w) {
     const p = this.game.player;
-    if (!p?.addRecoil) return;
+    if (CS2_PROFILES[w.id] || !p?.addRecoil) return;
     const pattern = this.shotIndex + 1;
     const pitch = w.recoil * (0.75 + Math.random() * 0.5) * DEG;
     const yaw =
@@ -1354,6 +1406,7 @@ export class WeaponSystem {
     this.inventory.grenades[w.id] = count - 1;
     this.grenadeCooldown = 0.85;
     this.cooldown = 0.55;
+    this.nextShotAt=this.time+.55;
     this.lastShotTime = this.time;
 
     const eye = player.getEyePosition(this._eye);

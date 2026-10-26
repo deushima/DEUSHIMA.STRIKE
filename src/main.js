@@ -33,6 +33,12 @@ if (!canvas) {
     game
       .init()
       .then(() => installClassic(game))
+      .then(async () => {
+        if (!globalThis.__DEUSHIMA_PUBLIC__ && ['127.0.0.1','localhost'].includes(location.hostname) && new URLSearchParams(location.search).has('debugHitboxes')) {
+          const {installHitboxDebug}=await import('../dev/debug-hitboxes.js');
+          installHitboxDebug(game);
+        }
+      })
       .catch((err) => {
         console.error(err);
         fatal('Error iniciando el juego: ' + err.message);

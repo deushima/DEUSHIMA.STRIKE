@@ -1,6 +1,6 @@
 {
   "firefoxGameplay": false,
-  "hardwarePerformance": false,
+  "hardwarePerformance": true,
   "allWeaponsBothTeamsVisualReview": false,
-  "deathRespawnAndMultiplayerSwitching": false
+  "deathRespawnAndMultiplayerSwitching": true
 }

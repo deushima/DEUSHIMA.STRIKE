@@ -115,13 +115,13 @@ function makeBotGame(mapId) {
   assert.equal(dustBots.bots[0].hitboxRadius, 0.38);
   assert.equal(dustBots.bots[0].height, 1.56);
   assert.ok(Math.abs(dustBots.bots[0].group.scale.y - (1.56 / 1.8)) < 1e-8);
-  const dustLegs = dustBots.getBotHitboxes(dustBots.bots[0]).find((box) => box.part === 'legs');
-  assert.ok(dustLegs);
-  assert.ok(
-    Math.abs((dustLegs.box.max.x - dustLegs.box.min.x) - 0.38) < 1e-9,
-    'Dust2 navigation hull must not shrink bot combat hitboxes',
-  );
+  const limbs=dustBots.getBotHitboxes(dustBots.bots[0]).filter(box=>box.part.endsWith('leg'));
+  assert.deepEqual(limbs.map(l=>l.part),['leftleg','rightleg']);
+  for(const limb of limbs)assert.ok(Math.abs((limb.box.max.x-limb.box.min.x)-.16*1.56/1.8)<1e-9,'anatomical legs scale with the model height independently of movement radius');
+  const originalLimbs=limbs.map(l=>l.box.clone());
   dustBots.bots[0].radius = 0.99;
+  const changed=dustBots.getBotHitboxes(dustBots.bots[0]).filter(box=>box.part.endsWith('leg'));
+  changed.forEach((limb,i)=>assert.ok(limb.box.equals(originalLimbs[i]),'navigation radius never widens damage geometry'));
   dustBots.resetRound(2);
   assert.equal(dustBots.bots[0].radius, 0.25, 'Dust2 bot respawn restores collision radius');
   assert.equal(dustBots.bots[0].height, 1.56, 'Dust2 bot respawn restores model height');

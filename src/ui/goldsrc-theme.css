@@ -179,6 +179,21 @@
 .cm-modal { background: rgba(5,8,5,.78); }
 .cm-card { padding: 0 18px 16px; }
 .cm-card h2 { margin: 0 -18px 12px; padding: 7px 12px; background: var(--gs-title); border-bottom: 1px solid var(--gs-edge-dark); }
+.cm-offline-map {
+  border: 1px solid var(--gs-edge-dark);
+  border-right-color: var(--gs-edge-light);
+  border-bottom-color: var(--gs-edge-light);
+  border-radius: 0;
+  background: var(--gs-panel-dark);
+  color: var(--gs-text);
+  font-family: var(--gs-font);
+  box-shadow: none;
+}
+.cm-offline-map:hover,
+.cm-offline-map:focus-visible { background: var(--gs-select); color: #fff; outline: 1px dotted var(--gs-accent); outline-offset: -3px; }
+.cm-offline-index, .cm-offline-copy small, .cm-offline-arrow { color: var(--gs-muted); }
+.cm-offline-map:hover .cm-offline-copy small,
+.cm-offline-map:focus-visible .cm-offline-copy small { color: #fff; }
 .cm-help-grid { color: var(--gs-muted); }
 .cm-help-grid b { color: var(--gs-text); }
 

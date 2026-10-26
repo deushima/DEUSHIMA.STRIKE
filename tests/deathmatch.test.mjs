@@ -36,7 +36,9 @@ const game = {
 };
 const dm = new Deathmatch(game);
 dm.onKill(null, player, 'fall', false);
-dm.onKill(null, player, 'fall', false);
+assert.equal(player.deaths, 0, 'fall cannot create a deathmatch death');
+dm.onKill(null, player, 'environment', false);
+dm.onKill(null, player, 'environment', false);
 assert.equal(player.deaths, 1, 'one death event cannot be counted twice');
 dm.update(DEATHMATCH_RESPAWN_SECONDS * 0.5);
 assert.equal(respawns, 0, 'player stays dead until the respawn delay expires');

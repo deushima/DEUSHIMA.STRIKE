@@ -1,3 +1,5 @@
+import { shotDirections } from './combat/shot.js';
+import { accuracyRadius } from './combat/recoil.js';
 /**
  * bots.js ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â CS 1.6 Browser Edition
  * BotManager: bots low-poly procedurales, navegaciÃƒÆ’Ã‚Â³n por waypoints (A*), IA por objetivos
@@ -21,6 +23,10 @@
  *    auto-escolta rehenes (CT <=2m). El bot solo camina al objetivo y se detiene.
  */
 
+import { characterHitboxes, logicalHitboxes } from './combat/hitboxes.js';
+import { RecoilState } from './combat/recoil.js';
+import { WEAPONS } from './weapons.js';
+import { resolveArmorDamage, rangedDamage } from './combat/ballistics.js';
 import * as THREE from '../vendor/three.module.js';
 import {
   clamp,
@@ -222,6 +228,7 @@ export class BotManager {
     this._sSep = new THREE.Vector3();
     this._sSepA = new THREE.Vector3();
     this._sSepB = new THREE.Vector3();
+    this._sGroundProbe = new THREE.Vector3();
     this._enemyScratch = [];
 
     this._geos = [];
@@ -416,12 +423,12 @@ export class BotManager {
     if (!bot) return;
     const hull = collisionHullForMap(this.game?.map);
     bot.radius = hull.radius;
-    // Character targetHeight is visual/model metadata. Dust2 needs a fixed
-    // navigation hull; classic maps keep their pre-existing model-derived height.
-    if (this.game?.map?.id === 'de_dust2_dm') bot.height = hull.standHeight;
-    // The imported Dust2 is not a GoldSrc BSP. Scale the entire visual rig
-    // (including weapons and arms) from its feet without changing classic maps.
-    bot.group?.scale.setScalar(hull.standHeight / 1.8);
+    // Imported GLBs use their calibrated fixed hull; classic maps keep their
+    // pre-existing model-derived height.
+    const importedNarrowMap = this.game?.map?.id === 'de_dust2_dm' || this.game?.map?.id === 'dust_short';
+    if (importedNarrowMap) bot.height = hull.standHeight;
+    // Scale the entire visual rig (including weapons and arms) from its feet.
+    bot.group?.scale.setScalar(importedNarrowMap ? hull.standHeight / 1.8 : 1);
   }
 
   _nextName() {
@@ -644,12 +651,17 @@ export class BotManager {
       const spawn = spawns.length
         ? spawns[spawnIndex] || spawns[0]
         : { x: 0, y: 0.05, z: 0, yaw: 0 };
+      // Dust Short has one measured spawn per team on narrow imported geometry.
+      // Keep those exact coordinates; lateral spawn jitter can place a bot over a hole.
+      const exactDustShortSpawn = map.id === 'dust_short';
       // Si hay menos spawns que bots, se reutiliza el spawn con un pequeÃƒÆ’Ã‚Â±o anillo.
-      const reuse = spawns.length <= 1 || idx >= available.length;
+      const reuse = !exactDustShortSpawn && (spawns.length <= 1 || idx >= available.length);
       const layer = available.length ? Math.floor(idx / available.length) : idx;
       let x = spawn.x || 0;
       let z = spawn.z || 0;
-      if (reuse) {
+      if (exactDustShortSpawn) {
+        // Preserve the measured GLB support point exactly.
+      } else if (reuse) {
         const offAngle = bot.seed * TAU + layer * 0.9;
         const offR = 0.7 + layer * 0.85;
         x += Math.cos(offAngle) * offR;
@@ -847,37 +859,14 @@ export class BotManager {
 
   getBotHitboxes(bot) {
     if (!bot || !bot.alive) return [];
-    if (!bot._hitboxes) {
-      bot._hitboxes = [];
-      for (const part of HIT_PARTS) {
-        bot._hitboxes.push({
-          part,
-          box: new THREE.Box3(),
-          damageMult: HIT_MULT[part],
-        });
-      }
-    }
-    const p = bot.pos;
-    const h = bot.height || 1.8;
-    const r = bot.hitboxRadius || bot.radius || 0.38;
-    const boxes = bot._hitboxes;
-    const set = (i, part, y0, y1, width) => {
-      const e = boxes[i];
-      e.part = part;
-      e.damageMult = HIT_MULT[part];
-      e.box.min.set(p.x - width / 2, p.y + y0, p.z - width / 2);
-      e.box.max.set(p.x + width / 2, p.y + y1, p.z + width / 2);
-    };
-    // Igual geometrÃƒÆ’Ã‚Â­a que game.getPlayerHitboxes para que el hitscan sea consistente.
-    set(0, 'head', h - 0.3, h, 0.28);
-    set(1, 'chest', h * 0.56, h - 0.3, Math.max(0.4, r * 1.15));
-    set(2, 'stomach', h * 0.42, h * 0.56, Math.max(0.38, r * 1.1));
-    set(3, 'legs', 0.02, h * 0.42, Math.max(0.34, r));
-    return boxes;
+    return characterHitboxes(bot.parts?.character,bot.team) || logicalHitboxes(bot);
   }
 
   _weapon(bot) {
-    return BOT_WEAPONS[bot.weaponId] || BOT_WEAPONS.glock;
+    const style = BOT_WEAPONS[bot.weaponId] || BOT_WEAPONS.glock;
+    const w = WEAPONS[bot.weaponId] || WEAPONS.glock;
+    return { ...style, damage:w.damage, range:w.range, fireRate:w.fireInterval,
+      magazine:w.magazine, reserve:w.reserve, reload:w.reloadTime, pellets:w.pellets };
   }
 
   /* ----------------------------------------------------------------------------------------------
@@ -888,18 +877,9 @@ export class BotManager {
     if (!bot || !bot.alive) return 0;
     let dmg = Math.max(0, Number(amount) || 0);
     if (dmg <= 0) return 0;
-    if (!HIT_MULT[part]) part = 'chest';
-
-    // Armadura/chaleco (helmet sÃƒÆ’Ã‚Â³lo protege cabeza).
-    if (bot.armor > 0) {
-      const blocked = part === 'head' ? (bot.helmet ? 0.5 : 0) : 0.5;
-      const healthPortion = dmg * (1 - blocked);
-      const armorLoss =
-        part === 'head' && !bot.helmet ? 0 : Math.min(bot.armor, dmg * 0.5);
-      bot.armor = Math.max(0, bot.armor - armorLoss);
-      dmg = healthPortion;
-    }
-    dmg = Math.max(1, Math.round(dmg));
+    const result = resolveArmorDamage(dmg, bot, part, weaponId);
+    bot.armor = result.armorRemaining;
+    dmg = result.healthDamage;
     bot.health -= dmg;
     bot.lastDamageTime = this._time;
     bot.lastAttacker = source || null;
@@ -1016,6 +996,8 @@ export class BotManager {
     }
 
     this._separateBodies();
+    // All movement and bone poses are finalized before any damage query.
+    for(const bot of this.bots)if(bot.alive){this._animate(bot,0);if(live&&bot.targetVisible)this._tryFire(bot,bot._fireDistance??Infinity);}
   }
 
   /**
@@ -1044,7 +1026,8 @@ export class BotManager {
       const nz = bot.pos.z + (dz / d) * (minDist - d + 0.02);
       const candidate = this._sSep;
       candidate.set(nx, bot.pos.y + 0.02, nz);
-      if (physics.isPositionFree(candidate, bot.radius, bot.height)) {
+      const supported = this._mapId !== 'dust_short' || this._dustShortHasSupportAt(bot, nx, nz);
+      if (supported && physics.isPositionFree(candidate, bot.radius, bot.height)) {
         bot.pos.x = nx;
         bot.pos.z = nz;
       }
@@ -1066,8 +1049,10 @@ export class BotManager {
           const uz = dz / d;
           const pa = this._sSepA.set(a.pos.x - ux * push, a.pos.y + 0.02, a.pos.z - uz * push);
           const pb = this._sSepB.set(b.pos.x + ux * push, b.pos.y + 0.02, b.pos.z + uz * push);
-          if (physics.isPositionFree(pa, a.radius, a.height)) { a.pos.x = pa.x; a.pos.z = pa.z; }
-          if (physics.isPositionFree(pb, b.radius, b.height)) { b.pos.x = pb.x; b.pos.z = pb.z; }
+          const supportA = this._mapId !== 'dust_short' || this._dustShortHasSupportAt(a, pa.x, pa.z);
+          const supportB = this._mapId !== 'dust_short' || this._dustShortHasSupportAt(b, pb.x, pb.z);
+          if (supportA && physics.isPositionFree(pa, a.radius, a.height)) { a.pos.x = pa.x; a.pos.z = pa.z; }
+          if (supportB && physics.isPositionFree(pb, b.radius, b.height)) { b.pos.x = pb.x; b.pos.z = pb.z; }
         }
       }
     }
@@ -1266,7 +1251,7 @@ export class BotManager {
     bot.aimYaw = baseYaw + nA * err * 0.55;
     bot.aimPitch = clamp(basePitch + nB * err * 0.45, -1.2, 1.2);
 
-    this._tryFire(bot, dist);
+    bot._fireDistance=dist;
   }
 
   _tryFire(bot, dist) {
@@ -1289,11 +1274,13 @@ export class BotManager {
 
   _fire(bot, w) {
     const eye = this._eyePos(bot, this._sEye);
-    const spread = (w.spread + (bot._moving ? w.moveSpread : 0)) * this.profile.spreadMult;
-    const yaw = bot.aimYaw + (Math.random() - 0.5) * spread * 2;
-    const pitch = clamp(bot.aimPitch + (Math.random() - 0.5) * spread * 2, -1.25, 1.25);
-    const dir = dirFromYawPitch(yaw, pitch, this._sDir);
-
+    bot.recoilStates ||= new Map();
+    if(!bot.recoilStates.has(bot.weaponId))bot.recoilStates.set(bot.weaponId,new RecoilState(bot.weaponId,WEAPONS[bot.weaponId].ballisticProfile?.recoil.seed||1));
+    const state=bot.recoilStates.get(bot.weaponId);
+    const accuracy=accuracyRadius(bot.weaponId,bot,state,this._time);
+    const recoil=state.fire(this._time,bot);
+    const raw=dirFromYawPitch(bot.aimYaw,bot.aimPitch,this._sDir).clone();
+    for(const dir of shotDirections(bot.weaponId,raw,recoil,accuracy)) {
     const hit = this.game.raycastShot?.(eye, dir, w.range, bot.team, bot) || null;
     const muzzle = this._sMuzzle.copy(eye).addScaledVector(dir, 0.42);
     muzzle.y -= 0.05;
@@ -1308,8 +1295,7 @@ export class BotManager {
     this._playGun(bot, w);
 
     if (hit) {
-      const falloff = clamp(1 - Math.max(0, hit.t - 10) / (w.range * 2.2), 0.55, 1);
-      const damage = w.damage * falloff;
+      const damage = rangedDamage(bot.weaponId, hit.t ?? eye.distanceTo(hit.point));
       if (hit.type === 'player') {
         this.game.damagePlayer?.(damage, bot, hit.part, bot.weaponId);
       } else if (hit.type === 'bot') {
@@ -1322,8 +1308,9 @@ export class BotManager {
       }
     }
 
+    }
     bot.ammo = Math.max(0, bot.ammo - 1);
-    bot.fireTimer = w.fireRate * rand(0.94, 1.08);
+    bot.fireTimer = w.fireRate;
     bot.burstLeft = Math.max(0, bot.burstLeft - 1);
     if (bot.burstLeft <= 0) {
       bot.burstPause = rand(w.burstPause[0], w.burstPause[1]) * this.profile.burstMult;
@@ -1391,6 +1378,10 @@ export class BotManager {
     const mode = map.mode || 'bomb';
     const planted = !!rounds?.bomb?.planted;
 
+    if (map.id === 'dust_short' && mode === 'aim') {
+      return this._dustShortAimGoal(bot);
+    }
+
     if (bot.team === 'T') {
       if (mode === 'hostage') return this._tHostageGoal(bot);
       if (planted) return this._tDefendBombGoal(bot);
@@ -1400,6 +1391,36 @@ export class BotManager {
     if (mode === 'hostage') return this._ctHostageGoal(bot);
     if (planted) return this._ctDefuseGoal(bot);
     return this._ctSiteGoal(bot);
+  }
+
+  _dustShortAimGoal(bot) {
+    const enemyTeam = bot.team === 'T' ? 'CT' : 'T';
+    const enemySpawn = this._nearestEnemySpawnPoint(enemyTeam);
+    const taggedSpawn = this.nav.nodes.find((node) => node.tags?.includes(`spawn:${enemyTeam}`)) || null;
+    const nearestSpawnNode = enemySpawn
+      ? this._nearestNode(enemySpawn.x, enemySpawn.z, 4)
+      : null;
+    const node = taggedSpawn || nearestSpawnNode;
+
+    if (!node) {
+      return {
+        kind: 'hold',
+        x: bot.pos.x,
+        z: bot.pos.z,
+        hold: true,
+        holdDist: 0.25,
+        face: enemySpawn ? { x: enemySpawn.x, z: enemySpawn.z } : null,
+      };
+    }
+
+    return {
+      kind: 'hunt',
+      x: node.x,
+      z: node.z,
+      hold: true,
+      holdDist: 0.45,
+      face: enemySpawn ? { x: enemySpawn.x, z: enemySpawn.z } : { x: node.x, z: node.z },
+    };
   }
 
   _carrierGoal(bot) {
@@ -1766,6 +1787,11 @@ export class BotManager {
 
   _moveToward(bot, tx, tz, speed, dt) {
     // DesvÃƒÆ’Ã‚Â­o anti-atasco en curso: ir directo al punto de desvÃƒÆ’Ã‚Â­o.
+    if (this._mapId === 'dust_short' && bot.detourTimer > 0) {
+      bot.detourTimer = 0;
+      bot.path = null;
+      bot.repathTimer = 0;
+    }
     if (bot.detourTimer > 0) {
       const ddx = bot.detourX - bot.pos.x;
       const ddz = bot.detourZ - bot.pos.z;
@@ -1787,7 +1813,10 @@ export class BotManager {
 
     let dirX;
     let dirZ;
-    if (this._canWalkDirect(bot, tx, tz)) {
+    // Dust Short can contain one-way physical transitions. Its authored graph
+    // carries that directionality, so objective movement must stay on A* rather
+    // than bypassing the route with a long direct shortcut.
+    if (this._mapId !== 'dust_short' && this._canWalkDirect(bot, tx, tz)) {
       bot.path = null;
       dirX = (tx - bot.pos.x) / dist;
       dirZ = (tz - bot.pos.z) / dist;
@@ -1797,7 +1826,10 @@ export class BotManager {
         bot.path && bot.pathIndex < bot.path.length ? bot.path[bot.pathIndex] : null;
       if (node) {
         let nd = distance2D(bot.pos.x, bot.pos.z, node.x, node.z);
-        if (nd < 1.0) {
+        const waypointReach = this._mapId === 'dust_short'
+          ? Math.max(0.18, bot.radius * 0.9)
+          : 1.0;
+        if (nd < waypointReach) {
           bot.pathIndex++;
           const next =
             bot.pathIndex < bot.path.length ? bot.path[bot.pathIndex] : null;
@@ -1816,6 +1848,11 @@ export class BotManager {
       } else {
         // Camino agotado y la lÃƒÆ’Ã‚Â­nea directa estÃƒÆ’Ã‚Â¡ bloqueada: forzar recÃƒÆ’Ã‚Â¡lculo en el prÃƒÆ’Ã‚Â³ximo tick.
         bot.path = null;
+        if (this._mapId === 'dust_short') {
+          bot.repathTimer = 0;
+          this._applyMove(bot, 0, 0, 0, dt);
+          return;
+        }
         dirX = (tx - bot.pos.x) / dist;
         dirZ = (tz - bot.pos.z) / dist;
       }
@@ -1836,11 +1873,84 @@ export class BotManager {
 
   _canWalkDirect(bot, tx, tz) {
     const dist = distance2D(bot.pos.x, bot.pos.z, tx, tz);
+    if (this._mapId === 'dust_short') {
+      if (!this._dustShortSegmentSupported(bot, tx, tz)) return false;
+      // Dust Short has walls whose opposite faces can be less than 1.2m apart.
+      // Never use the classic short-distance shortcut here: a nearby waypoint
+      // can still be physically separated by a wall.
+      const from = this._sLosA.set(bot.pos.x, bot.pos.y + 1.0, bot.pos.z);
+      const goalNode = this._nearestNode(tx, tz, 0.8);
+      const targetY = Number.isFinite(goalNode?.y) ? goalNode.y : bot.pos.y;
+      const to = this._sLosB.set(tx, targetY + 1.0, tz);
+      return !!this.game.hasLineOfSight?.(from, to);
+    }
     if (dist < 1.2) return true;
     if (dist > 26) return false;
     const from = this._sLosA.set(bot.pos.x, bot.pos.y + 1.0, bot.pos.z);
     const to = this._sLosB.set(tx, bot.pos.y + 1.0, tz);
     return !!this.game.hasLineOfSight?.(from, to);
+  }
+
+  _dustShortHasSupportAt(bot, x, z, expectedY = bot.pos.y) {
+    const physics = this.game.physics;
+    if (!physics?.hasGroundBelow) return false;
+    const step = Math.max(0.2, bot.stepHeight ?? 0.4);
+    if (physics._slopeGrid) {
+      const r=bot.radius;
+      return physics._querySlopes(x-r,x+r,z-r,z+r).some(s=>{
+        const y=s.supportHeight(x,z,r);
+        return y!==null && y<=expectedY+step+.02 && y>=expectedY-.7;
+      });
+    }
+    const probe = { pos: this._sGroundProbe.set(x, expectedY + step, z) };
+    return !!physics.hasGroundBelow(probe, 0, 0, step + 0.5);
+  }
+
+  _dustShortSegmentSupported(bot, tx, tz) {
+    const dx = tx - bot.pos.x;
+    const dz = tz - bot.pos.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist < 0.001) return true;
+
+    const goalNode = this._nearestNode(tx, tz, 0.8);
+    const goalY = Number.isFinite(goalNode?.y) ? goalNode.y : bot.pos.y;
+    const samples = Math.max(1, Math.ceil(dist / 0.28));
+
+    for (let i = 1; i <= samples; i++) {
+      const t = i / samples;
+      const x = bot.pos.x + dx * t;
+      const z = bot.pos.z + dz * t;
+      const y = lerp(bot.pos.y, goalY, t);
+      if (!this._dustShortHasSupportAt(bot, x, z, y)) return false;
+    }
+    return true;
+  }
+
+  _dustShortAdvanceSupported(bot, dirX, dirZ, speed, dt) {
+    const len = Math.hypot(dirX, dirZ);
+    if (len < 0.001) return true;
+    const ux = dirX / len;
+    const uz = dirZ / len;
+    const lookAhead = Math.max(bot.radius * 1.15, Math.min(0.55, speed * Math.max(dt, 0.04) * 1.8 + 0.08));
+    const x = bot.pos.x + ux * lookAhead;
+    const z = bot.pos.z + uz * lookAhead;
+    // Match PhysicsWorld's support semantics: the body remains grounded while
+    // its center has walkable support. Requiring support under arbitrary side
+    // samples rejects physically valid narrow passages and can freeze bots.
+    return this._dustShortHasSupportAt(bot, x, z);
+  }
+
+  _dustShortReachableStartNode(bot, goalNode = null, maxDist = 10) {
+    const candidates = this.nav.nodes
+      .map((node) => ({ node, distance: distance2D(bot.pos.x, bot.pos.z, node.x, node.z) }))
+      .filter((entry) => entry.distance <= maxDist)
+      .sort((a, b) => a.distance - b.distance);
+    for (const { node } of candidates) {
+      if (!this._canWalkDirect(bot, node.x, node.z)) continue;
+      if (goalNode && !this._astar(node.index, goalNode.index)?.length) continue;
+      return node;
+    }
+    return null;
   }
 
   _needsPath(bot, tx, tz) {
@@ -1858,23 +1968,30 @@ export class BotManager {
       bot.path = null;
       return;
     }
-    const startN =
-      this._nearestNode(bot.pos.x, bot.pos.z, 10) ||
-      this._nearestNode(bot.pos.x, bot.pos.z);
     const goalN = this._nearestNode(tx, tz);
+    const startN = this._mapId === 'dust_short'
+      ? this._dustShortReachableStartNode(bot, goalN, 10)
+      : (this._nearestNode(bot.pos.x, bot.pos.z, 10) || this._nearestNode(bot.pos.x, bot.pos.z));
     if (!startN || !goalN) {
       bot.path = null;
       return;
     }
     const idxs = this._astar(startN.index, goalN.index);
     if (!idxs || !idxs.length) {
+      if (this._mapId === 'dust_short') {
+        bot.path = null;
+        bot.pathIndex = 0;
+        return;
+      }
       bot.path = [goalN];
       bot.pathIndex = 0;
       return;
     }
     bot.path = idxs.map((i) => nodes[i]);
-    bot.pathIndex =
-      distance2D(bot.pos.x, bot.pos.z, startN.x, startN.z) < 1.5 ? 1 : 0;
+    const startReached = this._mapId === 'dust_short'
+      ? Math.max(0.18, bot.radius * 0.9)
+      : 1.5;
+    bot.pathIndex = distance2D(bot.pos.x, bot.pos.z, startN.x, startN.z) < startReached ? 1 : 0;
     if (bot.pathIndex >= bot.path.length) {
       bot.pathIndex = Math.max(0, bot.path.length - 1);
     }
@@ -1882,6 +1999,19 @@ export class BotManager {
 
   _applyMove(bot, dirX, dirZ, speed, dt) {
     const len = Math.hypot(dirX, dirZ);
+
+    if (
+      this._mapId === 'dust_short' &&
+      len > 0.001 &&
+      speed > 0.05 &&
+      !this._dustShortAdvanceSupported(bot, dirX, dirZ, speed, dt)
+    ) {
+      bot.vel.x = 0;
+      bot.vel.z = 0;
+      dirX = 0;
+      dirZ = 0;
+      speed = 0;
+    }
 
     // FricciÃƒÆ’Ã‚Â³n SIEMPRE antes de acelerar (igual que Player.applyFriction): sin esto,
     // al rotar la direcciÃƒÆ’Ã‚Â³n deseada la velocidad acumulada crece sin lÃƒÆ’Ã‚Â­mite.
@@ -2043,6 +2173,18 @@ export class BotManager {
     if (bot.stuckCheckTimer < 0.7) return;
     const moved = distance2D(bot.pos.x, bot.pos.z, bot._chkPos.x, bot._chkPos.z);
     if (bot._moving && moved < 0.18) {
+      if (this._mapId === 'dust_short') {
+        bot.stuckCount = 0;
+        bot.avoidTimer = 0;
+        bot.detourTimer = 0;
+        bot.path = null;
+        bot.repathTimer = 0;
+        bot.vel.x = 0;
+        bot.vel.z = 0;
+        bot._chkPos.copy(bot.pos);
+        bot.stuckCheckTimer = 0;
+        return;
+      }
       bot.stuckCount++;
       // Esquivar perpendicular a la direcciÃƒÆ’Ã‚Â³n deseada (deslizarse por la pared).
       let ax = -(bot._wishZ || 0);
@@ -2112,60 +2254,64 @@ export class BotManager {
       if (!byId.has(node.id)) byId.set(node.id, node);
     }
 
-    const link = (a, b) => {
+    const link = (a, b, bidirectional = true) => {
       if (!a || !b || a === b) return;
       if (!a.neighbors.includes(b)) a.neighbors.push(b);
-      if (!b.neighbors.includes(a)) b.neighbors.push(a);
+      if (bidirectional && !b.neighbors.includes(a)) b.neighbors.push(a);
     };
 
     for (const n of nodes) {
-      for (const lid of n.links) link(n, byId.get(lid));
+      for (const lid of n.links) link(n, byId.get(lid), map?.id !== 'dust_short');
     }
 
-    // Fallback: nodos aislados se conectan a los mÃƒÆ’Ã‚Â¡s cercanos.
-    for (const n of nodes) {
-      if (n.neighbors.length) continue;
-      const cands = [];
-      for (const o of nodes) {
-        if (o === n) continue;
-        const d = distance2D(n.x, n.z, o.x, o.z);
-        if (d <= 9) cands.push({ o, d });
-      }
-      cands.sort((a, b) => a.d - b.d);
-      for (let i = 0; i < Math.min(2, cands.length); i++) link(n, cands[i].o);
-    }
-
-    // Conectar componentes separados (mapas a medio hacer).
-    const comp = new Map();
-    let compCount = 0;
-    for (const n of nodes) {
-      if (comp.has(n)) continue;
-      const queue = [n];
-      comp.set(n, compCount);
-      while (queue.length) {
-        const c = queue.pop();
-        for (const o of c.neighbors) {
-          if (!comp.has(o)) {
-            comp.set(o, compCount);
-            queue.push(o);
-          }
-        }
-      }
-      compCount++;
-    }
-    if (compCount > 1) {
+    // Dust Short waypoints are generated from measured GLB support. Never bridge
+    // disconnected components heuristically across real holes or narrow walls.
+    if (map?.id !== 'dust_short') {
+      // Fallback: nodos aislados se conectan a los mÃƒÆ’Ã‚Â¡s cercanos.
       for (const n of nodes) {
-        let best = null;
-        let bd = Infinity;
+        if (n.neighbors.length) continue;
+        const cands = [];
         for (const o of nodes) {
-          if (comp.get(o) === comp.get(n)) continue;
+          if (o === n) continue;
           const d = distance2D(n.x, n.z, o.x, o.z);
-          if (d < bd) {
-            bd = d;
-            best = o;
+          if (d <= 9) cands.push({ o, d });
+        }
+        cands.sort((a, b) => a.d - b.d);
+        for (let i = 0; i < Math.min(2, cands.length); i++) link(n, cands[i].o);
+      }
+
+      // Conectar componentes separados (mapas a medio hacer).
+      const comp = new Map();
+      let compCount = 0;
+      for (const n of nodes) {
+        if (comp.has(n)) continue;
+        const queue = [n];
+        comp.set(n, compCount);
+        while (queue.length) {
+          const c = queue.pop();
+          for (const o of c.neighbors) {
+            if (!comp.has(o)) {
+              comp.set(o, compCount);
+              queue.push(o);
+            }
           }
         }
-        if (best && bd < 30) link(n, best);
+        compCount++;
+      }
+      if (compCount > 1) {
+        for (const n of nodes) {
+          let best = null;
+          let bd = Infinity;
+          for (const o of nodes) {
+            if (comp.get(o) === comp.get(n)) continue;
+            const d = distance2D(n.x, n.z, o.x, o.z);
+            if (d < bd) {
+              bd = d;
+              best = o;
+            }
+          }
+          if (best && bd < 30) link(n, best);
+        }
       }
     }
 

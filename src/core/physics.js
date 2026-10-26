@@ -24,6 +24,13 @@ export class PhysicsWorld {
 
   setSlopes(slopes = []) {
     this.slopes = slopes.map(s => s instanceof SlopeCollider ? s : new SlopeCollider(s));
+    this._slopeGrid = null;
+    if(this.slopes.some(s=>s.triangle)) {
+      this._slopeGrid=new Map();
+      for(const slope of this.slopes)for(let x=Math.floor(slope.minX/4);x<=Math.floor(slope.maxX/4);x++)for(let z=Math.floor(slope.minZ/4);z<=Math.floor(slope.maxZ/4);z++) {
+        const k=x+','+z;if(!this._slopeGrid.has(k))this._slopeGrid.set(k,[]);this._slopeGrid.get(k).push(slope);
+      }
+    }
   }
 
   addSlope(slope) {
@@ -31,22 +38,35 @@ export class PhysicsWorld {
     this.slopes.push(collider);return collider;
   }
 
+  _querySlopes(minX,maxX,minZ,maxZ) {
+    if(!this._slopeGrid)return this.slopes;
+    const found=new Set();
+    for(let x=Math.floor(minX/4);x<=Math.floor(maxX/4);x++)for(let z=Math.floor(minZ/4);z<=Math.floor(maxZ/4);z++)for(const s of this._slopeGrid.get(x+','+z)||[])found.add(s);
+    return [...found];
+  }
+  _bodySlopes(body,start=body.pos) {
+    const r=(body.radius??.38)+.01;
+    return this._querySlopes(Math.min(start.x,body.pos.x)-r,Math.max(start.x,body.pos.x)+r,Math.min(start.z,body.pos.z)-r,Math.max(start.z,body.pos.z)+r);
+  }
   _moveOnSlopes(body, start, wasGrounded) {
     if (!this.slopes.length) return;
     const r = body.radius ?? .38, h = body.height ?? 1.8;
+    const nearby=this._bodySlopes(body,start);
     // Follow walkable ground only within the step budget. Airborne bodies use
     // swept hull/plane collisions, including ramp sides and the underside.
     if (wasGrounded && body.vel.y <= 0) {
-      for (const slope of this.slopes) {
+      for (const slope of nearby) {
         const y = slope.supportHeight(body.pos.x, body.pos.z, r);
         if (!slope.walkable || y === null || y > start.y + (body.stepHeight ?? .45) || y < start.y - .08) continue;
         const oldY = body.pos.y;body.pos.y = y + .001;
-        if (!this.overlapsWorld(this.bodyBox(body))) {body.onGround = true;body.vel.y = 0;return;}
+        // Ground seam tolerance must not admit a tiny wall penetration. Once
+        // inside a thin face, a subsequent sweep has no entering plane.
+        if (!this.overlapsWorld(this.bodyBox(body)) && !nearby.some(other=>other!==slope && other.overlaps(body,other.walkable ? .002 : .000001))) {body.onGround = true;body.vel.y = 0;return;}
         body.pos.y = oldY;
       }
     }
     let closest = null;
-    for (const slope of this.slopes) {
+    for (const slope of nearby) {
       const hit = slope.sweep(start, body.pos, r, h);
       if (hit && (!closest || hit.fraction < closest.fraction)) closest = hit;
     }
@@ -58,7 +78,7 @@ export class PhysicsWorld {
       else body.onGround = false;
     }
     if (!body.onGround && body.vel.y <= 0) {
-      for (const slope of this.slopes) {
+      for (const slope of nearby) {
         const y = slope.supportHeight(body.pos.x, body.pos.z, r);
         if (slope.walkable && y !== null && y <= body.pos.y + .002 && y >= body.pos.y - .06) {
           body.pos.y = y + .001;body.onGround = true;body.vel.y = 0;break;
@@ -98,7 +118,7 @@ export class PhysicsWorld {
     const r = body.radius ?? 0.38;
     _test.min.set(body.pos.x - r, body.pos.y, body.pos.z - r);
     _test.max.set(body.pos.x + r, body.pos.y + height, body.pos.z + r);
-    return !this.overlapsWorld(_test, epsilon) && !this.slopes.some(s => s.overlaps({...body, height}, epsilon));
+    return !this.overlapsWorld(_test, epsilon) && !this._bodySlopes(body).some(s => s.overlaps({...body, height}, epsilon));
   }
 
   hasGroundBelow(body, offsetX = 0, offsetZ = 0, drop = 0.85) {
@@ -111,7 +131,7 @@ export class PhysicsWorld {
       if (x < c.min.x || x > c.max.x || z < c.min.z || z > c.max.z) continue;
       if (c.max.y <= top && c.max.y >= bottom) return true;
     }
-    return this.slopes.some(s => {
+    return this._querySlopes(x,x,z,z).some(s => {
       const y = s.supportHeight(x,z);return s.walkable && y !== null && y <= top && y >= bottom;
     });
   }
@@ -287,7 +307,7 @@ export class PhysicsWorld {
 
     let slopeHit = null;
     const end = this._origin.clone().addScaledVector(this._dir, best);
-    for (const slope of this.slopes) {
+    for (const slope of this._querySlopes(Math.min(this._origin.x,end.x)-slopeRadius,Math.max(this._origin.x,end.x)+slopeRadius,Math.min(this._origin.z,end.z)-slopeRadius,Math.max(this._origin.z,end.z)+slopeRadius)) {
       const start = this._origin.clone();start.y -= slopeRadius;
       const target = end.clone();target.y -= slopeRadius;
       const hit = slope.sweep(start, target, slopeRadius, slopeRadius * 2);
@@ -343,6 +363,6 @@ export class PhysicsWorld {
   isPositionFree(pos, radius = 0.4, height = 1.8) {
     _test.min.set(pos.x - radius, pos.y + 0.02, pos.z - radius);
     _test.max.set(pos.x + radius, pos.y + height, pos.z + radius);
-    return !this.overlapsWorld(_test) && !this.slopes.some(s => s.overlaps({pos, radius, height}));
+    return !this.overlapsWorld(_test) && !this._bodySlopes({pos,radius,height}).some(s => s.overlaps({pos, radius, height}));
   }
 }

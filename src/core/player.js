@@ -6,6 +6,8 @@ import {
   movementPresetForGame,
 } from './movement-presets.js';
 
+import { resolveArmorDamage } from '../combat/ballistics.js';
+
 const UP = new THREE.Vector3(0, 1, 0);
 const _forward = new THREE.Vector3();
 const _right = new THREE.Vector3();
@@ -14,8 +16,8 @@ const _eye = new THREE.Vector3();
 
 const DEFAULT_RUN_SPEED = 6.25; // 250 GoldSrc units/s at ~40 u per world meter.
 export const DEFAULT_PLAYER_COLLISION_RADIUS = 0.38;
-// The community Dust2 GLB has narrower openings than the native CS 1.6 BSP.
-// Keep its character/camera/collision calibration isolated from classic maps.
+// Imported Dust2 DM / Dust Short GLBs have narrower passages than native CS 1.6 BSP.
+// Keep their character/camera/collision calibration isolated from classic maps.
 export const DUST2_PLAYER_COLLISION_RADIUS = 0.25;
 export const DEFAULT_PLAYER_STAND_HEIGHT = 1.8;
 export const DEFAULT_PLAYER_CROUCH_HEIGHT = 1.32;
@@ -28,7 +30,7 @@ export function collisionHullForMap(mapOrId = null) {
   const mapId = typeof mapOrId === 'string' ? mapOrId : mapOrId?.id;
   const dust2 = mapId === 'de_dust2_dm';
   return {
-    radius: dust2 ? DUST2_PLAYER_COLLISION_RADIUS : DEFAULT_PLAYER_COLLISION_RADIUS,
+    radius: mapId === 'dust_short' ? .3 : dust2 ? DUST2_PLAYER_COLLISION_RADIUS : DEFAULT_PLAYER_COLLISION_RADIUS,
     standHeight: dust2 ? DUST2_PLAYER_STAND_HEIGHT : DEFAULT_PLAYER_STAND_HEIGHT,
     crouchHeight: dust2 ? DUST2_PLAYER_CROUCH_HEIGHT : DEFAULT_PLAYER_CROUCH_HEIGHT,
     eyeStand: dust2 ? DUST2_PLAYER_EYE_STAND : 1.62,
@@ -348,10 +350,8 @@ export class Player {
     if (!this.onGround) this.vel.y -= preset.gravity * 0.5 * dt;
 
     if (!wasOnGround && this.onGround) {
-      if (fallSpeed < -8.2) {
-        const dmg = Math.min(90, Math.floor((-fallSpeed - 8.2) * 10));
-        if (dmg > 0) this.takeDamage(dmg, null, 'legs', 'fall');
-      }
+      // Landing has sound and camera feedback only. Fall damage is disabled
+      // for every game mode by the DEUSHIMA ruleset.
       game.audio.play('land', { volume: clamp(fallSpeed / -12, 0.25, 1) });
       this.addShake(0.08);
       // Held Space is consumed on the landing tick itself, before any ground friction.
@@ -444,8 +444,10 @@ export class Player {
   }
 
   decayRecoil(dt) {
-    this.recoilPitch = expDamp(this.recoilPitch, 0, 9, dt);
-    this.recoilYaw = expDamp(this.recoilYaw, 0, 9, dt);
+    if (!this.game.weapons?.recoilStates?.has(this.game.weapons.currentId)) {
+      this.recoilPitch = expDamp(this.recoilPitch, 0, 9, dt);
+      this.recoilYaw = expDamp(this.recoilYaw, 0, 9, dt);
+    }
     this.shake = Math.max(0, this.shake - dt * 2.4);
   }
 
@@ -476,24 +478,16 @@ export class Player {
   }
 
   takeDamage(amount, source, part = 'chest', weaponId = 'unknown') {
-    if (!this.alive) return 0;
+    if (!this.alive || weaponId === 'fall') return 0;
     const game = this.game;
     const previousHealth = this.health;
     const previousArmor = this.armor;
     let dmg = Math.max(0, amount);
     if (dmg <= 0) return 0;
 
-    let armorDamage = 0;
-    if (this.armor > 0) {
-      const blocked = part === 'head' ? (this.helmet ? 0.5 : 0) : 0.5;
-      const healthPortion = dmg * (1 - blocked);
-      armorDamage = part === 'head' && !this.helmet ? 0 : Math.min(this.armor, dmg * 0.5);
-      this.armor = Math.max(0, this.armor - armorDamage);
-      dmg = healthPortion;
-    }
-
-    if (this.spawnProtection > 0) dmg *= 0.5;
-    dmg = Math.max(1, Math.round(dmg));
+    const result = resolveArmorDamage(dmg, this, part, weaponId, this.spawnProtection > 0 ? .5 : 1);
+    this.armor = result.armorRemaining;
+    dmg = result.healthDamage;
     this.health -= dmg;
     game.classicUI?.hud?.notifyDamage?.(
       Math.max(0, previousHealth - Math.max(0, this.health)),

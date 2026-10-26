@@ -1,5 +1,6 @@
 import { DamagePulse } from './damage-pulse.js';
 import { WEAPON_ASSETS } from '../weapon-assets.js';
+import { DEFAULT_OFFLINE_DUEL_MAP, OFFLINE_DUEL_MAPS, isOfflineDuelMap } from './offline-maps.js';
 
 /**
  * Capa visual CS 1.6 clsica.
@@ -495,15 +496,12 @@ class ClassicMenu {
         <span class="cm-fs-icon">⛶</span><span class="cm-fs-label">PANTALLA COMPLETA</span>
       </button>
       <nav class="cm-nav" aria-label="Menú principal">
-        <button class="cm-btn primary" data-cm="duel"><span class="idx">01</span>JUGAR 1V1<span class="hint">AIM_MAP</span></button>
-        <button class="cm-btn" data-cm="redline"><span class="idx">02</span>AIM_REDLINE<span class="hint">REDLINE · BOTS</span></button>
-        <button class="cm-btn" data-cm="forge"><span class="idx">03</span>AIM_FORGE<span class="hint">TRAINING YARD</span></button>
-        <button class="cm-btn" data-cm="assault"><span class="idx">04</span>ASSAULT 1V1<span class="hint">ALMACÉN</span></button>
-        <button class="cm-btn" data-cm="online"><span class="idx">05</span>ONLINE 1V1 / 2V2<span class="hint">AMIGOS</span></button>
-        <button class="cm-btn" data-cm="deathmatch"><span class="idx">06</span>DEATHMATCH<span class="hint">ONLINE / OFFLINE</span></button>
-        <button class="cm-btn" data-cm="options"><span class="idx">07</span>OPCIONES<span class="hint">AJUSTES</span></button>
-        <button class="cm-btn" data-cm="help"><span class="idx">08</span>COMO JUGAR<span class="hint">AYUDA</span></button>
-        <button class="cm-btn" data-cm="quit"><span class="idx">09</span>SALIR<span class="hint">FIN</span></button>
+        <button class="cm-btn primary" data-cm="offline"><span class="idx">01</span>1V1 OFFLINE<span class="hint">SELECCIONAR MAPA</span></button>
+        <button class="cm-btn" data-cm="online"><span class="idx">02</span>ONLINE 1V1 / 2V2<span class="hint">AMIGOS</span></button>
+        <button class="cm-btn" data-cm="deathmatch"><span class="idx">03</span>DEATHMATCH<span class="hint">ONLINE / OFFLINE</span></button>
+        <button class="cm-btn" data-cm="options"><span class="idx">04</span>OPCIONES<span class="hint">AJUSTES</span></button>
+        <button class="cm-btn" data-cm="help"><span class="idx">05</span>COMO JUGAR<span class="hint">AYUDA</span></button>
+        <button class="cm-btn" data-cm="quit"><span class="idx">06</span>SALIR<span class="hint">FIN</span></button>
       </nav>
       <div class="cm-foot">
         <span class="cm-keys"><b>ENTER</b> JUGAR | <b>TAB</b> MARCADOR | <b>G</b> TIRAR ARMA | <b>ESC</b> PAUSA</span>
@@ -534,10 +532,7 @@ class ClassicMenu {
         if (btn.disabled) return;
         this._sound('buttonclick', 0.34);
         const action = btn.dataset.cm;
-        if (action === 'duel') this._startDuel();
-        else if (action === 'redline') this._startRedline();
-        else if (action === 'forge') this._startForge();
-        else if (action === 'assault') this._startAssault();
+        if (action === 'offline') this._openOfflineSelector();
         else if (action === 'online') this._startOnline();
         else if (action === 'deathmatch') this._startDeathmatch();
         else if (action === 'fullscreen') this._toggleFullscreen();
@@ -553,12 +548,32 @@ class ClassicMenu {
       }
       const apply = e.target.closest('[data-cm-apply]');
       if (apply) this._applyOptions();
+      const map = e.target.closest('[data-offline-map]');
+      if (map) {
+        this._sound('buttonclick', 0.34);
+        this._startOfflineMap(map.dataset.offlineMap);
+      }
+    });
+    this.root.addEventListener('pointerover', (e) => {
+      const map = e.target.closest?.('[data-offline-map]');
+      if (!map || map.contains(e.relatedTarget)) return;
+      const now = performance.now();
+      if (now - this._lastRolloverAt > 65) {
+        this._lastRolloverAt = now;
+        this._sound('buttonrollover', 0.45);
+      }
     });
     const auto = new URLSearchParams(location.search).get('auto');
-    if (auto === 'duel') setTimeout(() => this._startDuel(), 700);
-    if (auto === 'redline') setTimeout(() => this._startRedline(), 700);
-    if (auto === 'forge') setTimeout(() => this._startForge(), 700);
-    if (auto === 'assault') setTimeout(() => this._startAssault(), 700);
+    const autoMaps = {
+      duel: 'aim_1v1',
+      redline: 'aim_redline',
+      forge: 'aim_forge',
+      assault: 'cs_assault',
+      office: 'cs_office',
+      dust2: 'de_dust2',
+      dust_short: 'dust_short',
+    };
+    if (autoMaps[auto]) setTimeout(() => this._startOfflineMap(autoMaps[auto]), 700);
   }
   _arm(btn) {
     if (this._armed === btn) return;
@@ -597,41 +612,46 @@ class ClassicMenu {
     const audio = this.game?.audio;
     audio?.play?.(name === 'buttonrollover' ? 'ui_hover' : 'ui_click', { volume });
   }
-  _startDuel() {
+  _offlineSelectorMarkup() {
+    const maps = OFFLINE_DUEL_MAPS.map((map, index) => `
+      <button class="cm-offline-map" type="button" data-offline-map="${map.id}">
+        <span class="cm-offline-index">${String(index + 1).padStart(2, '0')}</span>
+        <span class="cm-offline-copy"><b>${map.label}</b><small>${map.hint}</small></span>
+        <span class="cm-offline-arrow">›</span>
+      </button>`).join('');
+    return `
+      <h2>1V1 OFFLINE</h2>
+      <p class="lead">Seleccioná un mapa para jugar contra un bot.</p>
+      <div class="cm-offline-grid" role="list" aria-label="Mapas 1V1 offline">${maps}</div>
+      <button class="cm-close" type="button" data-cm-close>VOLVER</button>
+    `;
+  }
+  _openOfflineSelector() {
+    this._openModal(this._offlineSelectorMarkup());
+  }
+  _startOfflineMap(mapId = DEFAULT_OFFLINE_DUEL_MAP) {
+    if (!isOfflineDuelMap(mapId)) mapId = DEFAULT_OFFLINE_DUEL_MAP;
+    this._closeModal();
     this._hide();
     this.game.settings.volume = Number(this.game.settings.volume) || 0.65;
     this.game._suppressPause = true;
     setTimeout(() => { this.game._suppressPause = false; }, 1600);
-    if (typeof this.game.startDuel === 'function') this.game.startDuel({ difficulty: 'normal', roundsToWin: Number(this.game.settings.roundsToWin) || 13 });
-    else this.game.startMatch({ map: 'de_dust2', team: 'CT', teamSize: 2, roundsToWin: 10 });
-  }
-  _startRedline() {
-    this._hide();
-    this.game._suppressPause = true;
-    setTimeout(() => { this.game._suppressPause = false; }, 1600);
-    if (typeof this.game.startDuel === 'function') {
-      this.game.startDuel({
-        map: 'aim_redline',
-        difficulty: 'normal',
-        roundsToWin: Number(this.game.settings.roundsToWin) || 13,
-      });
-    }
-  }
-  _startForge() {
-    this._hide();
-    this.game._suppressPause = true;
-    setTimeout(() => { this.game._suppressPause = false; }, 1600);
-    this.game.startDuel({
-      map: 'aim_forge',
+    const config = {
       difficulty: 'normal',
       roundsToWin: Number(this.game.settings.roundsToWin) || 13,
-    });
+    };
+    if (typeof this.game.startOffline === 'function') this.game.startOffline(mapId, config);
+    else if (typeof this.game.startDuel === 'function') this.game.startDuel({ ...config, map: mapId });
+  }
+  _startDuel() { this._startOfflineMap('aim_1v1'); }
+  _startRedline() {
+    this._startOfflineMap('aim_redline');
+  }
+  _startForge() {
+    this._startOfflineMap('aim_forge');
   }
   _startAssault() {
-    this._hide();
-    this.game._suppressPause = true;
-    setTimeout(() => { this.game._suppressPause = false; }, 1600);
-    this.game.startDuel({ map: 'cs_assault', difficulty: 'normal' });
+    this._startOfflineMap('cs_assault');
   }
   _startOnline() {
     this._hide();
@@ -706,7 +726,7 @@ class ClassicMenu {
         <b>Space</b><span>Saltar / bhop</span><b>G</b><span>Tirar arma</span>
         <b>Tab</b><span>Marcador</span><b>Esc</b><span>Pausa</span>
       </div>
-      <p class="lead" style="margin-top:16px">Mapas compactos: AIM_MAP, AIM_REDLINE, AIM_FORGE y ASSAULT. Partida al primero en ganar 13 rondas.</p>
+      <p class="lead" style="margin-top:16px">1V1 OFFLINE: AIM_MAP, AIM_REDLINE, AIM_FORGE, ASSAULT, CS_OFFICE, DUST2 y DUST SHORT. Partida al primero en ganar 13 rondas.</p>
       <button class="cm-close" data-cm-close>CERRAR</button>
     `;
   }
