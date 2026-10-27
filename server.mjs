@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = __dirname;
+const projectVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
 const port = Number(process.env.PORT || 8095);
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -27,6 +28,11 @@ const server = http.createServer((req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
     let pathname = decodeURIComponent(url.pathname);
+    if (pathname === '/version.json') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ version: projectVersion }));
+      return;
+    }
     if (pathname === '/__health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true }));

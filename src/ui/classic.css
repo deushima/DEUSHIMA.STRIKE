@@ -207,6 +207,14 @@
   color: #c4b9a8;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
 }
+.cm-version {
+  margin-top: 4px;
+  color: #d2cec0;
+  font: 10px/1.35 Tahoma, Verdana, Arial, sans-serif;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+.cm-version[hidden] { display: none; }
 .cm-legal-logo {
   display: block;
   width: min(166px, 17vw);

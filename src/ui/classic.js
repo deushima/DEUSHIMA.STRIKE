@@ -478,6 +478,7 @@ class ClassicMenu {
     this._armed = null;
     this._lastRolloverAt = 0;
     this._installMarkup();
+    this._loadVersion();
     this._bind();
     this._fsHandler = () => this._syncFullscreen();
     document.addEventListener('fullscreenchange', this._fsHandler);
@@ -509,10 +510,25 @@ class ClassicMenu {
           <img class="cm-legal-logo" src="/assets/branding/menu-logo-color.png" alt="DEUSHIMA STRIKE" draggable="false">
           <span>© 2026 DEUSHIMA · MARCA Y ARTE ORIGINAL</span>
           <span>RECURSOS DE TERCEROS · CRÉDITOS EN OPCIONES</span>
+          <span class="cm-version" hidden></span>
         </div>
       </div>
       <div class="cm-modal hidden" data-cm-modal></div>
     `;
+  }
+  async _loadVersion() {
+    try {
+      const response = await fetch('/version.json', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const { version } = await response.json();
+      if (typeof version !== 'string' || !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) return;
+      const label = this.root.querySelector('.cm-version');
+      if (!label) return;
+      label.textContent = `VERSIÓN ${version}`;
+      label.hidden = false;
+    } catch (error) {
+      console.warn('[classic] versión no disponible:', error);
+    }
   }
   _bind() {
     this.root.querySelectorAll('[data-cm]').forEach((btn) => {
@@ -694,6 +710,7 @@ class ClassicMenu {
       <p class="lead">Ajustes guardados en el navegador.</p>
       <div class="cm-field"><span>Sensibilidad</span><input data-opt="sensitivity" type="range" min="0.2" max="3" step="0.05" value="${s.sensitivity}"><output data-out="sensitivity">${Number(s.sensitivity).toFixed(2)}</output></div>
       <div class="cm-field"><span>Volumen</span><input data-opt="volume" type="range" min="0" max="1" step="0.01" value="${s.volume}"><output data-out="volume">${Math.round(s.volume * 100)}%</output></div>
+      <div class="cm-field"><span>Volumen de música</span><input data-opt="musicVolume" type="range" min="0" max="1" step="0.01" value="${s.musicVolume}"><output data-out="musicVolume">${Math.round(s.musicVolume * 100)}%</output></div>
       <div class="cm-field"><span>FOV</span><input data-opt="fov" type="range" min="70" max="110" step="1" value="${s.fov}"><output data-out="fov">${s.fov}</output></div>
       <div class="cm-field"><span>Resolución</span><input data-opt="resolution" type="range" min="0.55" max="1" step="0.05" value="${s.resolution}"><output data-out="resolution">${Math.round(s.resolution * 100)}%</output></div>
       <button class="cm-close" data-cm-apply>APLICAR</button>
@@ -708,6 +725,7 @@ class ClassicMenu {
       const v = Number(input.value);
       if (k === 'sensitivity') { s.sensitivity = v; this.game.input.sensitivity = v; }
       if (k === 'volume') { s.volume = v; this.game.audio.setVolume(v); }
+      if (k === 'musicVolume') { s.musicVolume = v; this.game.audio.setMusicVolume(v); }
       if (k === 'fov') { s.fov = v; this.game.camera.fov = v; this.game.camera.updateProjectionMatrix(); }
       if (k === 'resolution') { s.resolution = v; this.game.renderer.setPixelRatio(this.game.pixelRatio()); }
     });
@@ -801,7 +819,7 @@ class ClassicPause {
   }
   _fmt(key, value) {
     const n = Number(value);
-    if (key === 'volume') return `${Math.round(n * 100)}%`;
+    if (key === 'volume' || key === 'musicVolume') return `${Math.round(n * 100)}%`;
     if (key === 'sensitivity' || key === 'zoomSensitivity') return n.toFixed(2);
     if (key === 'fov') return `${Math.round(n)}`;
     if (key === 'resolution') return `${Math.round(n * 100)}%`;
@@ -881,6 +899,7 @@ class ClassicPause {
         <p class="cp-desc">Sonidos originales GoldSrc: armas, pasos, radio y UI.</p>
         
         ${this._row('volume', 'Volumen general', 0, 1, 0.01)}
+        ${this._row('musicVolume', 'Volumen de música', 0, 1, 0.01)}
         <label class="cp-check"><input type="checkbox" data-setting="muted" ${s.muted ? 'checked' : ''}> Silenciar</label>
         <label class="cp-check"><input type="checkbox" data-setting="hitSound" ${s.hitSound !== false ? 'checked' : ''}> Sonido de impacto</label>`;
     } else if (this.tab === 'video') {
@@ -956,11 +975,13 @@ class ClassicPause {
       s[key] = value;
     });
     s.volume = Math.max(0, Math.min(1, Number(s.volume)));
+    s.musicVolume = Math.max(0, Math.min(1, Number(s.musicVolume)));
     s.sensitivity = Math.max(0.1, Number(s.sensitivity) || 1);
     s.fov = Math.max(60, Math.min(120, Number(s.fov) || 90));
     s.resolution = Math.max(0.5, Math.min(1, Number(s.resolution) || 0.85));
     this.game.input.sensitivity = s.sensitivity;
     this.game.audio?.setVolume?.(s.muted ? 0 : s.volume);
+    this.game.audio?.setMusicVolume?.(s.musicVolume);
     if (this.game.camera) {
       this.game.camera.fov = s.fov;
       this.game.camera.updateProjectionMatrix();

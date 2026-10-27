@@ -25,6 +25,7 @@
 const DEFAULT_SETTINGS = {
   sensitivity: 1.0,
   volume: 0.65,
+  musicVolume: 1,
   fov: 90,
   resolution: 0.85,
   invertY: false,
@@ -887,6 +888,7 @@ export class UI {
       <section class="opt-section">
         <h3>Audio</h3>
         ${rangeRow('Volumen general', 'volInput', 'volOut', 'volume', { min: '0', max: '1', step: '0.01', value: s.volume })}
+        ${rangeRow('Volumen de música', 'musicVolInput', 'musicVolOut', 'musicVolume', { min: '0', max: '1', step: '0.01', value: s.musicVolume })}
         <p class="panel-note" style="margin-top:8px">Los sonidos son sintetizados en tiempo real: disparos, pasos, radio y ambiente.</p>
       </section>
 
@@ -1676,10 +1678,12 @@ export class UI {
     this._syncRange('sensInput', s.sensitivity);
     this._syncRange('fovInput', s.fov);
     this._syncRange('volInput', s.volume);
+    this._syncRange('musicVolInput', s.musicVolume);
     this._syncRange('xhSizeInput', s.crosshairSize);
     this._syncRange('sensOut', (num(s.sensitivity, 1)).toFixed(2), true);
     this._syncRange('fovOut', `${Math.round(num(s.fov, 90))}°`, true);
     this._syncRange('volOut', `${Math.round(num(s.volume, 0.65) * 100)}%`, true);
+    this._syncRange('musicVolOut', `${Math.round(num(s.musicVolume, 1) * 100)}%`, true);
     this._syncRange('xhSizeOut', `${num(s.crosshairSize, 1).toFixed(1)}×`, true);
 
     // Select de resolución.
@@ -1745,6 +1749,9 @@ export class UI {
     } else if (key === 'volume') {
       this._syncRange('volOut', `${Math.round(num(s.volume) * 100)}%`, true);
       this._syncRange('volInput', s.volume);
+    } else if (key === 'musicVolume') {
+      this._syncRange('musicVolOut', `${Math.round(num(s.musicVolume, 1) * 100)}%`, true);
+      this._syncRange('musicVolInput', s.musicVolume);
     } else if (key === 'crosshairSize') {
       this._syncRange('xhSizeOut', `${num(s.crosshairSize).toFixed(1)}×`, true);
       this._syncRange('xhSizeInput', s.crosshairSize);

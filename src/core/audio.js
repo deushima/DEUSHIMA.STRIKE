@@ -76,6 +76,7 @@ export class AudioEngine {
     this.reverbReturn = null;
     this.noiseBuffer = null;
     this.volume = 0.7;
+    this.musicVolume = 1;
     this.muted = false;
     this.ambient = null;
     this.ambientTimer = null;
@@ -273,13 +274,18 @@ export class AudioEngine {
   setVolume(v) {
     this.volume = Math.max(0, Math.min(1, v));
     if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : this.volume, this.ctx.currentTime, 0.02);
-    this.menuMusic.setVolume(this.muted ? 0 : this.volume);
+    this.menuMusic.setVolume(this.muted ? 0 : this.volume * this.musicVolume);
+  }
+
+  setMusicVolume(v) {
+    this.musicVolume = Math.max(0, Math.min(1, Number(v) || 0));
+    this.menuMusic.setVolume(this.muted ? 0 : this.volume * this.musicVolume);
   }
 
   setMuted(m) {
     this.muted = !!m;
     if (this.master) this.master.gain.setTargetAtTime(this.muted ? 0 : this.volume, this.ctx.currentTime, 0.02);
-    this.menuMusic.setVolume(this.muted ? 0 : this.volume);
+    this.menuMusic.setVolume(this.muted ? 0 : this.volume * this.musicVolume);
   }
 
   syncMenuMusic(inMenu) {

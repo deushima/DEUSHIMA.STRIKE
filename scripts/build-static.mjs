@@ -16,6 +16,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'dist');
 
+const projectVersion = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
+
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
@@ -94,7 +96,7 @@ let commit = process.env.VERCEL_GIT_COMMIT_SHA || '';
 if (!commit) {
   try { commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(); } catch { /* source archive */ }
 }
-fs.writeFileSync(path.join(out, 'version.json'), JSON.stringify({ commit, version: '2.0.0', builtAt: new Date().toISOString() }, null, 2));
+fs.writeFileSync(path.join(out, 'version.json'), JSON.stringify({ commit, version: projectVersion, builtAt: new Date().toISOString() }, null, 2));
 fs.writeFileSync(path.join(out, 'BUILD_INFO.txt'), [
   'DEUSHIMA STRIKE - public static build',
   'Includes sounds (assets/cs16/sound) and WAD textures (assets/cs16/textures/wad).',

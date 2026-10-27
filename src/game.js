@@ -33,6 +33,7 @@ import { DEFAULT_OFFLINE_DUEL_MAP, isOfflineDuelMap, offlineDuelMapLabel } from 
 const DEFAULT_SETTINGS = {
   sensitivity: 1.0,
   volume: 0.65,
+  musicVolume: 1,
   fov: 90,
   resolution: 0.85,
   invertY: false,
@@ -164,6 +165,7 @@ export class Game {
     this.input.sensitivity = this.settings.sensitivity;
     this.audio = new AudioEngine();
     this.audio.setVolume(this.settings.muted ? 0 : this.settings.volume);
+    this.audio.setMusicVolume(this.settings.musicVolume);
     this.effects = new Effects(this);
     this.physics = new PhysicsWorld([]);
     this.player = new Player(this);
@@ -972,6 +974,7 @@ export class Game {
     this.settings = { ...this.settings, ...patch };
     this.input.sensitivity = this.settings.sensitivity;
     this.audio.setVolume(this.settings.muted ? 0 : this.settings.volume);
+    this.audio.setMusicVolume(this.settings.musicVolume);
     this.camera.fov = this.settings.fov;
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(this.pixelRatio());
