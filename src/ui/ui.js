@@ -2319,13 +2319,16 @@ export class UI {
     row.__uiTimer = timer;
   }
 
-  showHitmarker(headshot) {
+  showHitmarker(headshot, damage = 0) {
     const el = this._refs.hitmarker;
     if (!el) return;
-    el.classList.remove('show', 'headshot');
+    el.classList.remove('show', 'headshot', 'heavy', 'light');
     void el.offsetWidth; // reiniciar animación
     this._renderHitmarkerLines();
     el.classList.toggle('headshot', !!headshot);
+    // Un roce y un impacto fuerte no deben sentirse idénticos.
+    el.classList.toggle('heavy', !headshot && damage >= 24);
+    el.classList.toggle('light', !headshot && damage > 0 && damage < 12);
     el.classList.add('show');
     this._later(() => el.classList.remove('show'), 240);
   }
@@ -2375,9 +2378,8 @@ export class UI {
   flash(alpha) {
     this._fadeInOverlay(this._refs.flash, alpha, 2400);
   }
-
   flashDamage(alpha) {
-    this._fadeInOverlay(this._refs.dmgv, alpha, 620);
+    this._fadeInOverlay(this._refs.dmgv, alpha, 450);
   }
 
   _setFlash(alpha) {

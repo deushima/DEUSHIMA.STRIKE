@@ -3755,6 +3755,16 @@
   box-shadow: 0 0 5px rgba(230, 90, 40, 0.8);
 }
 
+#ui-root .hud-hitmarker.heavy .hm-line {
+  width: 11px;
+  height: 3px;
+  background: #fff7e5;
+  box-shadow: 0 0 5px rgba(255, 219, 151, 0.35);
+}
+#ui-root .hud-hitmarker.light .hm-line {
+  opacity: 0.65;
+  background: #c6c8c6;
+}
 #ui-root .hud-killconfirm {
   position: absolute;
   left: 50%;

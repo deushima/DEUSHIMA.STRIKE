@@ -496,14 +496,14 @@ export class Player {
     this.lastDamageTime = game.time;
     this.lastAttacker = source;
     this.damageFlash = 1;
-    this.addShake(clamp(dmg / 45, 0.08, 0.6));
+    this.addShake(clamp(dmg / 65, 0.07, 0.43));
 
     if (source && source.pos) {
       const ang = Math.atan2(source.pos.x - this.pos.x, source.pos.z - this.pos.z);
       game.ui?.showDamage(ang * (180 / Math.PI));
     }
-    game.audio.play('hurt', { volume: clamp(dmg / 45, 0.35, 1) });
-    game.ui?.flashDamage?.(clamp(dmg / 80, 0.05, 0.35));
+    game.audio.play(previousArmor > this.armor ? 'armor_hit' : 'hurt', { volume: clamp(dmg / 55, 0.32, 0.85) });
+    game.ui?.flashDamage?.(clamp(dmg / 130, 0.04, 0.21));
 
     if (this.health <= 0) {
       this.health = 0;

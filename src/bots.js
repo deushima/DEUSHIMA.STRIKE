@@ -881,6 +881,14 @@ export class BotManager {
     bot.armor = result.armorRemaining;
     dmg = result.healthDamage;
     bot.health -= dmg;
+    // Flinch corto, proporcional al daño de vida; sin empuje físico ni stun.
+    if (dmg > 0 && bot.health > 0) {
+      bot.hitReact = Math.min(0.24, Math.max(bot.hitReact || 0, 0.075 + dmg / 340));
+      const side = source?.pos
+        ? (bot.pos.x - source.pos.x) * Math.cos(bot.yaw) - (bot.pos.z - source.pos.z) * Math.sin(bot.yaw)
+        : 1;
+      bot.hitReactDir = side < 0 ? -1 : 1;
+    }
     bot.lastDamageTime = this._time;
     bot.lastAttacker = source || null;
 
@@ -2104,11 +2112,13 @@ export class BotManager {
   _animate(bot, dt) {
     const p = bot.parts;
     if (!p) return;
+    bot.hitReact = Math.max(0, (bot.hitReact || 0) - dt * 1.9);
+    const hitLean = bot.hitReact * (bot.hitReactDir || 1) * 0.22;
     const moving = bot._moving && bot.onGround && bot.speed > 0.6;
     if (p.character) {
       const bob = moving ? Math.abs(Math.sin(bot.animPhase)) * 0.02 : Math.sin(this._time * 1.7 + bot.seed * TAU) * 0.004;
       bot.group.position.set(bot.pos.x, bot.pos.y + bob, bot.pos.z);
-      bot.group.rotation.set(0, bot.yaw + (p.character?.yawOffset || 0), 0);
+      bot.group.rotation.set(0, bot.yaw + (p.character?.yawOffset || 0), hitLean);
       p.character.update(dt, bot, moving);
       return;
     }
@@ -2123,7 +2133,7 @@ export class BotManager {
 
     const bob = moving ? Math.abs(Math.sin(bot.animPhase)) * 0.035 : Math.sin(this._time * 1.7 + bot.seed * TAU) * 0.006;
     bot.group.position.set(bot.pos.x, bot.pos.y + bob, bot.pos.z);
-    bot.group.rotation.set(0, bot.yaw, 0);
+    bot.group.rotation.set(0, bot.yaw, hitLean);
 
     if (p.headGroup) {
       p.headGroup.rotation.x = clamp(bot.pitch * 0.7, -0.55, 0.55);

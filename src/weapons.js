@@ -1108,6 +1108,7 @@ export class WeaponSystem {
     const muzzle = this._muzzleWorld(eye, baseDir, this._muzzle);
     const pellets = w.pellets || 1;
     let hitEnemy = false;
+    let hitDamage = 0;
     let headshot = false;
     let remoteHit = null;
 
@@ -1132,10 +1133,9 @@ export class WeaponSystem {
               : 0;
             if (dealt > 0) {
               hitEnemy = true;
+              hitDamage += dealt;
               if (hit.part === 'head') headshot = true;
-              if (i === 0 || Math.random() < 0.4) {
-                this.game.effects?.blood?.(hit.point, this._shotDir);
-              }
+              // La reacción/sangre real ya se produce en damageBot.
             }
           }
         } else if (hit.type === 'remote' && hit.entity) {
@@ -1148,11 +1148,7 @@ export class WeaponSystem {
               dir: this._shotDir.clone(),
             };
           }
-          hitEnemy = true;
-          if (hit.part === 'head') headshot = true;
-          if (i === 0 || Math.random() < 0.4) {
-            this.game.effects?.blood?.(hit.point, this._shotDir);
-          }
+          // Online: no anticipar sangre ni confirmación antes del servidor.
         } else if (hit.type === 'world') {
           this.game.effects?.bulletImpact?.(
             hit.point,
@@ -1163,7 +1159,8 @@ export class WeaponSystem {
       } else {
         endPoint = this._end.copy(eye).addScaledVector(this._shotDir, w.range);
       }
-      if (Math.random() < (pellets > 1 ? 0.45 : 1)) {
+      // Trazadoras ocasionales, no un láser por disparo.
+      if (Math.random() < (pellets > 1 ? 0.28 : w.type === 'sniper' ? 0.65 : 0.32)) {
         this.game.effects?.tracer?.(muzzle, endPoint);
       }
     }
@@ -1172,14 +1169,15 @@ export class WeaponSystem {
     this.dynamicSpread = Math.min(w.maxSpread, this.dynamicSpread + w.spreadPerShot);
     this.shotIndex++;
 
-    this._play(w.sound, w.volume);
+    this._play(w.sound, w.volume, { rate: 0.975 + Math.random() * 0.05 });
     this.game.effects?.muzzleFlash?.(muzzle, baseDir, w.flashScale);
     this.game.effects?.shellEject?.(
       this._right.copy(muzzle).addScaledVector(baseDir, -0.02),
       baseDir,
     );
-    this.game.setCameraShake?.(0.05 + w.recoil * 0.012);
-    this.viewmodel?.onFire();
+    // Impulso visual; no altera recoil, precisión ni cadencia de disparo.
+    this.game.setCameraShake?.(Math.min(0.17, 0.045 + w.recoil * 0.025));
+    this.viewmodel?.onFire(w);
 
     this.game.online?.notifyLocalShot?.({
       origin: eye.clone(),
@@ -1191,8 +1189,12 @@ export class WeaponSystem {
     });
 
     if (hitEnemy && !this.game.online) {
-      this.game.ui?.showHitmarker?.(headshot);
-      this._play('hit', headshot ? 0.9 : 0.6);
+      this.game.ui?.showHitmarker?.(headshot, hitDamage);
+      if (this.game.settings?.hitSound !== false) {
+        this._play('hit', Math.min(0.78, 0.32 + hitDamage / 130), {
+          rate: headshot ? 1.10 : 0.95 + Math.random() * 0.08,
+        });
+      }
     }
 
     // Recarga automática en cuanto el cargador queda vacío.

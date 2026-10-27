@@ -23,7 +23,7 @@ import { collisionHullForMap } from '../core/player.js';
 import { intersectHitbox } from '../combat/hitboxes.js';
 import { HITGROUP, rangedDamage, hitgroupMultiplier, resolveArmorDamage } from '../combat/ballistics.js';
 import { EQUIPMENT, WEAPONS } from '../weapons.js';
-import { chooseDeathmatchSpawn, DEATHMATCH_RESPAWN_SECONDS } from '../deathmatch.js';
+import { chooseDeathmatchSpawn, DEATHMATCH_RESPAWN_SECONDS, rewardDeathmatchKill } from '../deathmatch.js';
 import { RemoteAvatar } from './avatar.js';
 import { onlineMapLabel } from '../world/online_map_pool.js';
 
@@ -763,9 +763,9 @@ export class OnlineMatch {
     );
     player.damageFlash = 1;
     player.lastDamageTime = num(this.game?.time);
-    player.addShake?.(clamp(damage / 45, 0.08, 0.6));
-    this.game?.audio?.play?.('hurt', { volume: clamp(damage / 45, 0.35, 1) });
-    this.game?.ui?.flashDamage?.(clamp(damage / 80, 0.05, 0.35));
+    player.addShake?.(clamp(damage / 65, 0.07, 0.43));
+    this.game?.audio?.play?.(previousArmor > player.armor ? 'armor_hit' : 'hurt', { volume: clamp(damage / 55, 0.32, 0.85) });
+    this.game?.ui?.flashDamage?.(clamp(damage / 130, 0.04, 0.21));
   }
 
   _hostKill(killerId, victimId, weaponId, headshot) {
@@ -817,11 +817,10 @@ export class OnlineMatch {
 
   _hostRestoreDeathmatchKiller(killer) {
     if (!this.isHost || !this.isDeathmatch || !killer?.alive) return false;
-    killer.health = DEATHMATCH_KILL_REWARD_HEALTH;
-    killer.armor = DEATHMATCH_KILL_REWARD_ARMOR;
+    rewardDeathmatchKill(killer);
     if (killer.id === this.localId && this.game?.player?.alive) {
-      this.game.player.health = DEATHMATCH_KILL_REWARD_HEALTH;
-      this.game.player.armor = DEATHMATCH_KILL_REWARD_ARMOR;
+      this.game.player.health = killer.health;
+      this.game.player.armor = killer.armor;
     }
     return true;
   }
@@ -1711,8 +1710,10 @@ export class OnlineMatch {
         Math.max(0, previousArmor - player.armor),
       );
       player.damageFlash = 1;
-      player.addShake?.(clamp(num(payload.damage) / 45, 0.08, 0.6));
-      this.game?.audio?.play?.('hurt', { volume: 0.65 });
+      const damage = Math.max(0, num(payload.damage));
+      player.addShake?.(clamp(damage / 65, 0.07, 0.43));
+      this.game?.audio?.play?.(previousArmor > player.armor ? 'armor_hit' : 'hurt', { volume: clamp(damage / 55, 0.32, 0.85) });
+      this.game?.ui?.flashDamage?.(clamp(damage / 130, 0.04, 0.21));
     }
     if (record.health <= 0 && record.alive) {
       record.alive = false;
@@ -1722,8 +1723,17 @@ export class OnlineMatch {
 
   _handleHitConfirm(payload) {
     if (!payload || payload.miss) return;
-    this.game?.ui?.showHitmarker?.(!!payload.headshot);
-    this.game?.audio?.play?.('hit', { volume: payload.headshot ? 0.9 : 0.6 });
+    const damage = Math.max(0, num(payload.damage));
+    this.game?.ui?.showHitmarker?.(!!payload.headshot, damage);
+    // Escopeta: varios perdigones confirmados no deben superponer sonidos.
+    const now = performance.now();
+    if (this.game?.settings?.hitSound !== false && now - (this._lastHitFeedbackAt ?? -1000) > 65) {
+      this._lastHitFeedbackAt = now;
+      this.game?.audio?.play?.('hit', {
+        volume: Math.min(0.78, 0.32 + damage / 130),
+        rate: payload.headshot ? 1.1 : 0.97,
+      });
+    }
   }
 
   _handlePlayerHit(payload) {

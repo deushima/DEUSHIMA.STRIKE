@@ -400,15 +400,18 @@ export class Effects {
   bulletImpact(point, normal, surface = 'stone') {
     const color = SURFACE_COLORS[surface] || SURFACE_COLORS.stone;
     this.decals.spawn(point, normal, surface);
+    const metal = surface === 'metal';
+    const glass = surface === 'glass';
+    const fragments = metal ? 6 : glass ? 3 : surface === 'wood' ? 1 : 2;
     const n = normal.normalize();
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < fragments; i++) {
       const v = n.clone().multiplyScalar(rand(0.8, 3.4));
       v.x += (Math.random() - 0.5) * 3.2;
       v.y += Math.random() * 2.4;
       v.z += (Math.random() - 0.5) * 3.2;
-      this.sparks.spawn(point, v, rand(0.45, 1) * 0xffffff, rand(0.12, 0.32), { gravity: 12, drag: 0.96 });
+      this.sparks.spawn(point, v, new THREE.Color(metal ? 0xffc675 : color), rand(0.10, 0.23), { gravity: 12, drag: 0.96 });
     }
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < (metal || glass ? 1 : 3); i++) {
       const v = n.clone().multiplyScalar(rand(0.2, 0.9));
       v.x += (Math.random() - 0.5) * 0.6;
       v.y += rand(0.1, 0.5);
@@ -421,7 +424,7 @@ export class Effects {
         { gravity: -0.4, drag: 0.95 },
       );
     }
-    if (Math.random() < 0.16) this.game.audio.play('ricochet', { volume: 0.35, pan: rand(-0.6, 0.6) });
+    if (metal && Math.random() < 0.24) this.game.audio.play('ricochet', { volume: 0.35, pan: rand(-0.6, 0.6) });
   }
 
   blood(point, direction = null) {

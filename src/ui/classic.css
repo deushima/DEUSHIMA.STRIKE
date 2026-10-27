@@ -444,6 +444,13 @@
   background: #080d12; color: #d8d1bc; border: 1px solid rgba(255, 176, 0, 0.3);
   padding: 7px 9px; font: 12px "Trebuchet MS", sans-serif;
 }
+.cp-fullscreen-row .cp-btn { justify-self: start; min-width: 134px; padding: 8px 12px; }
+.cp-fullscreen-row [data-cp-fullscreen-state] { color: #ffb000; font-size: 10px; text-align: right; }
+.cp-fullscreen-note { margin: 6px 0 16px; }
+@media (max-width: 640px) {
+  .cp-fullscreen-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .cp-fullscreen-row [data-cp-fullscreen-state] { display: none; }
+}
 .cp-check { display: flex; gap: 9px; align-items: center; color: #c7bfa7; font-size: 12px; padding: 10px 0; }
 .cp-check input { accent-color: #d13f2f; }
 .cp-binds { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; font-size: 12px; color: #aaa38e; }

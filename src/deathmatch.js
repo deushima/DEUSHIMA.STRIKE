@@ -1,6 +1,14 @@
 /** Continuous offline free-for-all with independent, fast respawns. */
 export const DEATHMATCH_RESPAWN_SECONDS = 1.35;
 
+// Recompensa parcial: conserva la supervivencia sin resetear cada duelo a 100/100.
+export function rewardDeathmatchKill(killer) {
+  if (!killer || killer.alive === false) return false;
+  killer.health = Math.min(100, Math.max(0, Number(killer.health) || 0) + 35);
+  killer.armor = Math.min(100, Math.max(0, Number(killer.armor) || 0) + 20);
+  return true;
+}
+
 /** Choose the furthest feasible spawn from living opponents. */
 export function chooseDeathmatchSpawn(map, opponents = [], physics = null, random = Math.random) {
   const points = map?.deathmatchSpawns?.length
@@ -53,10 +61,7 @@ export class Deathmatch {
     if (killer && killer !== victim) {
       killer.kills = (killer.kills || 0) + 1;
       killer.score = (killer.score || 0) + 1;
-      if (killer.alive !== false) {
-        killer.health = 100;
-        killer.armor = 100;
-      }
+      rewardDeathmatchKill(killer);
       if (killer.isPlayer) {
         this.game.ui.showKillConfirm?.(headshot);
         if (headshot) this.game.audio.play('headshot');

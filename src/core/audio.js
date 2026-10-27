@@ -376,7 +376,17 @@ export class AudioEngine {
         duration: opts.duration,
         reverb: name.startsWith('gun_') || name === 'c4_explode',
       });
-      if (worked) return;
+      if (worked) {
+        if (name.startsWith('gun_')) {
+          // Transitorio mecánico breve bajo la muestra real: aporta peso sin subir su volumen.
+          const t = this.ctx.currentTime + 0.001;
+          const weight = name === 'gun_sniper' || name === 'gun_shotgun' ? 1.25
+            : name === 'gun_rifle' || name === 'gun_lmg' ? 1 : 0.65;
+          this._noise(t, 0.018, { type: 'highpass', freq: 2900, gain: 0.023 * weight, send: 0 });
+          this._tone(t, 0.062, { type: 'triangle', freq: 145, endFreq: 75, gain: 0.027 * weight, send: 0 });
+        }
+        return;
+      }
     }
     const now = this.ctx.currentTime + 0.001;
     const vol = opts.volume ?? 1;
@@ -428,6 +438,10 @@ export class AudioEngine {
       case 'knife_hit':
         this._noise(now, 0.08, { type: 'bandpass', freq: 300, q: 1.3, gain: 0.25 * vol, pan, send: 0.05 });
         this._tone(now, 0.08, { type: 'triangle', freq: 180, endFreq: 80, gain: 0.1 * vol, pan });
+        break;
+      case 'armor_hit':
+        this._noise(now, 0.048, { type: 'bandpass', freq: 1250, q: 1.3, gain: 0.13 * vol, pan, send: 0 });
+        this._tone(now, 0.065, { type: 'triangle', freq: 230, endFreq: 120, gain: 0.09 * vol, pan });
         break;
       case 'hit':
         this._tone(now, 0.035, { type: 'square', freq: 1600, endFreq: 1300, gain: 0.06 * vol });

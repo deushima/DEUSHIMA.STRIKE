@@ -1,7 +1,6 @@
 import { DamagePulse } from './damage-pulse.js';
 import { WEAPON_ASSETS } from '../weapon-assets.js';
 import { DEFAULT_OFFLINE_DUEL_MAP, OFFLINE_DUEL_MAPS, isOfflineDuelMap } from './offline-maps.js';
-import { prepareShortcutLock } from './shortcut-guard.js';
 
 /**
  * Capa visual CS 1.6 clsica.
@@ -609,7 +608,6 @@ class ClassicMenu {
       document.exitFullscreen?.().catch(() => {});
       return;
     }
-    prepareShortcutLock(); // Registrar lock en el gesto del botón, antes del fullscreen.
     const el = document.documentElement;
     el.requestFullscreen?.({ navigationUI: 'hide' })
       .then(() => this._syncFullscreen())
@@ -774,6 +772,9 @@ class ClassicPause {
     this.fromMenu = false;
     this.tab = 'mouse';
     this._build();
+    this._fullscreenStatusHandler = () => this._syncFullscreenControl();
+    document.addEventListener('fullscreenchange', this._fullscreenStatusHandler);
+    document.addEventListener('deushima:shortcutlockchange', this._fullscreenStatusHandler);
   }
   _build() {
     this.root.innerHTML = `
@@ -821,6 +822,7 @@ class ClassicPause {
       if (action === 'close') this._resume();
       else if (action === 'resume') this._resume();
       else if (action === 'apply') { this._apply(); this._render(); }
+      else if (action === 'fullscreen') this.game.classicUI?.menu?._toggleFullscreen();
       else if (action === 'quit') this._quit();
     });
     this.root.addEventListener('input', (e) => {
@@ -870,6 +872,22 @@ class ClassicPause {
         : `<input type="range" min="${min}" max="${max}" step="${step}" data-setting="${key}" value="${v}">`;
     return `<div class="cp-row" data-cp-row><label>${label}</label>${control}${out}</div>`;
   }
+  _syncFullscreenControl() {
+    const button = this.root.querySelector('[data-cp="fullscreen"]');
+    if (!button) return;
+    const active = !!document.fullscreenElement;
+    const protectedKeys = document.documentElement.dataset.shortcutLock === 'active';
+    button.textContent = active ? 'DESACTIVAR' : 'ACTIVAR';
+    button.setAttribute('aria-pressed', String(active));
+    const indicator = this.root.querySelector('[data-cp-fullscreen-state]');
+    if (indicator) indicator.textContent = active ? 'ACTIVA' : 'INACTIVA';
+    const note = this.root.querySelector('[data-cp-fullscreen-note]');
+    if (note) note.textContent = !active
+      ? 'Activá el modo desde acá. Esc seguirá controlando la pausa del juego.'
+      : protectedKeys
+        ? 'Esc abre/cierra la pausa sin salir. Para salir de pantalla completa, usá DESACTIVAR. Chromium conserva la salida de emergencia con Esc sostenida.'
+        : 'La protección de Esc no está confirmada por el navegador. Revisá el permiso de Keyboard Lock; Esc podría salir de pantalla completa.';
+  }
   _render() {
     const s = this.game.settings;
     this.root.querySelectorAll('.cp-tab').forEach((el) => el.classList.toggle('active', el.dataset.cpTab === this.tab));
@@ -917,6 +935,8 @@ class ClassicPause {
       content.innerHTML = `
         <h2 class="cp-title">Vídeo</h2>
         <p class="cp-desc">Resolución interna, campo de visión y mira.</p>
+        <div class="cp-row cp-fullscreen-row"><label>Pantalla completa</label><button class="cp-btn" type="button" data-cp="fullscreen" aria-pressed="false">ACTIVAR</button><span data-cp-fullscreen-state>INACTIVA</span></div>
+        <div class="cp-note cp-fullscreen-note" data-cp-fullscreen-note></div>
         ${this._row('resolution', 'Resolución interna', 0.55, 1, 0.05)}
         ${this._row('fov', 'Campo de visión', 70, 110, 1)}
         <div class="cp-row"><label>Color de mira</label><input type="color" data-setting="crosshairColor" value="${s.crosshairColor}"><span></span></div>
@@ -977,6 +997,7 @@ class ClassicPause {
       this.root.querySelector('[data-cp="quit"]').style.display = '';
     }
     this.root.querySelector('[data-cp="apply"]').style.display = ['server', 'about'].includes(this.tab) ? 'none' : '';
+    this._syncFullscreenControl();
   }
   _apply() {
     const s = this.game.settings;

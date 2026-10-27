@@ -4,17 +4,11 @@ const BROWSER_SHORTCUT_KEYS = [
   'KeyA', 'KeyD', 'KeyS', 'KeyW',
   'KeyB', 'KeyF', 'KeyG', 'KeyH', 'KeyJ', 'KeyL',
   'KeyN', 'KeyO', 'KeyP', 'KeyR', 'KeyT', 'KeyU',
-  'Tab', 'F5',
+  'Tab', 'F5', 'Escape',
 ];
 const BLOCKED_SHORTCUTS = new Set(BROWSER_SHORTCUT_KEYS);
 const EDITABLE = 'input, textarea, select, [contenteditable], [role="textbox"]';
 
-let prepareKeyboardLock = null;
-
-export function prepareShortcutLock() {
-  // Llamar durante el click de fullscreen: conserva la activación de usuario.
-  prepareKeyboardLock?.('fullscreen-button');
-}
 
 export function installShortcutGuard(game) {
   const keyboard = navigator.keyboard;
@@ -73,7 +67,6 @@ export function installShortcutGuard(game) {
     });
   }
 
-  prepareKeyboardLock = requestLock;
   report('windowed');
 
   document.addEventListener('fullscreenchange', () => {
@@ -97,6 +90,11 @@ export function installShortcutGuard(game) {
   window.addEventListener('keydown', (event) => {
     if (document.fullscreenElement && !granted && !pending && event.isTrusted) {
       requestLock('keydown');
+    }
+    if (event.code === 'Escape' && document.fullscreenElement) {
+      // Keyboard Lock (Escape) permite pausar sin salir de fullscreen en Chromium.
+      event.preventDefault();
+      return; // Propagar a UI y Game para que Escape conserve su acción normal.
     }
     if ((!event.ctrlKey && !event.metaKey) && event.code !== 'F5') return;
     if (event.altKey || document.designMode === 'on' ||

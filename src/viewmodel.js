@@ -681,11 +681,15 @@ export class ViewModel {
     this.knifeT = 0;
     this.throwT = 0;
     this.cycleT = 0;
+    this.kickReturn = 16;
     if (this.flashMesh) this.flashMesh.visible = false;
   }
 
-  onFire() {
-    this.kick = Math.min(1.6, this.kick + 1);
+  onFire(weapon = null) {
+    // Diferenciar el golpe físico de cada arma sin mover la dirección real del tiro.
+    const force = clamp(0.70 + (weapon?.recoil ?? 2) * 0.13, 0.78, 1.38);
+    this.kickReturn = clamp(24 - (weapon?.recoil ?? 2) * 2, 12, 23);
+    this.kick = Math.min(1.65, this.kick + force);
     this.cycleT = 1;
     this.flashT = 0.055;
     if (this.flashMesh) {
@@ -738,7 +742,7 @@ export class ViewModel {
     }
 
     // Timers / spring-ish decay.
-    this.kick = expDamp(this.kick, 0, 16, dt);
+    this.kick = expDamp(this.kick, 0, this.kickReturn || 16, dt);
     if (this.flashT > 0) {
       this.flashT -= dt;
       if (this.flashT <= 0 && this.flashMesh) this.flashMesh.visible = false;
