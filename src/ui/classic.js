@@ -1,6 +1,7 @@
 import { DamagePulse } from './damage-pulse.js';
 import { WEAPON_ASSETS } from '../weapon-assets.js';
 import { DEFAULT_OFFLINE_DUEL_MAP, OFFLINE_DUEL_MAPS, isOfflineDuelMap } from './offline-maps.js';
+import { prepareShortcutLock } from './shortcut-guard.js';
 
 /**
  * Capa visual CS 1.6 clsica.
@@ -482,6 +483,7 @@ class ClassicMenu {
     this._bind();
     this._fsHandler = () => this._syncFullscreen();
     document.addEventListener('fullscreenchange', this._fsHandler);
+    document.addEventListener('deushima:shortcutlockchange', this._fsHandler);
     this._syncFullscreen();
     this._tick = this._tick.bind(this);
     requestAnimationFrame(this._tick);
@@ -607,12 +609,15 @@ class ClassicMenu {
       document.exitFullscreen?.().catch(() => {});
       return;
     }
+    prepareShortcutLock(); // Registrar lock en el gesto del botón, antes del fullscreen.
     const el = document.documentElement;
     el.requestFullscreen?.({ navigationUI: 'hide' })
       .then(() => this._syncFullscreen())
-      .catch(() => {
-        // Si el navegador lo bloquea, intentar sin opciones.
-        el.requestFullscreen?.().then(() => this._syncFullscreen()).catch(() => {});
+      .catch((error) => {
+        console.warn('[shortcuts] Fullscreen rechazado:', error);
+        // Reintento compatible, aunque puede exigir un nuevo click.
+        el.requestFullscreen?.().then(() => this._syncFullscreen())
+          .catch((fallbackError) => console.warn('[shortcuts] Reintento fullscreen rechazado:', fallbackError));
       });
   }
   _syncFullscreen() {
@@ -621,8 +626,14 @@ class ClassicMenu {
     const active = !!document.fullscreenElement;
     btn.classList.toggle('is-fullscreen', active);
     const label = btn.querySelector('.cm-fs-label');
-    if (label) label.textContent = active ? 'SALIR DE PANTALLA COMPLETA' : 'PANTALLA COMPLETA';
-    btn.title = active ? 'Salir de pantalla completa' : 'Pantalla completa';
+    const lockStatus = document.documentElement.dataset.shortcutLock;
+    if (label) label.textContent = !active ? 'PANTALLA COMPLETA · PROTEGER ATAJOS'
+      : lockStatus === 'active' ? 'ATAJOS PROTEGIDOS · SALIR'
+      : lockStatus === 'failed' || lockStatus === 'unsupported' ? 'ATAJOS NO PROTEGIDOS · SALIR'
+      : 'PANTALLA COMPLETA · SALIR';
+    btn.title = !active ? 'Entrar desde el juego para interceptar atajos del navegador (F11 no alcanza)'
+      : lockStatus === 'active' ? 'Atajos del navegador protegidos; clic para salir'
+      : 'Keyboard Lock no confirmado. Consultá [shortcuts] en la consola';
   }
   _sound(name, volume) {
     const audio = this.game?.audio;
